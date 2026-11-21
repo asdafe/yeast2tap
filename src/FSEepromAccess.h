@@ -1,0 +1,235 @@
+/*
+* Copyright 2019 Vito Tai
+*
+* This is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this file.  If not, see <http://www.gnu.org/licenses/>.
+*/
+#include "Config.h"
+#include "EepromTypes.h"
+#include "EepromStructs.h"
+#include "EepromFormat.h"
+#ifndef FSEepromAccess_H
+#define FSEepromAccess_H
+#if defined(ESP32)
+#if UseLittleFS
+#include <LittleFS.h>
+#else
+#include <SPIFFS.h>
+#endif
+#endif
+
+
+#define File_ControlSettings "/eeprom_control_setting"
+#define File_ControlConstant "/eeprom_control_constant"
+#define File_DeviceDefinition "/eeprom_device_definition"
+
+class FSEepromAccess
+{
+    static bool exists(const char* file){
+        return FileSystem.exists(file);
+    }
+    static void remove(const char* file){
+        if(exists(file)) FileSystem.remove(file);
+    }
+    static bool readFromFile(const char* filename,char* target,size_t size){
+        if(!exists(filename)) return false;
+
+		File file = FileSystem.open(filename, "r");
+		if (file) {
+			file.readBytes(target, size);
+			file.close();
+			return true;
+		}
+        DBG_PRINTF("read %s error:%u\n",filename,size);
+        return false;
+    }
+    static bool writeToFile(const char* filename,const uint8_t* source,size_t size){
+		File file = FileSystem.open(filename, "w");
+		if (file) {
+			file.write(source, size);
+			file.close();
+			return true;
+		} else {
+             DBG_PRINTF("read %s error:%u\n",filename,size);
+			return false;
+		}
+	}
+
+    static DeviceConfig devices[MAX_DEVICE_SLOT];
+
+    // The migration below keys off the file size, so the legacy stride must not drift.
+    static_assert(sizeof(DeviceConfigFixed4) == 28, "legacy DeviceConfig layout changed");
+    static_assert(sizeof(DeviceConfig) != sizeof(DeviceConfigFixed4), "calibration widening did not change the layout");
+    
+    
+    static void loadDeviceDefinition(){
+        File file = FileSystem.open(File_DeviceDefinition, "r");
+        if(!file){
+            memset((char*)&devices,0,sizeof(devices));
+            return;
+        }
+        size_t fileSize = file.size();
+        if(fileSize == sizeof(devices)){
+            file.readBytes((char*)&devices, sizeof(devices));
+            file.close();
+            return;
+        }
+        // Older firmware wrote one byte per calibration. Reading that file with the
+        // new 32 byte stride would silently mix fields across devices, so convert it
+        // once and rewrite it in the current format.
+        if(fileSize == sizeof(DeviceConfigFixed4) * MAX_DEVICE_SLOT){
+            static DeviceConfigFixed4 legacy[MAX_DEVICE_SLOT];
+            file.readBytes((char*)legacy, sizeof(legacy));
+            file.close();
+            for(uint8_t i=0; i<MAX_DEVICE_SLOT; i++)
+                migrateDeviceConfigFromFixed4(legacy[i], devices[i]);
+            saveDeviceDefinition();
+            DBG_PRINTF("Migrated device definition from fixed4_4 format (%u -> %u bytes)\n",
+                (unsigned)fileSize, (unsigned)sizeof(devices));
+            return;
+        }
+        file.close();
+        DBG_PRINTF("Device definition size %u does not match %u, resetting it\n",
+            (unsigned)fileSize, (unsigned)sizeof(devices));
+        memset((char*)&devices,0,sizeof(devices));
+    }
+public:
+    
+    static void begin(){
+        loadDeviceDefinition();
+    }
+    
+    static bool hasSettings(void){
+        return exists(File_ControlSettings) && exists(File_ControlConstant);
+        // if hasSettings() returns false, 
+        //   ControlConstant and ControlSettings will be set to ZERO.
+    }
+
+    static void initializeSetting(){
+    }
+
+    static void zapData(){
+        DBG_PRINTF("Remove EEPROM files.\n");
+        remove(File_ControlSettings);
+        remove(File_ControlConstant);
+        remove(File_DeviceDefinition);
+        memset((void*) devices,0,sizeof(devices));
+    }
+
+	static void readControlSettings(ControlSettings& target, eptr_t offset, uint16_t size) {
+        if(!readFromFile(File_ControlSettings,(char*)&target,size))
+            memset(&target,0,size);
+	}
+
+	static void writeControlSettings(eptr_t target, ControlSettings& source, uint16_t size) {
+        writeToFile(File_ControlSettings,(const uint8_t*)&source,size);
+        DBG_PRINTF("Write Control Settings:%u\n",size);
+	}
+
+	static void readControlConstants(ControlConstants& target, eptr_t offset, uint16_t size) {
+        if(!exists(File_ControlConstant)){
+            memset(&target,0,size);
+            return;
+        }
+        File file = FileSystem.open(File_ControlConstant, "r");
+        if(!file){
+            DBG_PRINTF("read %s error:%u\n",File_ControlConstant,size);
+            memset(&target,0,size);
+            return;
+        }
+        size_t fileSize = file.size();
+        if(fileSize == size){
+            // current format (EEPROM_FORMAT_VERSION >= 10)
+            file.readBytes((char*)&target, size);
+            file.close();
+            return;
+        }
+        if(fileSize == sizeof(ControlConstants_v11)){
+            ControlConstants_v11 legacy;
+            file.readBytes((char*)&legacy, sizeof(legacy));
+            file.close();
+            migrateControlConstantsFromV11(legacy, target);
+            DBG_PRINTF("Migrated ControlConstants from v11 format (%u -> %u bytes)\n",(unsigned)fileSize,size);
+            writeControlConstants(offset, target, size);
+            return;
+        }
+        if(fileSize == sizeof(ControlConstants_v9)){
+            ControlConstants_v9 legacy;
+            file.readBytes((char*)&legacy, sizeof(legacy));
+            file.close();
+            migrateControlConstantsFromV9(legacy, target);
+            DBG_PRINTF("Migrated ControlConstants from v9 format (%u -> %u bytes)\n",(unsigned)fileSize,size);
+            writeControlConstants(offset, target, size);
+            return;
+        }
+        if(fileSize == sizeof(ControlConstants_v8)){
+            ControlConstants_v8 legacy;
+            file.readBytes((char*)&legacy, sizeof(legacy));
+            file.close();
+            migrateControlConstantsFromV8(legacy, target);
+            DBG_PRINTF("Migrated ControlConstants from v8 format (%u -> %u bytes)\n",(unsigned)fileSize,size);
+            writeControlConstants(offset, target, size);
+            return;
+        }
+        if(fileSize == sizeof(ControlConstants_v7)){
+            ControlConstants_v7 legacy;
+            file.readBytes((char*)&legacy, sizeof(legacy));
+            file.close();
+            migrateControlConstantsFromV7(legacy, target);
+            DBG_PRINTF("Migrated ControlConstants from v7 format (%u -> %u bytes)\n",(unsigned)fileSize,size);
+            writeControlConstants(offset, target, size);
+            return;
+        }
+        if(fileSize == sizeof(ControlConstants_v5)){
+            ControlConstants_v5 legacy;
+            file.readBytes((char*)&legacy, sizeof(legacy));
+            file.close();
+            migrateControlConstantsFromV5(legacy, target);
+            DBG_PRINTF("Migrated ControlConstants from v5 format (%u -> %u bytes)\n",(unsigned)fileSize,size);
+            writeControlConstants(offset, target, size);
+            return;
+        }
+        if(fileSize == sizeof(ControlConstants_v1)){
+            ControlConstants_v1 legacy;
+            file.readBytes((char*)&legacy, sizeof(legacy));
+            file.close();
+            migrateControlConstantsFromV1(legacy, target);
+            DBG_PRINTF("Migrated ControlConstants from pre-v5 format (%u -> %u bytes)\n",(unsigned)fileSize,size);
+            writeControlConstants(offset, target, size);
+            return;
+        }
+        DBG_PRINTF("ControlConstants file size mismatch (%u bytes, expected %u / %u / %u / %u / %u) - using zeroed data\n",
+            (unsigned)fileSize,size,(unsigned)sizeof(ControlConstants_v8),(unsigned)sizeof(ControlConstants_v7),(unsigned)sizeof(ControlConstants_v5),(unsigned)sizeof(ControlConstants_v1));
+        file.close();
+        memset(&target,0,size);
+	}
+
+	static void writeControlConstants(eptr_t target, ControlConstants& source, uint16_t size) {
+        writeToFile(File_ControlConstant,(const uint8_t*) &source, size);
+        DBG_PRINTF("Write Control constants:%u\n",size);
+	}
+
+	static void readDeviceDefinition(DeviceConfig& target, uint8_t deviceIndex, uint16_t size) {
+        memcpy((void*)&target,(void*) &devices[deviceIndex],size);
+	}
+
+	static void writeDeviceDefinition(uint8_t deviceIndex, const DeviceConfig& source, uint16_t size) {
+	    memcpy((void*) &devices[deviceIndex],(void*)&source,size);
+        DBG_PRINTF("write device:%d size:%u\n",deviceIndex,size);
+        saveDeviceDefinition();
+	}
+    static void saveDeviceDefinition(){
+        writeToFile(File_DeviceDefinition, (const uint8_t*) devices,sizeof(devices));
+    }
+};
+#endif

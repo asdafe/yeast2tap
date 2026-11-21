@@ -1,0 +1,1471 @@
+<!DOCTYPE html><html lang="en"><head><meta http-equiv=content-type content="text/html; charset=utf-8"><meta name=viewport content="width=device-width,initial-scale=1"><script>window.__numDotMsg="Use a dot for decimals (2.75), not a comma (2,75).",function(){var t=new XMLHttpRequest;t.open("GET","/theme",!0),t.onload=function(){if(!(t.status<200||300<=t.status)){var e="";try{e=JSON.parse(t.responseText).theme||""}catch(e){return}window.__yeastTheme=e,window.applyYeastTheme&&applyYeastTheme(e)}},t.send()}()</script><title> yeast2tap </title><meta name=apple-mobile-web-app-title content=yeast2tap><meta name=apple-mobile-web-app-capable content=yes><script type=text/javascript src=/dygraph.min.js ignore></script><script>"use strict";!function(){var t;window.Dygraph?t=window.Dygraph:"undefined"!=typeof module&&void 0===(t=require("../dygraph")).NAME&&void 0!==t.default&&(t=t.default);function g(a,n){if(!Array.isArray(a)||!Array.isArray(n))return!1;var t=a.length;if(t!==n.length)return!1;for(;t--;)if(a[t]!==n[t])return!1;return!0}function h(r,l,o){for(var h=!1,a=0;a<r.length;a++){r[a].updateOptions({drawCallback:function(a,n){if(h||n){for(var t=0;t<r.length;t++)if(r[t]==a){o[t]&&o[t].drawCallback&&o[t].drawCallback.apply(this,arguments);break}}else{h=!0;var e={dateWindow:a.xAxisRange()};a.isZoomed("x")||(e.dateWindow=null),l.range&&(e.valueRange=a.yAxisRange());for(var i=0;i<r.length;i++)r[i]!=a?(!g(e.dateWindow,r[i].getOption("dateWindow"))||l.range&&!g(e.valueRange,r[i].getOption("valueRange")))&&r[i].updateOptions(e):o[i]&&o[i].drawCallback&&o[i].drawCallback.apply(this,arguments);h=!1}}},!0)}}function c(o,h){for(var g=!1,a=0;a<o.length;a++){o[a].updateOptions({highlightCallback:function(a,n,t,e,i){if(!g){g=!0;for(var r=0;r<o.length;r++)if(this!=o[r]){var l=o[r].getRowForX(n);null!==l&&o[r].setSelection(l,i,void 0,!0)}else h[r]&&h[r].highlightCallback&&h[r].highlightCallback.apply(this,arguments);g=!1}},unhighlightCallback:function(a){if(!g){g=!0;for(var n=0;n<o.length;n++)this!=o[n]?o[n].clearSelection():h[n]&&h[n].unhighlightCallback&&h[n].unhighlightCallback.apply(this,arguments);g=!1}}},!0)}}t.synchronize=function(){if(0===arguments.length)throw"Invalid invocation of Dygraph.synchronize(). Need >= 1 argument.";var e=["selection","zoom","range"],i={selection:!0,zoom:!0,range:!0},r=[],l=[],a=function(a){if(!(a instanceof Object))throw"Last argument must be either Dygraph or Object.";for(var n=0;n<e.length;n++){var t=e[n];a.hasOwnProperty(t)&&(i[t]=a[t])}};if(arguments[0]instanceof t){for(var n=0;n<arguments.length&&arguments[n]instanceof t;n++)r.push(arguments[n]);if(n<arguments.length-1)throw"Invalid invocation of Dygraph.synchronize(). All but the last argument must be Dygraph objects.";n==arguments.length-1&&a(arguments[arguments.length-1])}else{if(!arguments[0].length)throw"Invalid invocation of Dygraph.synchronize(). First parameter must be either Dygraph or list of Dygraphs.";for(n=0;n<arguments[0].length;n++)r.push(arguments[0][n]);if(2==arguments.length)a(arguments[1]);else if(2<arguments.length)throw"Invalid invocation of Dygraph.synchronize(). Expected two arguments: array and optional options argument."}if(r.length<2)throw"Invalid invocation of Dygraph.synchronize(). Need two or more dygraphs to synchronize.";var o=r.length;for(n=0;n<r.length;n++)r[n].ready(function(){if(0==--o){for(var a=["drawCallback","highlightCallback","unhighlightCallback"],n=0;n<r.length;n++){l[n]||(l[n]={});for(var t=a.length-1;0<=t;t--)l[n][a[t]]=r[n].getFunctionOption(a[t])}i.zoom&&h(r,i,l),i.selection&&c(r,l)}});return{detach:function(){for(var a=0;a<r.length;a++){var n=r[a];i.zoom&&n.updateOptions({drawCallback:l[a].drawCallback}),i.selection&&n.updateOptions({highlightCallback:l[a].highlightCallback,unhighlightCallback:l[a].unhighlightCallback})}l=i=r=null}}},t._require.add("dygraphs/src/extras/synchronizer.js",{})}()</script><script type=text/javascript src=/bwf.js ignore></script><script>/* chart.js */
+var  CHART_VERSION = 7;
+var  CHART_V6 = 6;
+
+var GravityChangePeriod1 = 6 * 3600;
+var GravityChangePeriod2 = 12 * 3600;
+var GravityChangePeriod3 =24 * 3600;
+    function SimpleFilter(beta) {
+        this.b = beta;
+        this.y =0;
+    }
+    SimpleFilter.prototype.reset =function() {
+        this.y = 0;
+    };
+    SimpleFilter.prototype.add= function(gravity) {
+        if (this.y == 0) this.y = gravity;
+        else this.y = this.y + this.b * (gravity - this.y);
+        return this.y;
+    };
+    SimpleFilter.prototype.setBeta=function(beta) {
+        this.b = beta;
+    };
+
+    var GravityFilter= new SimpleFilter(0.1);
+
+
+        // gravity tracking
+        var GravityAndTiltIndex = 6;
+        var PSIIndex = 7;
+        var RoomTemperatureIndex = 4;
+
+        var BrewChart = function(div) {
+            var t = this;
+            t.cid = div;
+            t.ctime = 0;
+            t.interval = 60;
+            t.numLine = 7;
+            t.numData = 8;
+            t.calculateSG = false;
+            t.calibrating = false;
+
+            t.lidx = 0;
+            t.celius = true;
+            t.GravityChangeChart=false;
+            t.data = [];
+            // The log stores "device reading + the correction the firmware
+            // applied". appliedCorrection comes from the log header (or, for the
+            // live view, from the current settings); the two arrays below keep the
+            // device value so the chart can show it without a second parse.
+            t.appliedCorrection = null;
+            t.showUncorrected = false;
+            t.rawSg = [];
+            t.rawFilterSg = [];
+            t.uncorrectedRows = null;
+            t.rawFilter = new SimpleFilter(0.1);
+            t.clearData();
+        };
+        var colorIdle = "white";
+        var colorCool = "rgba(20, 168, 178, 0.7)";
+        var colorHeat = "rgba(201, 92, 92, 0.68)";
+        var colorBoth = "rgba(230, 148, 64, 0.48)";
+        var colorWaitingHeat = "rgba(201, 92, 92, 0.2)";
+        var colorWaitingCool = "rgba(20, 168, 178, 0.2)";
+        var colorHeatingMinTime = "rgba(201, 92, 92, 0.68)";
+        var colorCoolingMinTime = "rgba(20, 168, 178, 0.7)";
+        var colorWaitingPeakDetect = "rgba(0, 0, 0, 0.2)";
+
+        // line colors
+
+        var ColorBeerTemp="rgb(41,170,41)";
+        var ColorBeerSet ="rgb(240, 100, 100)";
+        var ColorFridgeTemp="rgb(89, 184, 255)";
+        var ColorFridgeSet ="rgb(255, 161, 76)";
+        var ColorRoomTemp = "#AAAAAA";
+        var ColorAuxTemp =  "#f5e127";
+        var ColorGravity="rgb(153,0,153)";
+        var ColorFiltersg ="#000abb";
+
+        var colorPressure="#0000EE";
+        var colorPressureSet="rgb(240, 100, 100)";
+        var colorCarbonation="gray";
+
+        var colorHumidity="#2222DD";
+        var colorHumiditySet="#EE1111";
+        var colorRoomHumidity="#AAAAAA";
+        var SgChange1Color="#DD33DD";
+        var SgChange2Color="#3333DD";
+        var SgChange3Color="#33DD33";
+
+        var STATE_LINE_WIDTH = 15;
+        var STATES = [{
+            name: "IDLE",
+            color: colorIdle,
+            text: "Idle"
+        }, {
+            name: "STATE_OFF",
+            color: colorIdle,
+            text: "Off"
+        }, {
+            name: "DOOR_OPEN",
+            color: "#eee",
+            text: "Door Open",
+            doorOpen: true
+        }, {
+            name: "HEATING",
+            color: colorHeat,
+            text: "Heating",
+            draw: true
+        }, {
+            name: "COOLING",
+            color: colorCool,
+            text: "Cooling",
+            draw: true
+        }, {
+            name: "WAITING_TO_COOL",
+            color: colorWaitingCool,
+            text: "Waiting to Cool",
+            waiting: true
+        }, {
+            name: "WAITING_TO_HEAT",
+            color: colorWaitingHeat,
+            text: "Waiting to Heat",
+            waiting: true
+        }, {
+            name: "WAITING_FOR_PEAK_DETECT",
+            color: colorWaitingPeakDetect,
+            text: "Waiting for Peak",
+            waiting: true
+        }, {
+            name: "COOLING_MIN_TIME",
+            color: colorCoolingMinTime,
+            text: "Cooling Min Time",
+            extending: true,
+            draw: true
+        }, {
+            name: "HEATING_MIN_TIME",
+            color: colorHeatingMinTime,
+            text: "Heating Min Time",
+            extending: true,
+            draw: true
+        }, {
+            name: "INVALID",
+            color: colorIdle,
+            text: "Invalid State"
+        }];
+        STATES[11] = {
+            name: "HEATING_AND_COOLING",
+            color: colorBoth,
+            text: "Heating + Cooling",
+            draw: true
+        };
+        BrewChart.Mode = {
+            b: "Beer Constant",
+            f: "Fridge Constant",
+            o: "Off",
+            p: "Profile",
+            i: "Independent"
+        };
+
+
+
+        BrewChart.Colors = [ColorBeerSet,ColorBeerTemp, ColorFridgeTemp, ColorFridgeSet, ColorRoomTemp, ColorAuxTemp,ColorGravity, ColorFiltersg,
+                        colorPressure,colorPressureSet,colorCarbonation,
+                        colorHumidity,colorHumiditySet,colorRoomHumidity,SgChange1Color,SgChange2Color,SgChange3Color];
+        BrewChart.Labels = ['Time', 'beerSet', 'beerTemp', 'fridgeTemp', 'fridgeSet', 'roomTemp', 'auxTemp', 'gravity', 'filtersg'];
+        BrewChart.ClassLabels = ['', 'beer-set', 'beer-temp', 'fridge-temp', 'fridge-set', 'room-temp', 'aux-temp', 'gravity', 'filtersg',
+                            'pressure','pressure-set','carbonation',
+                            'humidity','humidity-set','room-humidity','sgchange1','sgchange2','sgchange3'];
+
+        var BeerSetLine = 1;
+        var BeerTempLine = 2;
+        var FridgeTempLine = 3;
+        var FridgeSetLine = 4;
+        var RoomTempLine = 5;
+        var AuxTempLine = 6;
+        var GravityLine = 7;
+        var FilteredSgLine = 8;
+
+        var PressureLine = 9;
+        var PressureSetLine = 10;
+        var CarbonationLine = 11;
+
+
+        var ChamberHumidityLine = 12;
+        var SetHumidityLine = 13;
+        var RoomHumidityLine = 14;
+
+
+        var SgChange1Line = 15;
+        var SgChange2Line = 16;
+        var SgChange3Line = 17;
+
+        var NumberOfLines =17;
+
+
+
+        var PSIDataIndex = 8;
+
+        BrewChart.prototype.clearData = function() {
+            this.laststat = [NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN,NaN];
+            this.sg = NaN;
+            this.og = NaN;
+        };
+
+        BrewChart.prototype.setCelius = function(c) {
+            this.celius = c;
+            this.ylabel(STR.ChartLabel + '(' + (c ? "°C" : "°F") + ')');
+        };
+
+        BrewChart.prototype.incTime = function() {
+            // format time, use hour and minute only.
+            this.ctime += this.interval;
+            //	console.log("incTime:"+ this.ctime/this.interval);
+        };
+
+        BrewChart.prototype.formatDate = function(d) {
+            var HH = d.getHours();
+            var MM = d.getMinutes();
+            var SS = d.getSeconds();
+
+            function T(x) {
+                return (x > 9) ? x : ("0" + x);
+            }
+            return d.toLocaleDateString() + " " + T(HH) + ":" + T(MM) + ":" + T(SS);
+        };
+
+        BrewChart.prototype.formatDuration = function(elapsed) {
+            var str = "";
+            var days = Math.floor(elapsed / 86400);
+            if (days > 0) {
+                str = days + "d";
+                elapsed -= days * 86400;
+            }
+            var hours = elapsed / 3600;
+            str = str + hours.toFixed(1) + "h";
+            return str;
+        };
+
+        BrewChart.prototype.showLegend = function(date, row) {
+            window.__chartHover = true;
+            var stage = Q(".chart-stage");
+            if (stage) stage.classList.add("is-hover");
+            this._hoverDate = date;
+            this._hoverRow = row;
+            var self = this;
+            if (self._hoverFrame) return;
+            self._hoverFrame = requestAnimationFrame(function() {
+                self._hoverFrame = 0;
+                if (!window.__chartHover) return;
+                self.paintHover(self._hoverDate, self._hoverRow);
+            });
+        };
+
+        BrewChart.prototype.paintHover = function(date, row) {
+            var d = new Date(date);
+            function put(sel, html) {
+                var el = Q(sel);
+                if (el) el.innerHTML = html;
+            }
+            put(".beer-chart-legend-time", this.formatDate(d));
+            if (Q(".beer-chart-legend-elapse")) Q(".beer-chart-legend-elapse").innerHTML = this.formatDuration(d.getTime() / 1000 - this.starttime);
+
+            put(".chart-legend-row.beer-temp .legend-value", this.tempFormat(this.chart.getValue(row, BeerTempLine)));
+            put(".chart-legend-row.beer-set .legend-value", this.tempFormat(this.chart.getValue(row, BeerSetLine)));
+            put(".chart-legend-row.fridge-temp .legend-value", this.tempFormat(this.chart.getValue(row, FridgeTempLine)));
+            put(".chart-legend-row.fridge-set .legend-value", this.tempFormat(this.chart.getValue(row, FridgeSetLine)));
+            put(".chart-legend-row.room-temp .legend-value", this.tempFormat(this.chart.getValue(row, RoomTempLine)));
+
+            put(".chart-legend-row.aux-temp .legend-value", this.tempFormat(this.chart.getValue(row, AuxTempLine)));
+
+            var g = this.chart.getValue(row, GravityLine);
+            put(".chart-legend-row.gravity .legend-value", (!g || isNaN(g)) ? "--" : (this.plato ? g.toFixed(2) + "&deg;P" : g.toFixed(4)));
+            var filteredG = this.chart.getValue(row, FilteredSgLine);
+            put(".chart-legend-row.filtersg .legend-value", (!filteredG || isNaN(filteredG)) ? "--" : (this.plato ? filteredG.toFixed(2) + "&deg;P" : filteredG.toFixed(4)));
+
+            var state = parseInt(this.state[row]);
+            if (!isNaN(state) && STATES[state]) {
+                put('.beer-chart-state', STATES[state].text);
+            }
+            if(this.psiAvail && this.pchart){
+                var psi = this.pchart.getValue(row, 1);
+                put(".chart-legend-row.pressure .legend-value", (psi == null || isNaN(psi))? "--":psi.toFixed(1));
+                var psiSet=this.pchart.getValue(row, 2 );
+                put(".chart-legend-row.pressure-set .legend-value", (psiSet == null || isNaN(psiSet))? "--":Math.round(psiSet));
+                var carbo=this.pchart.getValue(row, 3 );
+                put(".chart-legend-row.carbonation .legend-value", (carbo == null || isNaN(carbo))? "--":carbo.toFixed(1));
+            }
+            if(this.rhValid && this.hchart){
+                var rh = this.hchart.getValue(row, 1);
+                put(".chart-legend-row.humidity .legend-value", (isNaN(rh) || rh == null || rh==255)? "--":(rh+"%"));
+                var sh = this.hchart.getValue(row, 2);
+                put(".chart-legend-row.set-humidity .legend-value", (isNaN(sh) || sh == null || sh==255)? "--":(sh+"%"));
+                var room = this.hchart.getValue(row, 3);
+                put(".chart-legend-row.room-humidity .legend-value", (isNaN(room) || room == null || room==255)? "--":(room+"%"));
+            }
+
+            if(this.GravityChangeChart && this.gcchart){
+                var v1 = this.gcchart.getValue(row, 1);
+                var v2 = this.gcchart.getValue(row, 2);
+                var v3 = this.gcchart.getValue(row, 3);
+
+                put(".chart-legend-row.sgchange1 .legend-value", ( (isNaN(v1) || v1==null)? "--":v1.toFixed(1))); 
+                put(".chart-legend-row.sgchange2 .legend-value", ( (isNaN(v2) || v2==null)? "--":v2.toFixed(1))); 
+                put(".chart-legend-row.sgchange3 .legend-value", ( (isNaN(v3) || v3==null)? "--":v3.toFixed(1)));                      
+            }
+
+        };
+
+        BrewChart.prototype.hideLegend = function() {
+            window.__chartHover = false;
+            var stage = Q(".chart-stage");
+            if (stage) stage.classList.remove("is-hover");
+            var nodes = document.querySelectorAll(".legend-value");
+            for (var i = 0; i < nodes.length; i++) {
+                var live = nodes[i].getAttribute("data-live");
+                if (live != null) nodes[i].innerHTML = live;
+            }
+            this.paintRestingSeries();
+            var timeEl = Q(".beer-chart-legend-time");
+            var stateEl = Q(".beer-chart-state");
+            var stateLive = Q("#lcdControlState");
+            var lastTime = this.lastSampleTime();
+            if (timeEl) timeEl.innerHTML = lastTime || this.dateLabel;
+            if (stateEl) {
+                var liveState = stateLive ? stateLive.getAttribute("data-live") : "";
+                stateEl.innerHTML = liveState || "state";
+            }
+        };
+
+        BrewChart.prototype.sampleText = function(row, line, kind) {
+            if (!this.chart || row < 0) return "--";
+            if (kind === "sg") {
+                var g = this.chart.getValue(row, line);
+                return (!g || isNaN(g)) ? "--" : (this.plato ? g.toFixed(2) + "&deg;P" : g.toFixed(4));
+            }
+            return this.tempFormat(this.chart.getValue(row, line));
+        };
+
+        BrewChart.prototype.restingText = function(line, kind) {
+            var horizon = 6 * 60 * 60 * 1000;
+            var now = Date.now();
+            var rows = this.chart.numRows();
+            for (var row = rows - 1; row >= 0; row--) {
+                var x = this.chart.getValue(row, 0);
+                if (x == null || isNaN(x)) continue;
+                if (now - x > horizon) break;
+                var text = this.sampleText(row, line, kind);
+                if (text !== "--") return text;
+            }
+            return "--";
+        };
+
+        BrewChart.prototype.paintRestingSeries = function() {
+            if (window.__chartHover || !this.chart || !this.chart.numRows) return;
+            var map = [
+                [".chart-legend-row.aux-temp .legend-value", AuxTempLine, "temp"],
+                [".chart-legend-row.gravity .legend-value", GravityLine, "sg"],
+                [".chart-legend-row.filtersg .legend-value", FilteredSgLine, "sg"]
+            ];
+            for (var i = 0; i < map.length; i++) {
+                var el = Q(map[i][0]);
+                if (!el || el.hasAttribute("data-live")) continue;
+                el.innerHTML = this.restingText(map[i][1], map[i][2]);
+            }
+        };
+
+        BrewChart.prototype.lastSampleTime = function() {
+            if (!this.chart || !this.chart.numRows) return "";
+            var row = this.chart.numRows() - 1;
+            if (row < 0) return "";
+            var x = this.chart.getValue(row, 0);
+            if (x == null || isNaN(x)) return "";
+            return this.formatDate(new Date(x));
+        };
+
+        BrewChart.prototype.tempFormat = function(y) {
+            var v = parseFloat(y);
+            if (isNaN(v)) return "--";
+            var DEG = this.celius ? "&deg;C" : "&deg;F";
+            return parseFloat(v).toFixed(2) + DEG;
+        };
+        BrewChart.prototype.initLegend = function() {
+            // init color; a missing legend row must not stop the chart
+            if (Q(".beer-temp .toggle")) {
+                for (var i = 1; i < BrewChart.ClassLabels.length; i++) {
+                    var label = BrewChart.ClassLabels[i];
+                    var row = Q(".chart-legend-row." + label);
+                    var dot = Q("." + label + ".toggle");
+                    if (!row || !dot) continue;
+                    row.style.color = BrewChart.Colors[i - 1];
+                    dot.style.backgroundColor = BrewChart.Colors[i - 1];
+                }
+            }
+            var timeLabel = Q(".beer-chart-legend-time");
+            this.dateLabel = timeLabel ? timeLabel.innerHTML : "";
+        };
+        BrewChart.prototype.toggleLine = function(line) {
+            var me=this;
+            me.shownlist[line] = !me.shownlist[line];
+            var divclass = BrewChart.ClassLabels[line];
+            
+            
+
+            var chart =(line >=SgChange1Line)?   me.gcchart:((line >= ChamberHumidityLine)? me.hchart:(line >= PressureLine)? me.pchart:me.chart);
+            var base=(line >=SgChange1Line)?    SgChange1Line:((line >= ChamberHumidityLine)? ChamberHumidityLine:(line >= PressureLine)? PressureLine:1);
+            if (chart) chart.setVisibility(line - base, me.shownlist[line]);
+
+            var dot = Q("." + divclass + " .toggle");
+            var row = Q(".chart-legend-row." + divclass);
+            if (dot) dot.style.backgroundColor = (me.shownlist[line] && row) ? row.style.color : "transparent";
+            saveChartVisibility(me.shownlist);
+        };
+        function chartVisibilityKey() { return "yeast2tap-chart-series"; }
+        function readChartVisibility() {
+            try {
+                var raw = localStorage.getItem(chartVisibilityKey());
+                if (!raw) return null;
+                var obj = JSON.parse(raw);
+                return (obj && typeof obj == "object") ? obj : null;
+            } catch (e) { return null; }
+        }
+        function saveChartVisibility(shownlist) {
+            try {
+                var obj = {};
+                for (var i = 1; i < BrewChart.ClassLabels.length; i++) obj[BrewChart.ClassLabels[i]] = !!shownlist[i];
+                localStorage.setItem(chartVisibilityKey(), JSON.stringify(obj));
+            } catch (e) {}
+        }
+        BrewChart.prototype.applySavedVisibility = function() {
+            var saved = readChartVisibility();
+            if (!saved || !this.shownlist) return;
+            for (var i = 1; i < BrewChart.ClassLabels.length; i++) {
+                var label = BrewChart.ClassLabels[i];
+                if (!saved.hasOwnProperty(label)) continue;
+                var on = !!saved[label];
+                this.shownlist[i] = on;
+                var row = Q(".chart-legend-row." + label);
+                if (row) {
+                    var box = row.querySelector("input.switch-input");
+                    if (box) box.checked = on;
+                }
+                var dot = Q("." + label + " .toggle");
+                if (dot) dot.style.backgroundColor = (on && row) ? row.style.color : "transparent";
+                var chart = (i >= SgChange1Line) ? this.gcchart : ((i >= ChamberHumidityLine) ? this.hchart : ((i >= PressureLine) ? this.pchart : this.chart));
+                var base = (i >= SgChange1Line) ? SgChange1Line : ((i >= ChamberHumidityLine) ? ChamberHumidityLine : ((i >= PressureLine) ? PressureLine : 1));
+                if (chart) chart.setVisibility(i - base, on);
+            }
+        };
+        BrewChart.prototype.setLabels = function(y1, y2) {
+            this.ylabel = y1;
+            this.y2label = y2;
+        };
+        BrewChart.prototype.setPChart = function(id,label,carbonation) {
+            this.pcid=id;
+            this.plabel=label;
+            this.clabel=carbonation;
+        };
+        BrewChart.prototype.createPSIChart = function() {
+            var t=this;
+            var ldiv = document.createElement("div");
+            ldiv.className = "hide";
+            document.body.appendChild(ldiv);
+            var opt = {
+                labels: ["Time","psi","psiset","co2"],
+                colors: BrewChart.Colors.slice(PressureLine-1,CarbonationLine),
+                connectSeparatedPoints: true,
+                ylabel: t.plabel,
+                y2label: t.clabel,
+                series: {
+                    'co2': {
+                        axis: 'y2',
+                        drawPoints: false
+                    }
+                }, 
+
+                axisLabelFontSize: 12,
+//                animatedZooms: true,
+                gridLineColor: '#ccc',
+                gridLineWidth: '0.1px',
+                labelsDiv: ldiv,
+                labelsDivStyles: {
+                    'display': 'none'
+                },
+                //displayAnnotations: true,
+                //showRangeSelector: true,
+                strokeWidth: 1,
+                axes: {
+                    y: {
+                        valueFormatter: function(y) {
+                            return y.toFixed(1);
+                        },
+                        axisLabelFormatter: function(y) {
+                            return y.toFixed(1);
+                        }
+                    },
+                    y2: {
+                        valueFormatter: function(y) {
+                            return y.toFixed(1);
+                        },
+                        axisLabelFormatter: function(y) {
+                            return y.toFixed(1);
+                        }
+                    }
+                }, 
+                highlightCallback: function(e, x, pts, row) {
+                    t.showLegend(x, row);
+                },
+                unhighlightCallback: function(e) {
+                    t.hideLegend();
+                }
+            };
+            t.pchart = new Dygraph(document.getElementById(t.pcid), t.psi, opt);
+            t.pchart.setVisibility(0,true);
+            t.applySavedVisibility();
+        };
+        BrewChart.prototype.createChart = function() {
+            var t = this;
+            t.initLegend();
+            t.shownlist =[];
+            for(var i=0;i<=NumberOfLines;i++) t.shownlist.push(true);
+            t.showPsi = true;
+            var ldiv = document.createElement("div");
+            ldiv.className = "hide";
+            var ylabel = (t.ylabel ? t.ylabel : 'Temperature') + '(&deg;' + (t.celius ? 'C' : 'F') + ')';
+            var y2label = t.y2label ? t.y2label : 'Gravity';
+            document.body.appendChild(ldiv);
+            var opt = {
+                labels: BrewChart.Labels,
+                colors: BrewChart.Colors.slice(0,FilteredSgLine),
+                connectSeparatedPoints: true,
+                ylabel: ylabel,
+                y2label: y2label,
+                series: {
+                    'gravity': {
+                        axis: 'y2',
+                        drawPoints: true,
+                        pointSize: 2,
+                        highlightCircleSize: 4
+                    },
+                    'filtersg': {
+                        axis: 'y2',
+                    }
+                },
+                axisLabelFontSize: 12,
+                animatedZooms: true,
+                gridLineColor: '#ccc',
+                gridLineWidth: '0.1px',
+                labelsDiv: ldiv,
+                labelsDivStyles: {
+                    'display': 'none'
+                },
+                displayAnnotations: true,
+                //showRangeSelector: true,
+                strokeWidth: 1,
+                axes: {
+                    y: {
+                        valueFormatter: function(y) {
+                            return t.tempFormat(y);
+                        }
+                    },
+                    y2: {
+                        valueFormatter: function(y) {
+                            return t.plato ? y.toFixed(1) : y.toFixed(3);
+                        },
+                        axisLabelFormatter: function(y) {
+                            var range = this.yAxisRange(1);
+                            if (t.plato) return (range[1] - range[0] > 1) ? y.toFixed(1) : y.toFixed(2);
+
+                            if (range[1] - range[0] > 0.002)
+                                return y.toFixed(3).substring(1);
+                            else
+                                return y.toFixed(4).substring(2);
+                        }
+                    }
+                },
+                highlightCircleSize: 2,
+                highlightSeriesOpts: {
+                    strokeWidth: 1.5,
+                    strokeBorderWidth: 1,
+                    highlightCircleSize: 5
+                },
+                highlightCallback: function(e, x, pts, row) {
+                    t.showLegend(x, row);
+                },
+                unhighlightCallback: function(e) {
+                    t.hideLegend();
+                },
+                underlayCallback: function(ctx, area, graph) {
+                        ctx.save();
+                        try {
+                            t.drawBackground(ctx, area, graph);
+                        } finally {
+                            ctx.restore();
+                        }
+                }
+/*                ,
+                interactionModel:{ 
+                    mousedown: Dygraph.defaultInteractionModel.mousedown, 
+                    mousemove: Dygraph.defaultInteractionModel.mousemove, 
+                    mouseup: Dygraph.defaultInteractionModel.mouseup, 
+//                    touchstart:Dygraph.defaultInteractionModel.touchstart,
+                    touchstart: function(event, g, context){
+                        event.stopPropagation();
+                        t.chart.setSelection(t.findNearestRow(g,t.chart.toDataXCoord(event.touches[0].clientX)));
+                    }, 
+                    touchend: Dygraph.defaultInteractionModel.mouseup, 
+//                    touchend:function(event,g,context){
+//                    },
+//                    touchmove: Dygraph.defaultInteractionModel.touchmove
+                    touchmove:function(event,g,context){
+                        event.stopPropagation();
+                        t.chart.setSelection(t.findNearestRow(g,t.chart.toDataXCoord(event.touches[0].clientX)));
+                    }
+                }
+*/
+                    /*                drawCallback: function(beerChart, is_initial) {
+                                        if (is_initial) {
+                                            if (t.anno.length > 0) {
+                                                t.chart.setAnnotations(t.anno);
+                                            }
+                                        }
+                                    }*/
+            };
+            t.chart = new Dygraph(document.getElementById(t.cid), t.data, opt);
+            t.applySavedVisibility();
+        };
+        BrewChart.prototype.getGravityOfTime=function(time,filtered=true){
+            if(typeof filtered == "undefined") filtered=true;
+            var duration =  this.ctime - time;
+            return this.getGravityBefore(duration>0? duration:0,filtered);
+        };
+        BrewChart.prototype.getGravityBefore=function(duration,filtered){
+            if(typeof filtered == "undefined") filtered=true;
+            var row = this.data.length - Math.round(duration/this.interval);
+            var index=filtered? FilteredSgLine:GravityLine;
+            while(row>=0){
+                var gravity=this.data[row][index];
+                if(gravity != null) return gravity;
+                row--;
+            }
+            return NaN;
+        };
+        
+        BrewChart.prototype.findNearestRow = function(g, time) {
+            "use strict";
+            var low = 0,
+                high = g.numRows() - 1;
+            var mid, comparison;
+
+            while (low < high) {
+                mid = Math.floor((low + high) / 2);
+                comparison = g.getValue(mid, 0) - time;
+                if (comparison < 0) {
+                    low = mid + 1;
+                    continue;
+                }
+                if (comparison > 0) {
+                    high = mid - 1;
+                    continue;
+                }
+                return mid;
+            }
+            return low;
+        };
+        BrewChart.prototype.findStateBlocks = function(g, start, end) {
+            "use strict";
+            var result = [];
+            var state = this.state[start]; //getState(g, start);             // current state
+            var newState;
+            for (var i = start; i < end; i++) { // find the next change
+                newState = this.state[i]; //getState(g, i);
+                if (newState !== state) {
+                    result.push({
+                        row: i,
+                        state: state
+                    });
+                    state = newState;
+                }
+            }
+            result.push({
+                row: end,
+                state: state
+            });
+            return result;
+        };
+        BrewChart.prototype.getTime = function(g, row) {
+            "use strict";
+            if (row >= g.numRows()) {
+                row = g.numRows() - 1;
+            }
+            return g.getValue(row, 0);
+        };
+        BrewChart.prototype.drawBackground = function(ctx, area, graph) {
+            var timeStart = graph.toDataXCoord(area.x);
+            var timeEnd = graph.toDataXCoord(area.x + area.w);
+            // the data rows for the range we are interested in. 0-based index. This is deliberately extended out one row
+            // to be sure the range is included
+            var rowStart = Math.max(this.findNearestRow(graph, timeStart) - 1, 0);
+            var rowEnd = this.findNearestRow(graph, timeEnd) + 1;
+            if (rowStart === null || rowEnd === null) {
+                return;
+            }
+            var blocks = this.findStateBlocks(graph, rowStart, rowEnd); // rowEnd is exclusive
+
+            var startX = 0; // start drawing from 0 - the far left
+            for (var i = 0; i < blocks.length; i++) {
+                var block = blocks[i];
+                var row = block.row; // where this state run ends
+                var t = this.getTime(graph, row); // convert to time. Using time ensures the display matches the plotted resolution
+                // of the graph.
+                var r = (t - timeStart) / (timeEnd - timeStart); // as a fraction of the entire display
+                var endX = Math.floor(area.x + (area.w * r));
+
+                var state = STATES[parseInt(block.state, 10)];
+                if (state && state.draw) {
+                    ctx.fillStyle = state.color;
+                    ctx.fillRect(startX, area.h - STATE_LINE_WIDTH, endX - startX, area.h);
+                }
+                startX = endX;
+            }
+        };
+        BrewChart.prototype.addMode = function(m, x) {
+            var s = String.fromCharCode(m);
+            this.anno.push({
+                series: "beerTemp",
+                x: x,
+                shortText: s.toUpperCase(),
+                text: BrewChart.Mode[s],
+                attachAtBottom: true
+            });
+        };
+
+        BrewChart.testData = function(data) {
+            if (data[0] != 0xFF) return false;
+            var s = data[1] & 0x07;
+            if (s != CHART_VERSION && s!= CHART_V6) return false;
+
+            return {
+                sensor: s,
+                f: data[1] & 0x10
+            };
+        };
+
+        BrewChart.prototype.addResume = function(delta) {
+            this.anno.push({
+                series: "beerTemp",
+                x: this.ctime * 1000,
+                shortText: 'R',
+                text: 'Resume',
+                attachAtBottom: true
+            });
+        };
+
+        BrewChart.prototype.getTiltAround = function(idx) {
+            var t = this;
+            var left = -1;
+            var right = -1;
+
+            if (t.angles[idx] != null) return [t.angles[idx], t.data[idx][AuxTempLine]];
+
+            for (var i = idx - 1; i >= 0; i--) {
+                if (t.angles[i] != null) {
+                    left = i;
+                    break;
+                }
+            }
+            for (var i = idx + 1; i < t.angles.length > 0; i++) {
+                if (t.angles[i] != null) {
+                    right = i;
+                    break;
+                }
+            }
+            if (left < 0 && right < 0) return null;
+            if (left < 0) return [t.angles[right], t.data[right][AuxTempLine]];
+            if (right < 0) return [t.angles[left], t.data[left][AuxTempLine]];
+            return [t.angles[left] + (t.angles[right] - t.angles[left]) / (right - left) * (idx - left),
+                (t.data[left][AuxTempLine] + t.data[right][AuxTempLine]) / 2
+            ];
+        };
+
+        BrewChart.prototype.getCalibration = function() {
+            var pairs = [];
+            for (var i = 0; i < this.data.length; i++) {
+                if (this.rawSG[i]) {
+                    var data = this.getTiltAround(i);
+                    // corrected the reading into current beer data
+                    if (data) {
+                        var beerTemp = this.celius ? C2F(data[1]) : data[1];
+                        var gravity = this.rawSG[i];
+                        var converted;
+                        if (this.plato)
+                            converted = BrewMath.sg2pla(BrewMath.tempCorrectionF(BrewMath.pla2sg(gravity), C2F(this.coTemp), beerTemp));
+                        else converted = BrewMath.tempCorrectionF(gravity, C2F(this.coTemp), beerTemp);
+                        pairs.push([data[0], converted]);
+                    }
+                }
+            }
+            pairs.push([this.tiltInWater, this.readingInWater]);
+            return pairs;
+        };
+        BrewChart.prototype.filterPoints = function(points, mask) {
+            var nps = [];
+            for (var i = 0; i < points.length; i++) {
+                if (!(mask & (0x1 << i))) nps.push(points[i]);
+            }
+            return nps;
+        };
+
+        BrewChart.prototype.setIgnoredMask = function(mask) {
+            if (this.cal_igmask == mask) return false;
+            this.cal_igmask = mask;
+            return true;
+        };
+
+        BrewChart.prototype.getFormula = function() {
+            var points=(this.version <= CHART_V6)? this.getCalibration(): this.calpoints;
+
+            if (points.length < 2) return;
+            var cpoints = this.filterPoints(points, this.cal_igmask);
+            if (cpoints.length < 2) {
+                cpoints = points;
+                this.cal_igmask = 0;
+            }
+            var poly = regression('polynomial', cpoints, (cpoints.length > 3) ?
+                3 : ((cpoints.length > 2) ? 2 : 1), {
+                    precision: 9
+                });
+            this.calibrationPoints = points;
+            //this.equation = poly.equation;
+            this.calculateSG = true;
+
+            this.sgByTilt = (cpoints.length > 3) ?
+                function(x) {
+                    return poly.equation[0] +
+                        poly.equation[1] * x +
+                        poly.equation[2] * x * x +
+                        poly.equation[3] * x * x * x;
+                } : ((cpoints.length > 2) ? function(x) {
+                    return poly.equation[0] +
+                        poly.equation[1] * x +
+                        poly.equation[2] * x * x;
+                } : function(x) {
+                    return poly.equation[0] +
+                        poly.equation[1] * x;
+                });
+
+            this.coefficients = (cpoints.length > 3) ? [poly.equation[0], poly.equation[1], poly.equation[2], poly.equation[3]] :
+                ((cpoints.length > 2) ? [poly.equation[0], poly.equation[1], poly.equation[2], 0] : [poly.equation[0], poly.equation[1], 0, 0]);
+            this.npt = points.length;
+        };
+        BrewChart.prototype.deviceInfo=function(data){
+            // tlv.
+            var i=0;
+            while(i<data.length){
+                var type=data[i++];
+                var length=data[i++];
+                if(type == 1){ // address
+                    var address=[];
+                    for(var a=0;a<length;a++){
+                        address.push(data[i+a]);
+                    }
+                    this.address = address;
+                }else if (type ==2){ // name
+                    var devname="";
+                    for(var a=0;a<length;a++){
+                        devname = devname + String.fromCharCode(data[i+a]);
+                    }
+                    this.devName = devname;
+                }else if (type == 3 && length >= 16){ // temperature correction
+                    // Four big-endian floats: the correction the firmware added to
+                    // every gravity before logging, with the offset folded into the
+                    // constant term. The "Uncorrected" view subtracts exactly this.
+                    var equation=[0,0,0,0];
+                    for(var k=0;k<4;k++){
+                        var off = i + k*4;
+                        var view = new DataView(data.slice(off,off+4).buffer);
+                        equation[k] = view.getFloat32(0, false);
+                    }
+                    this.appliedCorrection = equation;
+                }
+                i+= length;
+            }
+        };
+        BrewChart.prototype.process = function(data) {
+            var newchart = false;
+            var sgPoint = false;
+            var t = this;
+            //t.raw = data;
+            t.filterSg = null;
+            for (var i = 0; i < data.length;) {
+                var d0 = data[i++];
+                var d1 = data[i++];
+                if (d0 == 0xFF) { // header. 
+                    t.version = d1 & 0xF; 
+                    if (t.version != CHART_VERSION && t.version != CHART_V6) {
+                        alert("Log version mismatched!");
+                        return;
+                    }
+                    //console.log(""+t.ctime/t.interval +" header");
+                    t.celius = (d1 & 0x10) ? false : true;
+                    t.calibrating = (d1 & 0x20) ? false : true;
+                    t.plato = (d1 & 0x40) ? false : true;
+
+                    var p = data[i++];
+                    p = p * 256 + data[i++];
+                    t.interval = p;
+                    // 
+                    t.starttime = (data[i] << 24) + (data[i + 1] << 16) + (data[i + 2] << 8) + data[i + 3];
+                    t.ctime = t.starttime;
+                    i += 4;
+
+                    t.devType = 0; // default to none
+                    t.appliedCorrection = null; // filled from the device block below
+                    if(t.version == 7){
+                        var didx = i;
+                        var bsize = data[i++];
+                        t.devType = data[i++];
+                        // save this block for future used
+                        t.savedDevInfo=data.slice(didx,didx+bsize+1);
+
+                        if(bsize > 1){
+                            t.deviceInfo(data.slice(i,i+bsize-1));
+                        }
+                        i+=  bsize - 1;
+                    }
+                    t.data = [];
+                    t.anno = [];
+                    t.state = [];
+                    t.angles = [];
+                    t.rawSG = [];
+                    t.rawSg = [];
+                    t.rawFilterSg = [];
+                    t.uncorrectedRows = null;
+                    t.rawFilter.reset();
+                    t.psi = [];
+                    t.cstate = 0;
+                    t.coTemp = 20;
+                    t.cal_igmask = 0;
+                    t.specificGravity = null;
+                    t.rh=[];
+                    t.lastRh=255;
+                    t.lastRoomRh=255;
+                    t.lastSetRh=255;
+                    t.rhValid=false;
+                    t.gravityChanges=[];
+
+                    t.targetPsi = NaN; // to denote "no line/point"
+
+                    this.clearData();
+                    newchart = true;
+                    t.psiAvail = false;
+                    if(t.version == 7) t.calpoints=[];
+                    // gravity tracking
+                    GravityFilter.reset();
+                    // gravity tracking
+                } else if (d0 == 0xF3) { // correction temperature
+                    if(t.version == CHART_V6) t.coTemp = d1; // always celisus
+                    else{
+                        t.calpoints = [];
+                        for(var n=0;n<d1;n++){
+                            var traw = data[i++];
+                            traw = (traw << 8) | data[i++];
+                            var graw = data[i++];
+                            graw = (graw << 8) | data[i++];
+                            var gravity= t.plato ? graw/100:graw/10000;
+                            var raw = (t.devType == 2)? traw/10000:traw/100;               
+                            t.calpoints.push([raw,gravity]);
+                        }
+                        t.calpoints.sort(function(a,b){return a[0]-b[0];});
+                    }
+                } else if (d0 == 0xF4) { // mode
+                    //console.log(""+t.ctime/t.interval +" Stage:"+d1);
+                    t.addMode(d1, t.ctime * 1000);
+                } else if (d0 == 0xF5) { // targetPSI
+                    t.targetPsi = (d1==0)? NaN:d1;
+                } else if (d0 == 0xF1) { // state
+                    t.cstate = d1;
+                } else if (d0 == 0xF6) { // Time Sync
+                    var utime = (data[i] << 24) + (data[i + 1] << 16) + (data[i + 2] << 8) + data[i + 3];
+                    if(utime > t.ctime) t.ctime =utime;
+                } else if (d0 == 0xFE) { // resume
+                    t.lidx = 0;
+                    var d2 = data[i++];
+                    var d3 = data[i++];
+                    var tdiff = d3 + (d2 << 8) + (d1 << 16);
+                    if(tdiff > 30*24*60*60) tdiff= 30*60; // it's wrong if it's too long.
+                    var ntime = t.starttime + tdiff;
+                    if (ntime > t.ctime) {
+                        // add a gap to it                   
+                        t.data.push([new Date(t.ctime * 1000), NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]);
+                        t.psi.push( [new Date(t.ctime * 1000),  NaN,NaN,NaN]);
+                        t.state.push(null);
+                        t.angles.push(null);
+                        t.rawSG.push[null];
+
+                        if (ntime - t.ctime > t.interval)
+                            t.ctime = ntime;
+                        else
+                            t.ctime += t.interval;
+                    }
+                    t.addResume(d1);
+                    // drop the data
+                    /*
+                    if (t.lidx) {
+                        var idx;
+                        for (idx = t.lidx; idx < t.numLine; idx++) t.dataset.push(NaN);
+                        t.data.push(t.dataset);
+                        t.state.push(null);
+                        t.angles.push(null);
+                        t.rawSG.push[null];
+                    }*/
+                } else if (d0 == 0xFC) { //Humidity
+                    
+                    if(d1 != 0xFF){
+                        if(d1 & 0x80){ // room
+                            t.lastRoomRh = d1 & 0x7F;
+                            t.rhValid=true;
+                        }else{
+                            t.lastRh = d1;
+                            t.rhValid=true;
+                        }
+                    }else if(t.rhValid){
+                        t.lastRh = d1;
+                    }
+                } else if (d0 == 0xFD) { //Humidity target
+                    t.lastSetRh = d1;
+                } else if (d0 == 0xF8) { //OG
+                    var hh = data[i++];
+                    var ll = data[i++];
+                    var v = (hh & 0x7F) * 256 + ll;
+                    t.og = t.plato ? v / 100 : v / 10000;
+                } else if (d0 == 0xFB) { //SG
+                    var hh = data[i++];
+                    var ll = data[i++];
+                    var v = (hh & 0x7F) * 256 + ll;
+                    if(t.plato){
+                        // negative value in two's complement
+                        t.specificGravity = (v>16383)?  ((v- 32768)/100):(v / 100);
+                    }else{
+                        t.specificGravity =  v / 10000;
+                    }
+                    // Gravity Data in calibration is out-of-band data
+                    // To get it processed as soon as possible. 
+                    // Insert into previous record
+                    if(t.calibrating){
+                        sgPoint = true;
+                        t.insertOOBGravity();
+                    }
+                } else if (d0 == 0xFA) { //Ignored mask
+                    var b2 = data[i++];
+                    var b3 = data[i++];
+                    t.cal_igmask = (d1 << 14) + (b2 << 7) + b3;
+                } else if (d0 == 0xF9) { //Tilt in water
+                    var hh = data[i++];
+                    var ll = data[i++];
+                    var v = (hh & 0x7F) * 256 + ll;
+                    t.tiltInWater = v / 100;
+                    //
+                    if (t.plato) t.readingInWater = 0;
+                    else t.readingInWater = (d1 == 0) ? 1.0 : (0.9 + d1 / 1000);
+                } else if (d0 == 0xF0) { // record
+                    t.changes = d1;
+                    t.lidx = 0;
+                    var d = new Date(this.ctime * 1000);
+                    //t.incTime(); // add one time interval
+                    t.dataset = [d];
+                    if(t.processRecord() && t.calibrating) sgPoint=true;
+                    
+                } else if (d0 < 128) { // temp. or gravity
+                    var tp = d0 * 256 + d1;
+                    if (t.lidx == GravityAndTiltIndex) {
+                        // gravity or gravity
+                        if(t.calibrating){
+                            // tilt value
+                            tp = (tp == 0x7FFF) ? NaN :( (t.devType == 2)? (tp/10000):(tp / 100));
+                        }else{
+                            tp = (tp == 0x7FFF) ? NaN : (t.plato ? tp / 100 : ((tp > 8000) ? tp / 10000 : tp / 1000));
+                            sgPoint = true;
+                        }
+                    } else if (t.lidx == PSIIndex) {
+                        // pressure
+                        if(tp == 0x7FFF) tp=null;
+                        else tp =  tp / 10 - 100;
+                        
+                    } else {
+                        // temperature
+                        tp = (tp == 0x7FFF) ? NaN : tp / 100;
+                        if (tp >= 225) tp = 225 - tp;
+                    }
+
+                    if (t.lidx < t.numData) {
+                        if (typeof t.dataset != "undefined") {
+                            t.dataset.push(tp);
+                            t.laststat[t.lidx] = tp;
+                            t.lidx++;
+                            if(t.processRecord() && t.calibrating) sgPoint=true;
+                        } else {
+                            console.log("Error: missing tag.");
+                        }
+                    } else {
+                        console.log("Error: data overlap?");
+                    }
+                }
+            }
+            return {
+                nc: newchart,
+                sg: sgPoint
+            };
+        };
+        // True when the log (or the live settings) say a correction was applied,
+        // so "Corrected / Uncorrected" means something. A calibrating log stores
+        // the tilt angle instead of an SG, so the pair does not apply there.
+        BrewChart.prototype.hasCorrection = function() {
+            if (this.calibrating) return false;
+            var eq = this.appliedCorrection
+                || (window.BChart ? window.BChart.liveCorrection : null);
+            if (!eq) return false;
+            for (var i = 0; i < eq.length; i++) if (eq[i]) return true;
+            return false;
+        };
+
+        // Rows for the "Uncorrected" view: a copy of the stored rows with the
+        // gravity and filtered columns replaced by the device value. Built lazily
+        // and cached; processRecord() clears the cache when a row is added.
+        BrewChart.prototype.buildUncorrectedRows = function() {
+            if (this.uncorrectedRows) return this.uncorrectedRows;
+            var out = [];
+            for (var r = 0; r < this.data.length; r++) {
+                var row = this.data[r].slice();
+                var raw = this.rawSg[r];
+                if (raw === null || typeof raw == "undefined") {
+                    row[GravityLine] = null;
+                    row[FilteredSgLine] = null;
+                } else {
+                    row[GravityLine] = raw;
+                    row[FilteredSgLine] = this.rawFilterSg[r];
+                }
+                out.push(row);
+            }
+            this.uncorrectedRows = out;
+            return out;
+        };
+
+        // Switch the gravity line between the stored (corrected) value and the
+        // device value. The zoomed window is restored explicitly: the reader is
+        // looking at a stretch, not at the whole log.
+        BrewChart.prototype.setGravityView = function(uncorrected) {
+            var t = this;
+            uncorrected = !!uncorrected && t.hasCorrection();
+            t.showUncorrected = uncorrected;
+            if (!t.chart) return;
+            var range = null;
+            try {
+                var r = t.chart.xAxisRange();
+                if (r && r[1] > r[0]) range = [r[0], r[1]];
+            } catch (e) {}
+            var opt = { 'file': uncorrected ? t.buildUncorrectedRows() : t.data };
+            if (range) opt.dateWindow = range;
+            t.chart.updateOptions(opt);
+        };
+
+        BrewChart.prototype.getXRange = function() {
+            if (typeof this.chart == "undefined") return [0, 0];
+            return this.chart.xAxisRange();
+        };
+        BrewChart.prototype.setXRange = function(range) {
+            if (typeof this.chart == "undefined") return;
+            this.chart.updateOptions({ dateWindow: range });
+        };
+        BrewChart.prototype.desync=function(){
+            if(typeof this.sync != "undefined") this.sync.detach();
+        };
+        BrewChart.prototype.synchronize=function(){
+            var t=this;
+            var charts=[t.chart];
+            if(t.GravityChangeChart) charts.push(t.gcchart);
+            if(t.psiAvail) charts.push(t.pchart);
+            if(t.rhValid) charts.push(t.hchart);
+            if(charts.length >1) t.sync = Dygraph.synchronize(charts,{selection: true,zoom:true,range:false});
+        };
+        BrewChart.prototype.updateChart = function() {
+            var t = this;
+            if (typeof t.chart == "undefined") t.createChart();
+            else t.chart.updateOptions({
+                'file': (t.showUncorrected && t.hasCorrection())
+                    ? t.buildUncorrectedRows() : t.data
+            });
+            t.chart.setAnnotations(t.anno);
+
+            var sync=false;
+            if(t.GravityChangeChart){
+                if(typeof t.gcchart == "undefined"){
+                    document.querySelectorAll(".sgchange-group").forEach(function(ele){
+                        ele.classList.remove("forced-hidden");
+                    });
+                    t.createGravityChangeChart();
+                    sync=true;
+                }else{
+                    t.gcchart.updateOptions({
+                        'file': t.gravityChanges,
+                        'dateWindow':[t.psi[0][0],t.psi[t.psi.length-1][0]]
+                    });
+                }
+            }
+
+            if(t.psiAvail){
+                if(typeof t.pchart == "undefined"){
+                    document.querySelectorAll(".pressure-group").forEach(function(ele){
+                        ele.classList.remove("forced-hidden");
+                    });
+
+                    t.createPSIChart();
+                    sync=true;  
+                }
+                else t.pchart.updateOptions({
+                    'file': t.psi,
+                    'dateWindow':[t.psi[0][0],t.psi[t.psi.length-1][0]]
+                });
+            }
+
+            if(t.rhValid){
+                if(typeof t.hchart == "undefined"){
+                    document.querySelectorAll(".humidity-group").forEach(function(ele){
+                        ele.classList.remove("forced-hidden");
+                    });
+
+                    t.createHumidityChart();
+                    sync=true;  
+                }
+                else t.hchart.updateOptions({
+                    'file': t.rh,
+                    'dateWindow':[t.rh[0][0],t.rh[t.rh.length-1][0]]                    
+                });
+            }
+
+            if(sync) t.synchronize();
+
+        };
+
+        BrewChart.prototype.insertOOBGravity=function(){
+            var t=this;
+            if(t.rawSG.length > 0){
+                t.rawSG[t.rawSG.length-1]=t.specificGravity;
+                t.specificGravity=null;
+            }
+        };
+        
+        BrewChart.prototype.processRecord = function() {
+            var t = this;
+            // fill blank/unchanged fileds by checking the change mask(t.chnages)
+            while ((((1 << t.lidx) & t.changes) == 0) && t.lidx < t.numData) {
+                // gravity data is independant, use "null" to connect the line. (NaN) to disconnect.
+                t.dataset.push((t.lidx > RoomTemperatureIndex && t.lidx != PSIDataIndex) ? null : t.laststat[t.lidx]);
+                t.lidx++;
+            }
+            if (t.lidx >= t.numData) {
+               // already get all data in a period record
+                // get all data
+                var minuteRecord = t.dataset.slice(0, 8);
+    
+                // handle gravity
+                //  1. calculated
+                //  2. in period record
+                //  3. in special record
+                
+                var sg = NaN;
+                var gravityTilt = t.dataset[GravityLine];
+                if(! t.calibrating){
+                    if(gravityTilt != null) sg = gravityTilt;
+                }else{ 
+                    // calibrating
+                    if (!t.calculateSG) {
+                        // calibrating, but not having formula
+                        // if "gravity" data is available and currently not "calculating"(first run or not calibrating)
+                        //sg = t.specificGravity;
+                        // it's tilt data */
+                        minuteRecord[GravityLine] = null;
+                    } else {
+                        //if (t.calculateSG) 
+                        // must be in calibrating mode
+                        // data field #8 is tilt in source data
+                        if (minuteRecord[GravityLine] != null){
+                            var temp = (this.celius) ? C2F(t.dataset[AuxTempLine]) : t.dataset[AuxTempLine];
+                            sg = t.sgByTilt(t.dataset[GravityLine]);
+
+                            if (t.plato) {
+                                sg = BrewMath.sg2pla(BrewMath.tempCorrectionF(BrewMath.pla2sg(sg), temp, C2F(t.coTemp)));
+                            }
+                            minuteRecord[GravityLine] = sg;
+                        }
+                    }
+                }
+                if (!isNaN(sg)) {
+                    t.sg = sg;
+                    t.filterSg = GravityFilter.add(sg);
+                }
+
+                // The device value, for the "Uncorrected" view. It is the stored
+                // gravity minus the correction advertised by the log header (or,
+                // for a live chart with no header block, the current settings).
+                // The filter keeps its own state: a filtered line cannot be
+                // derived from the already-filtered one.
+                var rawSg = null;
+                var eq = t.appliedCorrection
+                    || (window.BChart ? window.BChart.liveCorrection : null);
+                if (!isNaN(sg) && eq) {
+                    var auxT = t.dataset[AuxTempLine];
+                    if (auxT == null || isNaN(auxT)) auxT = t.laststat[AuxTempLine - 1];
+                    if (auxT != null && !isNaN(auxT)) {
+                        rawSg = sg - (eq[0] + eq[1] * auxT + eq[2] * auxT * auxT + eq[3] * auxT * auxT * auxT);
+                    }
+                }
+                t.rawSg.push(rawSg);
+                t.rawFilterSg.push(rawSg === null ? null : t.rawFilter.add(rawSg));
+                t.uncorrectedRows = null;
+
+                if (!isNaN(t.sg)) minuteRecord.push(t.filterSg);
+                else minuteRecord.push(null);
+
+                if(! isNaN(t.dataset[PSIDataIndex]) && t.dataset[PSIDataIndex]!=null) t.psiAvail = true;
+
+                var vol =null;
+                if(! isNaN(t.dataset[PSIDataIndex]) && t.dataset[PSIDataIndex]!=null){
+                    if(!isNaN(t.dataset[BeerTempLine])){
+                        var T = (t.celius)? C2F(t.dataset[BeerTempLine]):t.dataset[BeerTempLine];
+                        vol = (t.dataset[PSIDataIndex] + 14.695) * (0.01821 + 0.090115 * Math.exp( (32 - T)/43.11 )) - 0.003342;
+                        vol = Math.round(vol * 10)/10.0;
+                    }
+                }
+                t.psi.push( [t.dataset[0], t.dataset[PSIDataIndex],t.targetPsi,vol]);
+                
+                t.data.push(minuteRecord);
+                t.state.push(t.cstate);
+                var ret=false;
+                if(t.calibrating){
+                    t.angles.push(gravityTilt);
+                    t.rawSG.push(t.specificGravity);
+                    if(t.specificGravity != null) ret =true;
+                    t.specificGravity = null;
+                }
+                // humidity
+                t.rh.push([t.dataset[0],
+                        (t.lastRh <=100)? t.lastRh:NaN,
+                        (t.lastSetRh<=100)? t.lastSetRh:NaN,
+                        (t.lastRoomRh <=100)? t.lastRoomRh:NaN]);
+                
+                
+                if(t.GravityChangeChart){
+                    function GD(p){
+                        var v=t.getGravityBefore(p);
+                        if(isNaN(v)) return NaN;
+                        if(t.plato) return v-t.filterSg;
+                        return (v-t.filterSg)*1000;
+                    }
+
+                    if (!isNaN(sg)){
+                        t.gravityChanges.push([t.dataset[0],
+                            GD(GravityChangePeriod1),
+                            GD(GravityChangePeriod2),
+                            GD(GravityChangePeriod3)
+                            ]);
+                        
+                    } else t.gravityChanges.push([t.dataset[0], null,null,null]);
+                }
+
+                t.incTime(); // add one time interval
+                return ret;
+            }
+        };
+
+
+        BrewChart.prototype.setHChart = function(id,label) {
+            this.hcid=id;
+            this.hlabel=label;
+        };
+        BrewChart.prototype.createHumidityChart = function() {
+            var t=this;
+            var ldiv = document.createElement("div");
+            ldiv.className = "hide";
+            document.body.appendChild(ldiv);
+
+            t.hchart = new Dygraph(document.getElementById(t.hcid), t.rh, {
+                labels: ["Time","rh","set","Room"],
+                colors: BrewChart.Colors.slice(ChamberHumidityLine-1,RoomHumidityLine),
+                connectSeparatedPoints: true,
+                ylabel: t.hlabel,
+                y2label: "%",
+                axisLabelFontSize: 12,
+                gridLineColor: '#ccc',
+                gridLineWidth: '0.1px',
+                labelsDiv: ldiv,
+                labelsDivStyles: {
+                    'display': 'none'
+                },
+                //displayAnnotations: true,
+                //showRangeSelector: true,
+                strokeWidth: 1,
+                highlightCallback: function(e, x, pts, row) {
+                    t.showLegend(x, row);
+                },
+                unhighlightCallback: function(e) {
+                    t.hideLegend();
+                }
+            });
+            t.hchart.setVisibility(0,true);
+            t.applySavedVisibility();
+        };
+        BrewChart.prototype.setGcChart = function(id,label) {
+            this.gccid=id;
+            this.gclabel=label;
+        };
+
+        BrewChart.prototype.createGravityChangeChart = function() {
+            var t=this;
+            var ldiv = document.createElement("div");
+            ldiv.className = "hide";
+            document.body.appendChild(ldiv);
+
+            t.gcchart = new Dygraph(document.getElementById(t.gccid), t.gravityChanges, {
+                labels: ["Time","gc3","gc6","gc12"],
+                colors: [SgChange1Color,SgChange2Color,SgChange3Color],
+                connectSeparatedPoints: true,
+                ylabel: t.gclabel,
+                y2label: t.gclabel,
+                series: {
+                    'gc12': {
+                        axis: 'y2',
+                        drawPoints: false
+                    }
+                }, 
+
+                axisLabelFontSize: 12,
+                gridLineColor: '#ccc',
+                gridLineWidth: '0.1px',
+                labelsDiv: ldiv,
+                labelsDivStyles: {
+                    'display': 'none'
+                },
+                //displayAnnotations: true,
+                //showRangeSelector: true,
+                strokeWidth: 1,
+                axes: {
+                    y: {
+                        valueFormatter: function(y) {
+                            return y.toFixed(1);
+                        },
+                        axisLabelFormatter: function(y) {
+                            return y.toFixed(1);
+                        }
+                    },
+                    y2: {
+                        valueFormatter: function(y) {
+                            return y.toFixed(1);
+                        },
+                        axisLabelFormatter: function(y) {
+                            return y.toFixed(1);
+                        }
+                    }
+                }, 
+                highlightCallback: function(e, x, pts, row) {
+                    t.showLegend(x, row);
+                },
+                unhighlightCallback: function(e) {
+                    t.hideLegend();
+                }
+            });
+            t.gcchart.setVisibility(0,true);
+            t.applySavedVisibility();
+        };
+
+        /* end of chart.js */</script><script>!function(n,r){"function"==typeof define&&define.amd?define("regression",r):"undefined"!=typeof module?module.exports=r():n.regression=r()}(this,function(){"use strict";function v(n,i){var o=n.reduce(function(n,r){return n+r[1]},0)/n.length,r=n.reduce(function(n,r){var t=r[1]-o;return n+t*t},0);return 1-n.reduce(function(n,r,t){var o=i[t],e=r[1]-o[1];return n+e*e},0)/r}function d(n,r){var t=Math.pow(10,r);return Math.round(n*t)/t}var i={linear:function(n,r,t){for(var o,e,i,u=[0,0,0,0,0],a=n.length,l=0;l<a;l++)null!==n[l][1]&&(u[0]+=n[l][0],u[1]+=n[l][1],u[2]+=n[l][0]*n[l][0],u[3]+=n[l][0]*n[l][1],u[4]+=n[l][1]*n[l][1]);return e=(a*u[3]-u[0]*u[1])/(a*u[2]-u[0]*u[0]),i=u[1]/a-e*u[0]/a,o=n.map(function(n){var r=n[0];return[r,e*r+i]}),{r2:v(n,o),equation:[e,i],points:o,string:"y = "+d(e,t.precision)+"x + "+d(i,t.precision)}},linearthroughorigin:function(n,r,t){for(var o,e,i=[0,0],u=0;u<n.length;u++)null!==n[u][1]&&(i[0]+=n[u][0]*n[u][0],i[1]+=n[u][0]*n[u][1]);return o=i[1]/i[0],e=n.map(function(n){var r=n[0];return[r,o*r]}),{r2:v(n,e),equation:[o],points:e,string:"y = "+d(o,t.precision)+"x"}},exponential:function(n,r,t){for(var o,e,i,u,a=[0,0,0,0,0,0],l=0;l<n.length;l++)null!==n[l][1]&&(a[0]+=n[l][0],a[1]+=n[l][1],a[2]+=n[l][0]*n[l][0]*n[l][1],a[3]+=n[l][1]*Math.log(n[l][1]),a[4]+=n[l][0]*n[l][1]*Math.log(n[l][1]),a[5]+=n[l][0]*n[l][1]);return o=a[1]*a[2]-a[5]*a[5],e=Math.exp((a[2]*a[3]-a[5]*a[4])/o),i=(a[1]*a[4]-a[5]*a[3])/o,u=n.map(function(n){var r=n[0];return[r,e*Math.exp(i*r)]}),{r2:v(n,u),equation:[e,i],points:u,string:"y = "+d(e,t.precision)+"e^("+d(i,t.precision)+"x)"}},logarithmic:function(n,r,t){for(var o,e,i,u=[0,0,0,0],a=n.length,l=0;l<a;l++)null!==n[l][1]&&(u[0]+=Math.log(n[l][0]),u[1]+=n[l][1]*Math.log(n[l][0]),u[2]+=n[l][1],u[3]+=Math.pow(Math.log(n[l][0]),2));return e=(a*u[1]-u[2]*u[0])/(a*u[3]-u[0]*u[0]),o=(u[2]-e*u[0])/a,i=n.map(function(n){var r=n[0];return[r,o+e*Math.log(r)]}),{r2:v(n,i),equation:[o,e],points:i,string:"y = "+d(o,t.precision)+" + "+d(e,t.precision)+" ln(x)"}},power:function(n,r,t){for(var o,e,i,u=[0,0,0,0],a=n.length,l=0;l<a;l++)null!==n[l][1]&&(u[0]+=Math.log(n[l][0]),u[1]+=Math.log(n[l][1])*Math.log(n[l][0]),u[2]+=Math.log(n[l][1]),u[3]+=Math.pow(Math.log(n[l][0]),2));return e=(a*u[1]-u[2]*u[0])/(a*u[3]-u[0]*u[0]),o=Math.exp((u[2]-e*u[0])/a),i=n.map(function(n){var r=n[0];return[r,o*Math.pow(r,e)]}),{r2:v(n,i),equation:[o,e],points:i,string:"y = "+d(o,t.precision)+"x^"+d(e,t.precision)}},polynomial:function(n,r,t){var o,e,i,u,a,l,p,f,s=[],c=[],h=0,g=0,M=n.length;for(e=void 0===r?3:r+1,i=0;i<e;i++){for(a=0;a<M;a++)null!==n[a][1]&&(h+=Math.pow(n[a][0],i)*n[a][1]);for(s.push(h),o=[],u=h=0;u<e;u++){for(a=0;a<M;a++)null!==n[a][1]&&(g+=Math.pow(n[a][0],i+u));o.push(g),g=0}c.push(o)}for(c.push(s),p=function(n,r){var t=0,o=0,e=0,i=0,u=0,a=n.length-1,l=new Array(r);for(t=0;t<a;t++){for(o=(i=t)+1;o<a;o++)Math.abs(n[t][o])>Math.abs(n[t][i])&&(i=o);for(e=t;e<a+1;e++)u=n[e][t],n[e][t]=n[e][i],n[e][i]=u;for(o=t+1;o<a;o++)for(e=a;t<=e;e--)n[e][o]-=n[e][t]*n[t][o]/n[t][t]}for(o=a-1;0<=o;o--){for(u=0,e=o+1;e<a;e++)u+=n[e][o]*l[e];l[o]=(n[a][o]-u)/n[o][o]}return l}(c,e),l=n.map(function(n){var o=n[0],r=p.reduce(function(n,r,t){return n+r*Math.pow(o,t)},0);return[o,r]}),f="y = ",i=p.length-1;0<=i;i--)f+=1<i?d(p[i],t.precision)+"x^"+i+" + ":1===i?d(p[i],t.precision)+"x + ":d(p[i],t.precision);return{r2:v(n,l),equation:p,points:l,string:f}},lastvalue:function(n,r,t){for(var o=[],e=null,i=0;i<n.length;i++)null!==n[i][1]&&isFinite(n[i][1])?(e=n[i][1],o.push([n[i][0],n[i][1]])):o.push([n[i][0],e]);return{r2:v(n,o),equation:[e],points:o,string:""+d(e,t.precision)}}};return function(n,r,t,o){var e="object"==typeof t&&void 0===o?t:o||{};return e.precision||(e.precision=2),"string"==typeof n?i[n.toLowerCase()](r,t,e):null}})</script><script>var PolyRegression={allpoints:[],clear:function(){for(var t=document.getElementById("pointlist").getElementsByTagName("tbody")[0],e=t.querySelectorAll("tr.pl_calpoint"),i=(e.length,e.length-1);0<=i;i--){var o=e[i];o.parentNode.removeChild(o)}return t},newrow:function(t){var e=this.row.cloneNode(!0);e.querySelector("td.pl_tilt").innerHTML=t[0].toFixed(2),e.querySelector("td.pl_sg").innerHTML=this.plato?t[1].toFixed(2):t[1].toFixed(4),e.querySelector("td.pl_value").innerHTML=this.plato?t[2].toFixed(2):t[2].toFixed(4),e.querySelector("td.pl_error").innerHTML=this.plato?t[3].toFixed(2):(1e3*t[3]).toFixed(1);var i=e.querySelector("input.pl_ignored_cb");i.checked=t[4];var o=this;return i.onchange=function(){o.igchanged(this)},e},igchanged:function(t){for(var e=document.getElementById("pointlist").getElementsByTagName("tbody")[0].querySelectorAll("input.pl_ignored_cb"),i=0,o=0,n=0;n<e.length;n++)e[n].checked?i|=1<<n:o++;o<2?(console.log("less than 2."),t.checked=!1):(this.cal_igmask=i,this.show())},show:function(){this.row||(this.row=Q("#pointlist tr.pl_calpoint"),this.row.parentNode.removeChild(this.row)),this.getFormula();for(var t=this.clear(),e=0;e<this.ptlist.length;e++)t.appendChild(this.newrow(this.ptlist[e]));this.chart()},getFormula:function(){var t=this;if(!(t.allpoints.length<2)){t.points=[];for(var e=0;e<t.allpoints.length;e++)1<<e&t.cal_igmask||t.points.push(t.allpoints[e]);t.points.length<2&&(t.points=t.alpoints,t.cal_igmask=0);var i=regression("polynomial",t.points,3<t.points.length?3:2<t.points.length?2:1,{precision:9});t.regression=i,Q("#polynormial").innerHTML=i.string,t.sgByTilt=3<t.points.length?function(t){return i.equation[0]+i.equation[1]*t+i.equation[2]*t*t+i.equation[3]*t*t*t}:2<t.points.length?function(t){return i.equation[0]+i.equation[1]*t+i.equation[2]*t*t}:function(t){return i.equation[0]+i.equation[1]*t};var o=[];for(e=0;e<t.allpoints.length;e++){var n=t.allpoints[e][0],l=t.allpoints[e][1],r=t.sgByTilt(n),a=l-r,s=0!=(1<<e&t.cal_igmask);o.push([n,l,r,a,s])}t.ptlist=o}},chart:function(){for(var t=[],e=0;e<this.allpoints.length;e++)t.push([this.ptlist[e][0],this.ptlist[e][1],this.ptlist[e][2]]);void 0===this.graph?this.graph=new Dygraph(document.getElementById("graph"),t,{labels:["Tilt","SG","Interpolated"],colors:["rgb(240, 100, 100)","rgb(89, 184, 255)"],series:{SG:{drawPoints:!0,pointSize:4,strokeWidth:0}},axisLabelFontSize:12,gridLineColor:"#ccc",gridLineWidth:"0.1px",strokeWidth:1,xRangePad:10,axes:{y:{axisLabelWidth:40,axisLabelFormatter:function(t){return t.toFixed(3)},valueFormatter:function(t){return t.toFixed(3)}},x:{pixelsPerLabel:30,axisLabelWidth:40}}}):(this.graph.updateOptions({file:t}),this.graph.resize())}};function applyIgnoreMask(){BChart.setIgnoredMask(PolyRegression.cal_igmask)}function openpolynomialpane(){Q("#polynomialpane").style.display="block",PolyRegression.allpoints=BChart.chart.calibrationPoints,PolyRegression.cal_igmask=BChart.chart.cal_igmask,PolyRegression.plato=BChart.chart.plato,PolyRegression.show()}function closepolynomialpane(){Q("#polynomialpane").style.display="none"}</script><script type=text/javascript src=/shared.js ignore></script><script type=text/javascript src=/num.js ignore></script><script>function TabPane(e){var i=this;function s(e){var t=document.getElementById(e+"-m");t.className.indexOf("nav-selected")<0&&(t.className+=" nav-selected"),document.getElementById(e+"-s").style.display="block",i.cmode=e}i.cmode=null;for(var t=0;t<e.length;t++){var a=e[t];document.getElementById(a+"-s").style.display="none",document.getElementById(a+"-m").onclick=function(){var e,t,a,n=this.id.replace(/-m$/,"");return e=i.cmode,t=document.getElementById(e+"-m"),a=t.className.replace(/\snav-selected/,""),t.className=a,document.getElementById(e+"-s").style.display="none",s(n),!1}}s(e[0]),i.select=s}var Capper={target_psi:0,psi_valid:!1,hidepset:function(e){this.psi_valid=!e,Q(".psi-set-group").style.display=e?"none":"block"},setpsi:function(e){this.target_psi=e,Q("#cappressure").value=e},init:function(){var e=Q(".capping-info-pane");e&&(e.style.display="none");var t=Q("#capper-frame");t&&(t.style.display="none",this.initCtrl())},initCtrl:function(){var s=this;s.tabs=new TabPane(["tab-gravity","tab-time","tab-manual"]);var t=Q("#captimeinput");s.time=new Date,t.onchange=function(){var e=new Date(t.value);isNaN(e.getTime())?s.setInputTime(s.time):s.setInputTime(e)},Q("#cap-apply").onclick=function(){var e="";if(s.psi_valid){var t=Num.field(Q("#cappressure"),"Pressure");if(null===t)return;e="psi="+t+"&"}var a=s.tabs.cmode;if("tab-gravity"==a){var n=Num.field(Q("#capgravityinput"),"Gravity");if(null===n)return;s.send(e+"sg="+n)}else if("tab-time"==a){var i=new Date(Q("#captimeinput").value);if(isNaN(i.getTime()))return void alert("Invalid Time");s.send(e+"at="+i.getTime()/1e3)}else Q("#capswitch").checked?s.send(e+"cap=1"):s.send(e+"cap=0")},s.hidepset(!0),Q("#cappressure").onchange=function(){s.target_psi=this.value}},send:function(e){console.log("send "+e),s_ajax({url:"cap?"+e,m:"GET",success:function(e){alert("Done!")},fail:function(e){alert("failed to set capper")}})},setcap:function(e){Q("#capstate-open")&&(e?(Q("#capstate-open").style.display="none",Q("#capstate-close").style.display="inline-block"):(Q("#capstate-open").style.display="inline-block",Q("#capstate-close").style.display="none"))},setInputTime:function(e){this.time=e;var t=Q("#captimeinput");t.value="datetime-local"==t.type?formatDateForPicker(e):formatDate(e)},status:function(e){void 0!==e.m&&0!=e.m&&(this.statusInfo(e),this.updateCtrl(e))},statusInfo:function(e){var t=Q(".capping-info-pane");if(t){t.style.display="block",this.setcap(e.c);for(var a=["","cs-manopen","cs-mancap","cs-timecon","cs-sgcon"],n=1;n<a.length;n++)n==e.m?Q("#"+a[n]).style.display="inline-block":Q("#"+a[n]).style.display="none";void 0!==e.g&&(Q("#capgravityset").innerHTML=e.g),void 0!==e.t&&(Q("#captimeset").innerHTML=formatDate(new Date(1e3*e.t)))}},updateCtrl:function(e){var t=Q("#capper-frame");t&&(t.style.display="block",void 0!==e.g&&(Q("#capgravityinput").value=e.g),void 0!==e.t?this.setInputTime(new Date(1e3*e.t)):this.setInputTime(new Date),1==e.m?Q("#capswitch").checked=!1:2==e.m&&(Q("#capswitch").checked=!0),2==e.pm&&(this.hidepset(!1),this.setpsi(e.psi)))},tunit:"C",calpsi:function(){"undefined"!=typeof BrewPiSetting&&(this.tunit=BrewPiSetting.tempUnit),Q("#dlg_carbonation").style.display="block"},calCancel:function(){Q("#dlg_carbonation").style.display="none"},calOk:function(){var e=Q("#carcal-psi").innerHTML;isNaN(e)||this.setpsi(e),Q("#dlg_carbonation").style.display="none"},cal:function(){var e=Num.parse(Q("#carcal-vol").value),t=Num.parse(Q("#carcal-temp").value);if(null!==e&&null!==t){"C"==this.tunit&&(t=C2F(t));var a=-16.6999-.0101059*t+.00116512*t*t+.173354*t*e+4.24267*e-.0684226*e*e;Q("#carcal-psi").innerHTML=Math.round(a)}else Q("#carcal-psi").innerHTML="--"}}</script><script>var T_CHART_REQUEST=2e4,T_CHART_RETRYTO=6e3,T_CHART_ZERODATA=1e4,T_CHART_REFRESH=1500,T_CHART_RETRY=1e4,T_LOAD_CHART=150,T_BWF_RECONNECT=1e4,T_BWF_LCD=1e4,BChart={offset:0,url:"chart.php",liveCorrection:null,calibrating:function(){return void 0!==this.chart&&this.chart.calibrating},toggle:function(t){this.chart.toggleLine(t)},updateFormula:function(){var t=this.chart.coefficients,e=this.chart.npt<<24|16777215&this.chart.cal_igmask,a=!0;if(void 0!==window.npt&&window.npt==e&&(a=!1),a){var i="coeff?a0="+t[0].toFixed(9)+"&a1="+t[1].toFixed(9)+"&a2="+t[2].toFixed(9)+"&a3="+t[3].toFixed(9)+"&pt="+e;s_ajax({url:i,m:"GET",success:function(t){window.npt=e},fail:function(t){alert("Failed to update formula."+t)}})}},reprocesData:function(){for(var t=this,e=0;e<t.bdata.length;e++)t.chart.process(t.bdata[e])},updateChartResult:function(){var t=this;t.chart.sg&&!isNaN(t.chart.sg)&&(updateGravity(t.chart.sg),gravityChangeUpdate(t.chart.filterSg),t.chart.sg=NaN),t.chart.updateChart(),updateGravityViewBar()},setIgnoredMask:function(t){var e=this;e.chart.cal_igmask!=t&&(e.chart.calculateSG=!1,e.reprocesData(),e.chart.cal_igmask=t,e.chart.getFormula(),e.reprocesData(),e.updateChartResult(),e.chart.cal_igmask=t,e.updateFormula())},reqdata:function(){var i=this,t="offset="+i.offset;void 0!==i.startOff&&null!==i.startOff&&(t=t+"&index="+i.startOff);var n=new XMLHttpRequest;n.open("GET",i.url+"?"+t),n.timeout=T_CHART_REQUEST,n.responseType="arraybuffer",n.onload=function(t){if(404!=this.status){var e=new Uint8Array(this.response);if(i.offset?i.bdata.push(e):i.bdata=[e],0==e.length)return i.timer&&clearInterval(i.timer),i.timer=null,void setTimeout(function(){i.reqdata()},T_CHART_ZERODATA);var a=i.chart.process(e);if(a.nc)i.offset=e.length,i.startOff=n.getResponseHeader("LogOffset"),i.chart.calibrating&&(i.chart.getFormula(),i.chart.process(e),i.chart.calculateSG&&(Q("#formula-btn").style.display="block",i.updateFormula()));else if(i.offset+=e.length,i.chart.calibrating&&a.sg)return console.log("New SG availbe. reprocess"),i.chart.calculateSG=!1,i.reprocesData(),i.chart.getFormula(),i.reprocesData(),i.updateChartResult(),void i.updateFormula();i.chart.updateChart(),updateGravityViewBar(),isNaN(i.chart.og)||(updateOriginGravity(i.chart.og),i.chart.og=NaN),i.chart.sg&&!isNaN(i.chart.sg)&&(updateGravity(i.chart.sg),gravityChangeUpdate(i.chart.filterSg),i.chart.sg=NaN),null==i.timer&&i.settimer()}else console.log(" Error getting log data")},n.ontimeout=function(t){console.error("Timeout!"+new Date),null==i.timer&&setTimeout(function(){i.reqdata()},T_CHART_RETRYTO)},n.onerror=function(){console.log("Error getting data"),null==i.timer&&setTimeout(function(){i.reqdata()},T_CHART_RETRY)},n.send()},settimer:function(){var t=this;t.timer=setInterval(function(){t.reqdata()},1e3*t.chart.interval)},init:function(t,e,a,i,n,r,o,s){this.chart=new BrewChart(t),this.chart.setLabels(e,a),void 0!==i&&this.chart.setPChart(i,n,r),void 0!==o&&this.chart.setHChart(o,s)},timer:null,start:function(){this.running||(this.running=!0,this.offset=0,this.reqdata())},reqnow:function(){var t=this;t.timer&&clearInterval(t.timer),t.timer=null,t.reqdata()}},StateText=["Idling for {time}","Temp. Control Off","Door Open","Heating for {time}","Cooling for {time}","Waiting to Cool {time}","Waiting to Heat {time}","Waiting for Peak","Cool Time left {time}","Heat Time left {time}","Invalid State"];function genStateText(t,e,a){if(!a&&(1==t||2==t||10==t||7==t))return StateText[t];var i="",n=Math.floor(e/60),r=Math.floor(n/60),o=e%60;function s(t){return 9<t?""+t:"0"+t}return n-=60*r,i=0<r?"{HH}h{MM}m{SS}".replace("{SS}",s(o)).replace("{MM}",s(n)).replace("{HH}",s(r)):"{MM}m{SS}".replace("{SS}",s(o)).replace("{MM}",s(n)),11==t||a&&(3==t||4==t)?"Heating+Cooling for "+i:StateText[t].replace("{time}",i)}function renderLcdText(e){var t=Q(".error");function a(t){return t<-1e4?"--.--":(t/100).toFixed(2)+"&deg;"+e.tu}t&&(t.style.display="none");var r={};r.ControlStateSince=e.sl,r.ControlState=e.st,r.ControlMode=e.md,r.unit=e.tu,r.BeerTemp=a(e.bt),r.BeerSet=a(e.bs),r.FridgeTemp=a(e.ft),r.FridgeSet=a(e.fs),r.RoomTemp=a(e.rt);var o={o:"OFF",b:"Beer Constant",f:"Fridge Const",p:"Beer Profile",i:"Independent"},s="i"==e.md&&1==e.ih&&1==e.ic;function l(t,e){t&&(t.setAttribute("data-live",e),window.__chartHover||(t.innerHTML=e))}if(Object.keys(r).map(function(t,e){var a=Q("#lcd"+t);if(a)if("ControlMode"==t)l(a,o[r[t]]||"--");else if("ControlState"==t){l(a,genStateText(r[t],r.ControlStateSince,s));var i="idle",n=r[t];11==n||s&&(3==n||4==n)?i="both":3==n||6==n||9==n?i="heat":4!=n&&5!=n&&8!=n||(i="cool"),a.setAttribute("data-tone",i)}else l(a,r[t])}),void 0!==r.unit&&(window.tempUnit=r.unit),void 0!==r.BeerTemp&&(window.beerTemp=-100<e.bt?e.bt/100:NaN),"i"==e.md){var i=Q("#independent-cool-t");i&&""===i.value&&-1e4<e.fs&&(i.value=(Math.round(e.fs)/100).toFixed(2));var n=Q("#independent-heat-t");n&&""===n.value&&-1e4<e.bs&&(n.value=(Math.round(e.bs)/100).toFixed(2))}if(!window.__chartHover&&window.BChart&&BChart.chart&&BChart.chart.paintRestingSeries){BChart.chart.paintRestingSeries();var d=Q(".beer-chart-legend-time"),c=Q(".beer-chart-state"),u=BChart.chart.lastSampleTime?BChart.chart.lastSampleTime():"";d&&u&&(d.innerHTML=u);var g=Q("#lcdControlState");c&&g&&(c.innerHTML=g.getAttribute("data-live")||c.innerHTML)}}var roomOfridge=!1;function simLcd(t){function e(t){if(t<-1e4)return"--.--";for(var e=(t/100).toFixed(2),a="",i=e.length;i<5;i++)a+=" ";return a+e}var a=[];return a[0]="Mode   "+{o:"Off",b:"Beer Const.",f:"Fridge Const.",p:"Beer Profile",i:"Independent"}[t.md],a[1]="Beer  "+e(t.bt)+" "+e(t.bs)+" &deg;"+t.tu,-1e4<t.rt&&roomOfridge?a[2]="Room  "+e(t.rt)+" "+e(-2e4)+" &deg;"+t.tu:a[2]="Fridge"+e(t.ft)+" "+e(t.fs)+" &deg;"+t.tu,roomOfridge=!roomOfridge,a[3]=genStateText(t.st,t.sl,"i"==t.md&&1==t.ih&&1==t.ic),a}function displayLcdText(t){for(var e=0;e<4;e++){var a=document.getElementById("lcd-line-"+e);a&&(a.innerHTML=t[e])}}function displayLcd(t){window.tempUnit=t.tu,displayLcdText(simLcd(t)),renderLcdText(t)}function hideErrorMsgs(){for(var t=document.querySelectorAll(".errormsg"),e=0;e<t.length;e++)t[e].style.display="none"}function communicationError(){var t=Q(".error");t?(hideErrorMsgs(),Q("#error_connect").style.display="block",t.style.display="block"):displayLcdText(["Failed to","connect to","Server",""])}function controllerError(){var t=Q(".error");t?(hideErrorMsgs(),Q("#error_noupdate").style.display="block",t.style.display="block"):displayLcdText(["Controller not","updating data","...",""])}function checkTime(t,e){var a=new Date,i=0-60*a.getTimezoneOffset(),n=Math.round(a.getTime()/1e3);(e!=i||1800<Math.abs(n-t))&&s_ajax({url:"time",m:"POST",mime:"application/x-www-form-urlencoded",data:"time="+n+"&off="+i,success:function(){}})}function GDSetting(t){function e(){Q(".gravity-device-pane").style.display="",doAll(".gd-option",function(t){t.classList.add("no-display")})}if(void 0!==t.dev)if(window.GravityDevice=t.dev,1==t.dev)e(),doAll(".ispindel-info",function(t){t.classList.remove("no-display")});else if(2==t.dev)e(),doAll(".tilt-info",function(t){t.classList.remove("no-display")});else{if(3!=t.dev)return void(Q(".gravity-device-pane").style.display="none");e(),doAll(".pill-info",function(t){t.classList.remove("no-display")})}if(void 0!==t.plato&&(window.plato=t.plato,window.plato&&showPlatoUnit()),void 0!==t.fpt&&(window.npt=t.fpt),void 0!==t.name)if(void 0!==t.lu){var a=Q("#iSpindel-name");a&&(a.innerHTML=t.name),void 0!==t.lpf&&GravityFilter.setBeta(t.lpf)}else console.log("iSpindel:"+JSON.stringify(t))}function respPtDiff(t,e){var a=BChart.chart.getGravityOfTime((new Date).getTime()/1e3-e);if(isNaN(a))return"--";var i=a-t;return window.plato?i.toFixed(1):(i*=1e3).toFixed(1)}function gravityChangeUpdate(t){Q("#sgchanged").innerHTML=respPtDiff(t,172800)+"/"+respPtDiff(t,86400)+"/"+respPtDiff(t,43200)}function updateGravity(t){window.sg=t,Q("#gravity-sg").innerHTML=window.plato?t.toFixed(1):t.toFixed(3),void 0!==window.og&&(Q("#gravity-att").innerHTML=window.plato?BrewMath.attP(window.og,t):BrewMath.att(window.og,t),Q("#gravity-abv").innerHTML=window.plato?BrewMath.abvP(window.og,t):BrewMath.abv(window.og,t))}function loadGravityCorrection(){s_ajax({url:"/gdc?data",m:"GET",success:function(t){var e;try{e=JSON.parse(t)}catch(t){return}if(e){var a=Number(e.off)||0,i=[a,0,0,0];e.tc&&1===Number(e.ttceunit)&&e.ttce&&4<=e.ttce.length&&(i=[a+Number(e.ttce[0]),Number(e.ttce[1]),Number(e.ttce[2]),Number(e.ttce[3])]),BChart.liveCorrection=i,updateGravityViewBar()}}})}function gravityCorrectionReady(){return void 0!==BChart.chart&&!!BChart.chart.hasCorrection&&BChart.chart.hasCorrection()}function updateGravityViewBar(){var t=Q("#gravity-view-bar");if(t){var e=gravityCorrectionReady();t.classList.toggle("no-display",!e),!e&&BChart.chart&&BChart.chart.showUncorrected&&BChart.chart.setGravityView(!1);var a=!(!BChart.chart||!BChart.chart.showUncorrected),i="Offset and temperature correction removed from this chart only; the tiles on the right still show the controller value.",n="Offset and temperature correction are applied, as the controller stored them.",r=Q("#gravity-view-note");r&&(r.innerHTML=a?i:n,r.className="gv-note"+(a?" is-raw":""));for(var o=document.querySelectorAll('input[name="gravity_view"]'),s=0;s<o.length;s++)o[s].checked=o[s].value===(a?"uncorrected":"corrected");t.title=a?i:n}}function setGravityView(t){void 0!==BChart.chart&&BChart.chart.setGravityView&&(BChart.chart.setGravityView("uncorrected"===t),updateGravityViewBar())}function updateOriginGravity(t){void 0!==window.og&&window.og==t||(window.og=t,Q("#gravity-og").innerHTML=window.plato?t.toFixed(1):t.toFixed(3),void 0!==window.sg&&updateGravity(window.sg))}function showgravitydlg(t){Q("#dlg_addgravity .og").style.display="none",Q("#dlg_addgravity .sg").style.display="none",Q("#dlg_addgravity ."+t).style.display="block",Q("#dlg_addgravity").style.display="block";var e=parseFloat(Q("#gravity-device-temp").textContent);if(isNaN(e)&&(e=parseFloat(Q("#lcdBeerTemp").textContent)),isNaN(e)||(Q("#sginput-ispindel-temp").innerHTML=e.toFixed(2)),window.isog?Q("#tilt-angle").value="--":Q("#tilt-angle").value=2==window.GravityDevice?Q("#tilt-raw").textContent:Q("#gdevice-angle").textContent,void 0!==window.tempUnit){window.celsius=!1;/C$/.test(window.tempUnit)&&(window.celsius=!0,20);for(var a=document.querySelectorAll("#dlg_addgravity .temp-unit"),i=0;i<a.length;i++)a[i].innerHTML=window.tempUnit}else window.celsius=!0}function dismissgravity(){Q("#dlg_addgravity").style.display="none"}function inputsg_change(){if(!window.isog){var t=Num.parse(Q("#dlg_addgravity .sginput").value);if(null!==t){var e=parseFloat(Q("#sginput-ispindel-temp").innerHTML);if(!isNaN(e)){var a=window.celsius?20:68;if(window.plato){var i=BrewMath.pTempCorrection(window.celsius,t,a,e);Q("#sginput-sg-ispindel").innerHTML=i.toFixed(2)}else{i=BrewMath.tempCorrection(window.celsius,t,a,e);Q("#sginput-sg-ispindel").innerHTML=i.toFixed(3)}}}}}function inputgravity(){var t=Num.parse(Q("#dlg_addgravity .sginput").value);window.isog&&!window.plato&&null!==t&&800<=t&&t<=1250&&t===Math.round(t)&&(t/=1e3);var e=t;if(!window.isog){var a=parseFloat(Q("#sginput-sg-ispindel").innerHTML);isFinite(a)&&(e=a)}if(null===e||e!=e||!window.plato&&(e<.8||1.25<e))alert("invalid input");else{dismissgravity(),openDlgLoading(),window.isog?updateOriginGravity(e):(updateGravity(e),gravityChangeUpdate(e));var i={name:"webjs",gravity:e},n=Num.parse(Q("#tilt-angle").value);null!==n&&(i.raw=n),window.isog&&(i.og=1),window.plato&&(i.plato=1),s_ajax({url:"gravity",m:"POST",mime:"application/json",data:JSON.stringify(i),success:function(t){closeDlgLoading(),setTimeout(function(){BChart.chart.calibrating&&BChart.reqnow()},T_CHART_REFRESH)},fail:function(t){alert("failed:"+t),closeDlgLoading()}})}}function inputSG(){window.isog=!1,showgravitydlg("sg")}function inputOG(){window.isog=!0,showgravitydlg("og")}function wifibar(t,e,a){for(var i=void 0===a?[-1e3,-90,-80,-70,-67]:[-1e3,-100,-80,-55],n=4;0<=n&&!(i[n]<e);n--);for(var r=Q(t).getElementsByClassName("rssi-bar"),o=0;o<r.length;o++)r[o].style.backgroundColor=o<n?window.rssiBarColor:"rgba(255,255,255,0.05)";Q(t).title=0<e?"?":""+e}function displayrssi(t){Q("#rssi").title=0<t?"?":Math.min(Math.max(2*(t+100),0),100),wifibar("#rssi",t),Q("#wifisignal")&&(Q("#wifisignal").innerHTML=0<t?"?":Math.min(Math.max(2*(t+100),0),100))}function initRssi(){var t=Q("#rssi");window.rssiBarColor=window.getComputedStyle(Q(".rssi-bar1")).getPropertyValue("background-color"),Q("#wifisignal")&&(t.onmouseover=function(){Q("#wifisignal").style.display="block"},t.onmouseout=function(){Q("#wifisignal").style.display="none"})}function ptcshow(t){if(void 0!==t.ptc&&void 0!==t.pt){var e=t.ptc,a=t.pt,i=Q("#ptc-pane");if(i){i.style.display="o"==e?"none":"block";var n=Q("#ptc-state");n&&(n.style.backgroundColor="c"==e?"lightgreen":"gray");var r=Q("#ptc-state-idle");if(r){var o=Q("#ptc-state-run");"c"==e?(r.style.display="none",o.style.display="block"):(r.style.display="block",o.style.display="none")}var s,l,d,c=Q("#ptc-time");if(c&&(c.innerHTML=(s=a,l=Math.floor(s/3600),d=Math.floor((s-3600*l)/60),(l?l+"H":"")+(l+d?d+"M":"")+(s-3600*l-60*d)+"S")),void 0!==t.ptctp){var u=Q("#ptc-temp");u&&(u.innerHTML=t.ptctp<-100?"NA":(t.ptctp/100).toFixed(2)+"&deg;C")}if(void 0!==t.ptclo&&void 0!==t.ptcup){var g=Q("#ptc-set");g&&(g.innerHTML=(t.ptclo/100).toFixed(2)+" ~ "+(t.ptcup/100).toFixed(2)+"&deg;C")}}}}function showPlatoUnit(){for(var t=document.querySelectorAll(".platounit"),e=0;e<t.length;e++)t[e].style.display="inline-block"}function gDeviceInfo(t){if(void 0!==t.og&&0<t.og&&updateOriginGravity(window.plato?BrewMath.sg2pla(t.og/1e3):t.og/1e3),84879460<t.u){var e=new Date(1e3*t.u);Q("#gravity-device-last")&&(Q("#gravity-device-last").innerHTML=e.shortLocalizedString())}if(updateGravity(window.plato?BrewMath.sg2pla(t.g/1e3):t.g/1e3),-2e4<t.t&&(Q("#gravity-device-temp").innerHTML=(t.t/100).toFixed(2)+"&deg;"+window.tempUnit,window.gdtemp=t.t/100),Q("#gravity-device-rssi")&&(1==window.GravityDevice?wifibar("#gravity-device-rssi",t.r):wifibar("#gravity-device-rssi",t.r,!0)),2==window.GravityDevice?Q("#tilt-raw")&&(Q("#tilt-raw").innerHTML=""+t.a.toFixed(3)):Q("#gdevice-angle")&&(Q("#gdevice-angle").innerHTML=t.a.toFixed(2)+"&deg;"),Q("#gdevice-battery")){var a;if(1==window.GravityDevice){var i=parseFloat(t.b).toFixed(2)+"V";a=void 0!==t.bp&&0<=t.bp?'<span class="tile-num">'+parseInt(t.bp)+'%</span><span class="tile-unit">'+i+"</span>":i}else a=parseInt(t.b)+"%";Q("#gdevice-battery").innerHTML=a}}function controllerMsg(t){BWF.gotMsg=!0,void 0!==t.scale&&updateKegStatus("string"==typeof t.scale?JSON.parse(t.scale):t.scale),void 0!==t.rssi&&displayrssi(t.rssi),void 0!==t.sl&&displayLcd(t),void 0!==t.reload&&(console.log("Forced reload chart"),BChart.reqnow(),Q("#recording").innerHTML&&Q("#recording").innerHTML==t.log||(window.npt=0)),void 0!==t.ver&&(JSVERSION!=t.ver&&alert("Version Mismatched!. Reload the page."),Q("#verinfo").innerHTML="v"+t.ver),void 0!==t.tm&&void 0!==t.off&&checkTime(t.tm,t.off),void 0!==t.log&&(Q("#recording").innerHTML=t.log),void 0!==t.cap&&Capper.status(t.cap),void 0!==t.plato&&(window.plato=t.plato,window.plato&&showPlatoUnit()),void 0!==t.pm&&void 0!==t.psi&&0!=t.pm&&(Q("#pressure-info-pane").style.display="block",Q("#pressure-psi").innerHTML=t.psi),void 0!==t.G&&gDeviceInfo(t.G),ptcshow(t);var e=Q("#humidity-pan");function a(t){return void 0!==t&&t<=100}if(a(t.h)||a(t.hr)){if(a(t.h)?(Q("#humidity-info").classList.remove("no-display"),Q("#humidity").innerHTML=t.h+"%"):Q("#humidity-info")&&Q("#humidity-info").classList.add("no-display"),a(t.hr)?(Q("#room-humidity-info").classList.remove("no-display"),Q("#room-humidity").innerHTML=t.hr+"%"):Q("#room-humidity-info")&&Q("#room-humidity-info").classList.add("no-display"),void 0!==t.ht?(Q("#humidity-set-info").classList.remove("no-display"),Q("#humidity-set").innerHTML=t.ht<=100?t.ht+"%":"--"):Q("#humidity-set-info")&&Q("#humidity-set-info").classList.add("no-display"),void 0!==t.hs){Q("#hc-state-info").classList.remove("no-display"),Q("#hc-state").innerHTML=["Idle","Dehumidifying","Humidifying","Wait to Dehumidify","Wait to Humidify","Humidify min Time","Dehumidify min Time"][t.hs]}else Q("#hc-state-info")&&Q("#hc-state-info").classList.add("no-display");e&&e.classList.remove("no-display")}else e&&e.classList.add("no-display"),["hc-state-info","humidity-info","humidity-set-info","room-humidity-info"].forEach(function(t){var e=Q("#"+t);e&&e.classList.add("no-display")})}function noteKeyFor(t,e){return t?String(t.id):"slot"+e}var noteSaved={dash:"",keg:{}},ROOM_LABEL_MAX=24,roomLabelSaved="";function roomDefaultText(){var t=Q("#room-name");return t&&t.getAttribute("data-default")||""}function applyRoomLabel(t){var e=Q("#room-name");e&&(e.textContent=t||roomDefaultText())}function saveRoomLabel(t){s_ajax({url:"/notes",m:"POST",data:"data="+encodeURIComponent(JSON.stringify({room:t})),success:function(){roomLabelSaved=t},fail:function(){applyRoomLabel(roomLabelSaved)}})}function bindRoomLabel(){var i=Q("#room-name");i&&"1"!==i.getAttribute("data-bound")&&(i.setAttribute("data-bound","1"),i.setAttribute("data-default",(i.textContent||"").trim()),i.addEventListener("click",function(t){i.isContentEditable&&t.preventDefault()}),i.addEventListener("dblclick",function(t){t.preventDefault(),t.stopPropagation(),i.setAttribute("data-before",i.textContent),i.contentEditable="true",i.focus();var e=document.createRange();e.selectNodeContents(i);var a=window.getSelection();a.removeAllRanges(),a.addRange(e)}),i.addEventListener("keydown",function(t){"Enter"===t.key?(t.preventDefault(),i.blur()):"Escape"===t.key&&(t.preventDefault(),i.textContent=i.getAttribute("data-before")||"",i.blur())}),i.addEventListener("blur",function(){if(i.isContentEditable){i.contentEditable="false";var t=(i.textContent||"").replace(/\s+/g," ").trim().slice(0,ROOM_LABEL_MAX);applyRoomLabel(t),t!==(roomLabelSaved||roomDefaultText())&&saveRoomLabel(t)}}))}function noteRoot(t){for(var e=t;e&&e!==document.body;){if(e.classList&&(e.classList.contains("keg-note")||e.classList.contains("dash-note-card")))return e;e=e.parentNode}return null}function setNoteResult(t,e,a){var i=noteRoot(t),n=i?i.querySelector(".note-result"):null;n&&(n.textContent=e||"",n.classList.toggle("is-ok",!!e&&!!a),n.classList.toggle("is-bad",!!e&&!a))}function syncNoteButton(t){var e=noteRoot(t),a=e?e.querySelector(".note-save"):null;a&&(a.disabled=t.value===(t.getAttribute("data-saved")||""))}function saveNoteField(t,e,a,i){var n=e.value;a.disabled=!0,setNoteResult(e,""),s_ajax({url:"/notes",m:"POST",data:"data="+encodeURIComponent(JSON.stringify(t)),success:function(){e.value===n&&(e.setAttribute("data-saved",n),i&&i(n),setNoteResult(e,"Saved",!0)),syncNoteButton(e)},fail:function(){syncNoteButton(e),setNoteResult(e,"Failed",!1)}})}function loadNotes(){s_ajax({url:"/notes",m:"GET",success:function(t){var e={};try{e=JSON.parse(t)||{}}catch(t){e={}}noteSaved.dash=e.dash||"",noteSaved.keg=e.keg||{},applyRoomLabel(roomLabelSaved=e.room||"");var a=Q("#dash-note");a&&a.value===(a.getAttribute("data-saved")||"")&&(a.value=noteSaved.dash,a.setAttribute("data-saved",noteSaved.dash),syncNoteButton(a));for(var i=document.querySelectorAll("textarea.keg-note-text"),n=0;n<i.length;n++){var r=i[n].getAttribute("data-note-key"),o=noteSaved.keg[r]||"";i[n].value===(i[n].getAttribute("data-saved")||"")&&(i[n].value=o,i[n].setAttribute("data-saved",o),syncNoteButton(i[n]))}},fail:function(){}})}function bindDashNote(){var t=Q("#dash-note"),e=Q("#dash-note-save");t&&e&&"1"!==t.getAttribute("data-bound")&&(t.setAttribute("data-bound","1"),t.setAttribute("data-saved",""),t.addEventListener("input",function(){setNoteResult(t,""),syncNoteButton(t)}),e.onclick=function(){saveNoteField({dash:t.value},t,e,function(t){noteSaved.dash=t})})}function makeKegNote(e){var t=document.createElement("div");t.className="keg-note";var a=document.createElement("div");a.className="keg-note-title";var i=document.createElement("span");i.textContent="Notes";var n=document.createElement("textarea");n.className="keg-note-text",n.setAttribute("maxlength","1000"),n.setAttribute("spellcheck","false"),n.setAttribute("aria-label","Notes"),n.setAttribute("data-note-key",e);var r=noteSaved.keg[e]||"";n.value=r,n.setAttribute("data-saved",r);var o=document.createElement("button");o.type="button",o.className="btn note-save",o.textContent="Save note",o.disabled=!0;var s=document.createElement("span");return s.className="note-result",s.setAttribute("aria-live","polite"),n.addEventListener("input",function(){setNoteResult(n,""),syncNoteButton(n)}),o.onclick=function(){var t={keg:{}};t.keg[e]=n.value,saveNoteField(t,n,o,function(t){noteSaved.keg[e]=t})},a.appendChild(i),a.appendChild(o),a.appendChild(s),t.appendChild(a),t.appendChild(n),t}function saveKegName(t,e){var a=t.value.trim();s_ajax({url:"/scale",m:"POST",mime:"application/x-www-form-urlencoded",data:"data="+encodeURIComponent(JSON.stringify({action:"kegName",id:e,kegName:a})),success:function(){t.classList.remove("is-bad"),t.classList.add("is-ok")},fail:function(){t.classList.remove("is-ok"),t.classList.add("is-bad")}})}function kegBeerInput(t){var e=document.createElement("input");return e.type="text",e.className="keg-beer",e.maxLength=31,e.placeholder="Beer in keg",e.setAttribute("aria-label","Beer in keg"),e.value=t.kegName||"",e.addEventListener("keydown",function(t){"Enter"===t.key&&(t.preventDefault(),e.blur())}),e.addEventListener("change",function(){saveKegName(e,t.id)}),e}function refreshKegLive(t,e){if(e){var a=Math.max(0,Math.min(100,Number(e.percent)||0)),i=t.querySelector("clipPath rect");i&&e.calibrated&&(i.setAttribute("y",String(135-1.2*a)),i.setAttribute("height",String(Math.max(0,1.2*a))));var n=t.querySelector(".keg-amount");n&&(n.textContent=null===e.remainingLiters?"No keg on scale":Number(e.remainingLiters).toFixed(2)+" / "+Number(e.capacityLiters||0).toFixed(2)+" L");var r=t.querySelector(".keg-percent");r&&(r.textContent=null===e.percent?"--":a.toFixed(0)+"% remaining");var o=t.querySelector(".keg-temp");o&&(o.textContent=null===e.temperatureC?"Keg temperature unavailable":Number(e.temperatureC).toFixed(2)+" C");var s=t.querySelector(".keg-state");s&&e.calibrated&&(s.textContent=["Disabled","Keg removed","Settling","Stable","Measuring","No signal - check HX711 wiring"][e.state]||"Unknown")}}function paintKegMain(t,e,a){var i=!!e,n=t.querySelector(".keg-beer");if(n&&document.activeElement===n)refreshKegLive(t,e);else{t.className="keg-status-row"+(i?"":" is-offline");var r=t.querySelector(".keg-main");r||((r=document.createElement("div")).className="keg-main",t.insertBefore(r,t.firstChild));var o=i?Math.max(0,Math.min(100,Number(e.percent)||0)):0,s=document.createElementNS("http://www.w3.org/2000/svg","svg");s.setAttribute("viewBox","0 0 100 150"),s.setAttribute("preserveAspectRatio","xMidYMid meet"),s.setAttribute("role","img"),s.setAttribute("aria-label",i?"Cornelius keg "+o.toFixed(0)+" percent full":"Keg not connected"),s.classList.add("corny-keg");var l="M25 15h50l8 15v85l-8 20H25l-8-20V30z",d=document.createElementNS("http://www.w3.org/2000/svg","defs"),c=document.createElementNS("http://www.w3.org/2000/svg","clipPath");c.setAttribute("id","keg-clip-"+a);var u=document.createElementNS("http://www.w3.org/2000/svg","rect");u.setAttribute("x","15"),u.setAttribute("y",String(135-1.2*o)),u.setAttribute("width","70"),u.setAttribute("height",String(1.2*o)),c.appendChild(u),d.appendChild(c);var g=document.createElementNS("http://www.w3.org/2000/svg","path");g.setAttribute("d",l),g.setAttribute("class","keg-liquid"),g.setAttribute("clip-path","url(#keg-clip-"+a+")");var v=document.createElementNS("http://www.w3.org/2000/svg","path");v.setAttribute("d",l),v.setAttribute("class","keg-outline"),v.setAttribute("fill","none");var p=document.createElementNS("http://www.w3.org/2000/svg","rect");p.setAttribute("x","39"),p.setAttribute("y","5"),p.setAttribute("width","22"),p.setAttribute("height","12"),p.setAttribute("rx","3"),p.setAttribute("class","keg-neck"),s.appendChild(d),s.appendChild(g),s.appendChild(v),s.appendChild(p);var f=document.createElement("div");f.className="keg-status-details";var h=document.createElement("strong"),m=document.createElement("div");if(m.className="keg-state",i)if(e.calibrated){h.textContent=e.name||"Scale "+(e.id+1);var y=kegBeerInput(e),w=document.createElement("div");w.className="keg-amount",w.textContent=null===e.remainingLiters?e.calibrated?"No keg on scale":"Calibration required":Number(e.remainingLiters).toFixed(2)+" / "+Number(e.capacityLiters||0).toFixed(2)+" L";var b=document.createElement("div");b.className="keg-percent",b.textContent=null===e.percent?"--":o.toFixed(0)+"% remaining";var C=document.createElement("div");C.className="keg-temp",C.textContent=null===e.temperatureC?"Keg temperature unavailable":Number(e.temperatureC).toFixed(2)+" C",m.textContent=["Disabled","Keg removed","Settling","Stable","Measuring","No signal - check HX711 wiring"][e.state]||"Unknown",f.appendChild(h),f.appendChild(y),f.appendChild(w),f.appendChild(b),f.appendChild(C),f.appendChild(m)}else{h.textContent=e.name||"Scale "+(e.id+1);var k=kegBeerInput(e);m.textContent="Connected";var T=document.createElement("div");T.textContent="Calibration required",f.appendChild(h),f.appendChild(k),f.appendChild(m),f.appendChild(T)}else h.textContent="Keg "+(a+1),m.textContent="Not connected",f.appendChild(h),f.appendChild(m);r.textContent="",r.appendChild(s),r.appendChild(f)}}function updateKegStatus(t){var e=Q("#keg-status-section"),a=Q("#keg-status-list");if(e&&a){e.style.display="block";var i=[];if(t&&t.use&&t.scales)for(var n=0;n<t.scales.length;n++)t.scales[n].configured&&i.push(t.scales[n]);for(;i.length<2;)i.push(null);for(var r=[],o=0;o<i.length;o++)r.push(noteKeyFor(i[o],o));for(var s=a.querySelectorAll(".keg-status-row"),l=s.length===r.length,d=0;d<r.length&&l;d++)s[d].getAttribute("data-note-key")!==r[d]&&(l=!1);if(l)for(var c=0;c<r.length;c++)paintKegMain(s[c],i[c],c);else{for(var u={},g=0;g<s.length;g++){var v=s[g].querySelector(".keg-note");v&&v.parentNode&&v.parentNode.removeChild(v),u[s[g].getAttribute("data-note-key")]=v}a.innerHTML="";for(var p=0;p<r.length;p++){var f=document.createElement("article");f.setAttribute("data-note-key",r[p]),paintKegMain(f,i[p],p),f.appendChild(u[r[p]]||makeKegNote(r[p])),a.appendChild(f)}}fitKegGraphics(a)}}function fitKegGraphics(t,e){if(t){var a=t.children,i=a.length;if(i){var n=document.querySelector(".chart-card"),r=document.getElementById("keg-status-section");if(r&&n){var o=n.clientHeight;if(o<160)(e||0)<12&&requestAnimationFrame(function(){fitKegGraphics(t,(e||0)+1)});else for(var s=r.querySelector(".keg-status-heading"),l=o-(s?s.offsetHeight:36)-24-8*(i-1),d=Math.max(72,Math.floor(l/i)),c=Math.min(132,d-16),u=Math.round(84*c/132),g=0;g<i;g++){var v=a[g],p=v.querySelector(".corny-keg");v.style.flex="0 0 "+d+"px",v.style.height=d+"px",v.style.minHeight=d+"px",v.style.maxHeight=d+"px",v.style.overflow="hidden",p&&(p.style.width=u+"px",p.style.height=c+"px",p.style.flexBasis=u+"px")}}}}}function connBWF(){BWF.init({onconnect:function(){BWF.send("c"),window.lcdTimer&&clearInterval(window.lcdTimer),window.lcdTimer=setInterval(function(){if(!BWF.gotMsg){if(window.rcTimeout){if(BWF.rcCount++,console.log("rcTimeout failed."),BWF.rcCount<3)return;clearTimer(window.rcTimeout)}return controllerError(),window.rcTimeout=setTimeout(function(){window.rcTimeout=null,BWF.gotMsg||BWF.reconnect(!0)},T_BWF_RECONNECT),void(BWF.rcCount=0)}BWF.gotMsg=!1},T_BWF_LCD)},error:function(t){communicationError(),closeDlgLoading()},handlers:{A:controllerMsg,G:function(t){GDSetting(t)},C:function(t){"undefined"!=typeof ccparameter&&ccparameter(t)},B:function(t){"undefined"!=typeof rcvBeerProfile&&rcvBeerProfile(t)}}})}function init(){Q("#pressure-info-pane").style.display="none",Q(".gravity-device-pane").style.display="none",window.plato=!1,BChart.init("div_g",Q("#ylabel").innerHTML,Q("#y2label").innerHTML,"div_p",Q("#psilabel").innerHTML,Q("#vollabel").innerHTML,"div_h",Q("#rhlabel").innerHTML),initRssi(),Capper.init(),BWF.gotMsg=!0,connBWF(),loadGravityCorrection(),setTimeout(function(){BChart.start()},T_LOAD_CHART),getActiveNavItem(),dressChartLegend(),dressSideCards(),updateKegStatus(null),bindDashNote(),bindRoomLabel(),loadNotes(),window.addEventListener("resize",function(){var t=Q("#keg-status-list");t&&fitKegGraphics(t)})}function dressSideCards(){var n=["lcdBeerTemp","lcdBeerSet","lcdFridgeTemp","lcdFridgeSet","lcdRoomTemp","gdevice-angle","gdevice-battery","gravity-device-temp"],e=n.concat(["gravity-og","gravity-sg","gravity-att","gravity-abv","sgchanged","tilt-raw","gravity-device-last"]);function a(t){if(t){var e=t.textContent||"",a=e.replace(/\s/g,"");if(t.classList.toggle("is-empty",""===a||0===a.indexOf("--")),!(n.indexOf(t.id)<0||t.getAttribute("data-dress")===e&&(t.classList.contains("is-empty")||t.querySelector(".tile-num"))||(t.setAttribute("data-dress",e),t.classList.contains("is-empty")))){var i=e.match(/^(\s*-?[\d.]+)(.*)$/);i&&i[2]&&/[\u00B0\u00BA%V]/.test(i[2])&&(t.innerHTML='<span class="tile-num">'+i[1]+'</span><span class="tile-unit">'+i[2]+"</span>")}}}function t(){for(var t=0;t<e.length;t++)a(Q("#"+e[t]))}!function(){if("undefined"!=typeof BrewChart&&BrewChart.ClassLabels&&BrewChart.Colors)for(var t=document.querySelectorAll(".status-series"),e=0;e<t.length;e++){var a=BrewChart.ClassLabels.indexOf(t[e].getAttribute("data-series"));0<a&&BrewChart.Colors[a-1]&&(t[e].style.backgroundColor=BrewChart.Colors[a-1])}}(),t();var i=Q("[side]");i&&!i._infoDressed&&(i._infoDressed=!0,new MutationObserver(t).observe(i,{subtree:!0,childList:!0,characterData:!0}))}function dressChartLegend(){var o=Q(".chart-legend");o&&!o._dressed&&(o._dressed=!0,new MutationObserver(t).observe(o,{subtree:!0,childList:!0,characterData:!0}),t());function t(){!function(){var t=Q(".beer-chart-legend-time");if(t&&!t.querySelector(".legend-clock")){var e=t.textContent||"",a=e.lastIndexOf(" ");a<1||e.indexOf(":")<0||(t.innerHTML='<span class="legend-date">'+e.slice(0,a)+'</span><span class="legend-clock">'+e.slice(a+1)+"</span>")}}(),function(){var t=Q(".beer-chart-state");if(t&&!t.querySelector(".state-chip")){var e=(t.textContent||"").replace(/^\s+|\s+$/g,"");if(e){var a=e.split(/\s+for\s+/i),i=a[0],n=1<a.length?a.slice(1).join(" for "):"",r=i.toLowerCase(),o=0<=r.indexOf("heat"),s=0<=r.indexOf("cool"),l="";if(o&&s)for(var d=i.split("+"),c=0;c<d.length;c++){var u=d[c].replace(/^\s+|\s+$/g,"");u&&(l+='<span class="state-chip" data-tone="'+(0<=u.toLowerCase().indexOf("cool")?"cool":"heat")+'">'+u+"</span>")}else l='<span class="state-chip" data-tone="'+(o?"heat":s?"cool":"idle")+'">'+i+"</span>";n&&(l+='<span class="state-chip state-chip-time">'+n+"</span>"),t.innerHTML=l}}}(),function(){for(var t=o.querySelectorAll(".legend-value"),e=0;e<t.length;e++){var a=t[e],i=a.textContent||"";if(a.getAttribute("data-dress")===i&&a.querySelector(".legend-num"))a.classList.toggle("is-empty",0===i.replace(/\s/g,"").indexOf("--"));else{a.setAttribute("data-dress",i);var n="--"===i.replace(/\s/g,"")||""===i.replace(/\s/g,"");if(a.classList.toggle("is-empty",n),!n){var r=i.indexOf("°");r<0&&(r=i.indexOf("º")),0<r&&(a.innerHTML='<span class="legend-num">'+i.slice(0,r)+'</span><span class="legend-unit">'+i.slice(r)+"</span>")}}}}()}}</script><style>.dygraph-legend{position:absolute;font-size:14px;z-index:10;width:250px;background:#fff;line-height:normal;text-align:left;overflow:hidden}.dygraph-legend[dir=rtl]{text-align:right}.dygraph-legend-line{display:inline-block;position:relative;bottom:.5ex;padding-left:1em;height:1px;border-bottom-width:2px;border-bottom-style:solid}.dygraph-legend-dash{display:inline-block;position:relative;bottom:.5ex;height:1px;border-bottom-width:2px;border-bottom-style:solid}.dygraph-roller{position:absolute;z-index:10}.dygraph-annotation{position:absolute;z-index:10;overflow:hidden}.dygraph-default-annotation{border:1px solid #000;background-color:#fff;text-align:center}.dygraph-axis-label{z-index:10;line-height:normal;overflow:hidden;color:#000}.dygraph-title{font-weight:700;z-index:10;text-align:center}.dygraph-xlabel{text-align:center}.dygraph-label-rotate-left{text-align:center;transform:rotate(90deg);-webkit-transform:rotate(90deg);-moz-transform:rotate(90deg);-o-transform:rotate(90deg);-ms-transform:rotate(90deg)}.dygraph-label-rotate-right{text-align:center;transform:rotate(-90deg);-webkit-transform:rotate(-90deg);-moz-transform:rotate(-90deg);-o-transform:rotate(-90deg);-ms-transform:rotate(-90deg)}</style><style>:root{--paper:#f3eee6;--card:#fffdf8;--tile:#f9f5ef;--line:#e4d5c3;--ink:#2c241c;--muted:#7a6858;--accent:#9a431f;--accent-on:#fffdf8;--accent-soft:#f3e1d4;--accent-dark:#6e2e18;--accent-2:#c9842a;--cool:rgb(89, 184, 255);--ok:#3a9a47;--danger:#b42318}[data-theme=sage]{--paper:#e9eee6;--card:#fbfdf9;--tile:#f3f6f0;--line:#d3ddcd;--ink:#1f2a21;--muted:#66746a;--accent:#3f6b2e;--accent-on:#fbfdf9;--accent-soft:#e3eddc;--accent-dark:#25431a;--accent-2:#7f8f3a}[data-theme=slate]{--paper:#e8ecf0;--card:#fbfcfd;--tile:#f3f6f8;--line:#d3dbe3;--ink:#1b2630;--muted:#64717d;--accent:#285f9f;--accent-on:#fbfcfd;--accent-soft:#dde8f4;--accent-dark:#173a63;--accent-2:#4f86c0}[data-theme=plum]{--paper:#efeaf0;--card:#fdfbfe;--tile:#f6f2f8;--line:#ddd3e2;--ink:#26202b;--muted:#70657a;--accent:#6b3a82;--accent-on:#fdfbfe;--accent-soft:#eadff0;--accent-dark:#432352;--accent-2:#9a5aa8}[data-theme=brew]{--paper:#f7f3ea;--card:#fffcf6;--tile:#f3ede0;--line:#e6dcc9;--ink:#302720;--muted:#7a6a58;--accent:#a84e25;--accent-on:#fffcf6;--accent-soft:#f4e1d3;--accent-dark:#6f3317;--accent-2:#d6a84f}[data-theme=lab]{--paper:#f0f4fa;--card:#ffffff;--tile:#f3f6fb;--line:#d9e2ee;--ink:#20324a;--muted:#5f7088;--accent:#0b7d79;--accent-on:#ffffff;--accent-soft:#d8f0ef;--accent-dark:#0a4f4d;--accent-2:#5aa9e6}[data-theme=hops]{--paper:#f5f0e6;--card:#fcfaf4;--tile:#efe9dc;--line:#ddd5c2;--ink:#343a36;--muted:#667069;--accent:#254a3c;--accent-on:#f5f0e6;--accent-soft:#dbeadf;--accent-dark:#163026;--accent-2:#b85c38}[data-theme=amber]{--paper:#faf7f0;--card:#ffffff;--tile:#f5f1e7;--line:#e8e1d2;--ink:#252a30;--muted:#666d75;--accent:#e6a23c;--accent-on:#252a30;--accent-soft:#fbecd0;--accent-dark:#8a5a0f;--accent-2:#8a6ccf}*{-webkit-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0}body,html{height:100%}a{text-decoration:none}html{line-height:1.5;font-family:"Segoe UI",system-ui,sans-serif;font-weight:400;color:var(--ink)}@media only screen and (min-width:0){html{font-size:14px}}@media only screen and (min-width:992px){html{font-size:14.5px}}@media only screen and (min-width:1200px){html{font-size:15px}}body{background:var(--paper)}h1,h2,h3,h4,h5,h6{font-weight:400;line-height:1.1}h1 a,h2 a,h3 a,h4 a,h5 a,h6 a{font-weight:inherit}h1{font-size:4.2rem;line-height:110%;margin:2.1rem 0 1.68rem 0}h2{font-size:3.56rem;line-height:110%;margin:1.78rem 0 1.424rem 0}h3{font-size:2.92rem;line-height:110%;margin:1.46rem 0 1.168rem 0}h4{font-size:2.28rem;line-height:110%;margin:1.14rem 0 .912rem 0}h5{font-size:1.64rem;line-height:110%;margin:.82rem 0 .656rem 0}h6{font-size:1rem;line-height:110%;margin:.5rem 0 .4rem 0}em{font-style:italic}strong{font-weight:500}small{font-size:75%}.light{font-weight:300}.thin{font-weight:200}html [layout],html [layout][horizontal],html [layout][vertical]{display:-webkit-box;display:-ms-flexbox;display:flex}html [layout][horizontal]{-webkit-box-orient:horizontal;-webkit-box-direction:normal;-ms-flex-direction:row;flex-direction:row}html [layout][vertical]{-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column}html [flex]{-webkit-box-flex:1;-ms-flex:1;flex:1;-ms-flex-preferred-size:.000000001px;flex-basis:.000000001px}html [layout][center-center],html [layout][cross-center]{-webkit-box-align:center;-ms-flex-align:center;align-items:center}html [layout][cross-end]{-webkit-box-align:end;-ms-flex-align:end;align-items:flex-end}html [layout][center-center],html [layout][main-center]{-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center}html [layout][main-justified]{-webkit-box-pack:justify;-ms-flex-pack:justify;justify-content:space-between}html [layout][main-distributed]{-ms-flex-pack:distribute;justify-content:space-around}html [hidden]{display:none!important}html [relative]{position:relative}.header{height:64px;background:var(--card);-webkit-box-shadow:none;box-shadow:none;border-bottom:1px solid var(--line);padding:0 16px;z-index:2}.header_title{font-size:26px;line-height:64px;color:var(--accent);font-weight:700;letter-spacing:-.03em;margin:0;padding:0}.header_title a{color:inherit;text-decoration:none}.header_version-display{font-size:13px;color:var(--muted);font-weight:650}@media (max-width:700px){[navigation] [menuToggle]{display:block;position:relative;z-index:1;top:3px;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}}[navigation] input{display:none}@media (max-width:700px){[navigation] input{display:block;width:40px;height:32px;position:absolute;top:-7px;left:-5px;cursor:pointer;opacity:0;z-index:2;-webkit-touch-callout:none}[navigation] input:checked~ul{-webkit-transform:scale(1,1);transform:scale(1,1);opacity:1}[navigation] input:checked~span{opacity:1;-webkit-transform:rotate(45deg) translate(-2px,-1px);transform:rotate(45deg) translate(-2px,-1px);background:#232323}[navigation] input:checked~span:nth-last-child(3){opacity:0;-webkit-transform:rotate(0) scale(.2,.2);transform:rotate(0) scale(.2,.2)}[navigation] input:checked~span:nth-last-child(2){opacity:1;-webkit-transform:rotate(-45deg) translate(0,-1px);transform:rotate(-45deg) translate(0,-1px)}}[navigation] span{display:none}@media (max-width:700px){[navigation] span{display:block;width:33px;height:4px;margin-bottom:5px;position:relative;background:var(--accent);border-radius:3px;z-index:1;-webkit-transform-origin:4px 0;transform-origin:4px 0;-webkit-transition:background .5s cubic-bezier(.77,.2,.05,1),opacity .55s ease,-webkit-transform .5s cubic-bezier(.77,.2,.05,1);transition:background .5s cubic-bezier(.77,.2,.05,1),opacity .55s ease,-webkit-transform .5s cubic-bezier(.77,.2,.05,1);transition:transform .5s cubic-bezier(.77,.2,.05,1),background .5s cubic-bezier(.77,.2,.05,1),opacity .55s ease;transition:transform .5s cubic-bezier(.77,.2,.05,1),background .5s cubic-bezier(.77,.2,.05,1),opacity .55s ease,-webkit-transform .5s cubic-bezier(.77,.2,.05,1)}[navigation] span:first-child{-webkit-transform-origin:0 0;transform-origin:0 0}[navigation] span:nth-last-child(2){-webkit-transform-origin:0 100%;transform-origin:0 100%}}[navigation] .options{list-style-type:none;height:100%}[navigation] .options>li{display:inline-block;height:100%}[navigation] .options a{color:var(--ink);text-transform:none;font-weight:650;height:100%;padding:8px;display:inline-block;line-height:48px;border-bottom:3px solid transparent}[navigation] .options a.active{border-bottom:3px solid var(--accent);color:var(--accent)}[navigation] .options a:hover{border-bottom:3px solid var(--accent-2)}@media (max-width:700px){[navigation] .options{padding-top:64px;position:fixed;display:block;width:100vw;height:100vh;right:0;top:0;background:#ededed;list-style-type:none;-webkit-font-smoothing:antialiased;-webkit-transform-origin:0 0;transform-origin:0 0;-webkit-transform:translate(100%,0);transform:translate(100%,0);-webkit-transition:-webkit-transform .5s cubic-bezier(.77,.2,.05,1);transition:-webkit-transform .5s cubic-bezier(.77,.2,.05,1);transition:transform .5s cubic-bezier(.77,.2,.05,1);transition:transform .5s cubic-bezier(.77,.2,.05,1),-webkit-transform .5s cubic-bezier(.77,.2,.05,1)}[navigation] .options>li{display:block;height:auto;text-align:center}[navigation] .options a{color:#222;height:auto;width:100%;display:block}[navigation] .options a.active{color:var(--accent-2);border:none}[navigation] .options a:hover{background:#ccc;border:none}}.footer{height:44px;background:0 0;color:var(--muted);padding:0 16px}.footer a{color:var(--accent);font-weight:650}[viewport]{min-height:calc(100% - 104px)}@media (max-width:900px){[viewport]{-webkit-box-orient:vertical!important;-webkit-box-direction:normal!important;-ms-flex-direction:column!important;flex-direction:column!important;min-height:0}}[main]{padding:16px;overflow-y:auto}@media (max-width:900px){[main]{overflow:initial}}@media (max-width:599px){[main]>[layout] .chart-legend{width:100%}}@media (max-width:599px){[main]>[layout]{-webkit-box-orient:vertical!important;-webkit-box-direction:normal!important;-ms-flex-direction:column!important;flex-direction:column!important}}.error{position:fixed;left:20px;bottom:24px;background-color:var(--ink);border-radius:14px;padding:12px 24px 17px 24px;vertical-align:middle;color:#fff;-webkit-box-shadow:0 7px 18px rgba(0,0,0,.2);box-shadow:0 7px 18px rgba(0,0,0,.2);z-index:30}.error:empty{display:none}body:has(.header-rail) .error{left:240px}@media (max-width:700px){body:has(.header-rail) .error{left:12px;right:12px;bottom:78px}}input[type=datetime-local],input[type=number],input[type=password],input[type=text]{width:100%;max-width:280px;margin:8px 0;display:block;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--card);color:var(--ink)}input[type=datetime-local]:focus,input[type=number]:focus,input[type=password]:focus,input[type=text]:focus{-webkit-box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent);outline:0;border-color:var(--accent)}input[type=datetime-local]:invalid,input[type=number]:invalid,input[type=password]:invalid,input[type=text]:invalid{border-color:#b42318}.hide{display:none!important}html .header.header-rail[layout][horizontal]{position:fixed;z-index:20;left:0;top:0;bottom:0;width:220px;height:auto;margin:0;padding:22px 14px 16px;background:var(--card);border-right:1px solid var(--line);border-bottom:0;-webkit-box-shadow:none;box-shadow:none;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;-webkit-box-align:stretch;-ms-flex-align:stretch;align-items:stretch;-webkit-box-pack:start;-ms-flex-pack:start;justify-content:flex-start;gap:8px}html .header.header-rail .header_title{font-size:22px;line-height:1.15;padding:0 8px}html .header.header-rail .header_version-display{display:block;margin-top:2px}html .header.header-rail [navigation]{width:100%;min-height:0;-webkit-box-flex:1;-ms-flex:1;flex:1;overflow:auto}html .header.header-rail [menuToggle]>input,html .header.header-rail [menuToggle]>span{display:none}html .header.header-rail .options{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;height:auto;margin:0;padding:8px 0 0;gap:4px;list-style:none;-webkit-transform:none;transform:none;position:static;width:auto;background:0 0}html .header.header-rail .options>li{display:block;height:auto}html .header.header-rail .options a{color:var(--ink);text-transform:none;letter-spacing:0;font-weight:650;line-height:1.25;height:auto;width:auto;padding:10px 12px;border:0;border-radius:12px;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:10px;white-space:normal}html .header.header-rail .options a.active{background:var(--accent);color:var(--accent-on);border:0}html .header.header-rail .options a:hover{background:var(--accent-soft);color:var(--ink);border:0}html .header.header-rail .options a.active:hover{background:var(--accent-dark);color:var(--accent-on)}html .header.header-rail .options>li.nav-pressure{display:none}body.show-pressure .header-rail .options>li.nav-pressure{display:block}body:has(.header-rail) [viewport]{margin-left:220px;min-height:calc(100% - 44px)}body:has(.header-rail) .footer{margin-left:220px}@media (max-width:700px){html .header.header-rail[layout][horizontal]{top:auto;bottom:0;left:0;right:0;width:100%;height:64px;-webkit-box-orient:horizontal;-webkit-box-direction:normal;-ms-flex-direction:row;flex-direction:row;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:start;-ms-flex-pack:start;justify-content:flex-start;padding:0 8px;border-right:0;border-top:1px solid var(--line);gap:8px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}html .header.header-rail[layout][horizontal]::-webkit-scrollbar{display:none}html .header.header-rail .header_title{position:fixed;top:0;left:0;right:0;height:46px;line-height:46px;padding:0 16px;background:var(--card);border-bottom:1px solid var(--line);font-size:20px;z-index:19}html .header.header-rail .header_version-display{display:inline;margin-left:6px}html .header.header-rail [navigation]{-webkit-box-flex:0;-ms-flex:0 0 auto;flex:0 0 auto;width:auto;min-width:0;overflow:visible}html .header.header-rail [menuToggle]{top:0;width:auto}html .header.header-rail .options{-webkit-box-orient:horizontal;-webkit-box-direction:normal;-ms-flex-direction:row;flex-direction:row;-webkit-box-align:center;-ms-flex-align:center;align-items:center;overflow:visible;width:-webkit-max-content;width:-moz-max-content;width:max-content;height:64px;padding:0;gap:4px}html .header.header-rail .options>li{-webkit-box-flex:0;-ms-flex:0 0 auto;flex:0 0 auto}html .header.header-rail .options a{white-space:nowrap;line-height:36px;padding:0 12px}html .header.header-rail .rail-themes{-ms-flex-item-align:center;align-self:center;margin-top:0;padding:0 8px 0 4px;border-top:0;border-left:0;-webkit-box-flex:0;-ms-flex:0 0 auto;flex:0 0 auto}html .header.header-rail .rail-themes .theme-picker{-ms-flex-wrap:nowrap;flex-wrap:nowrap}body:has(.header-rail) [viewport]{margin-left:0;margin-top:46px;margin-bottom:64px;min-height:0}body:has(.header-rail) .footer{margin-left:0;margin-bottom:64px}}.ic{width:18px;height:18px;-webkit-box-flex:0;-ms-flex:none;flex:none;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.badge{width:32px;height:32px;border-radius:10px;background:var(--accent-soft);color:var(--accent-dark);display:-webkit-inline-box;display:-ms-inline-flexbox;display:inline-flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;-webkit-box-flex:0;-ms-flex:none;flex:none}.navitem:has(>.badge),h4:has(>.badge),h5:has(>.badge){display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:10px}html .header.header-rail .header_title a{color:var(--accent-dark)}.rail-themes{margin-top:auto;padding-top:12px;border-top:1px solid var(--line)}.theme-picker{display:-webkit-box;display:-ms-flexbox;display:flex;-ms-flex-wrap:wrap;flex-wrap:wrap;gap:8px}.theme-swatch{width:22px;height:22px;padding:0;border:0;border-radius:50%;background:0 0;cursor:pointer;font-size:0;line-height:0}.theme-swatch.is-selected{outline:2px solid var(--ink);outline-offset:2px}.theme-dot{width:22px;height:22px;border-radius:50%;display:block;-webkit-box-shadow:inset 0 0 0 1px rgba(0,0,0,.15);box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}.switch-input{display:none}.switch-label{position:relative;display:inline-block;min-width:148px;cursor:pointer;font-weight:500;text-align:left;margin:0;padding:4px 0 4px 44px}.switch-label:after,.switch-label:before{content:"";position:absolute;margin:0;outline:0;top:50%;-webkit-transform:translate(0,-50%);transform:translate(0,-50%);-webkit-transition:all .3s ease;transition:all .3s ease}.switch-label:before{left:1px;width:34px;height:14px;background-color:#ddd;border-radius:8px}.switch-label:after{left:0;width:20px;height:20px;background-color:#fafafa;border-radius:50%;-webkit-box-shadow:0 3px 1px -2px rgba(0,0,0,.14),0 2px 2px 0 rgba(0,0,0,.098),0 1px 5px 0 rgba(0,0,0,.084);box-shadow:0 3px 1px -2px rgba(0,0,0,.14),0 2px 2px 0 rgba(0,0,0,.098),0 1px 5px 0 rgba(0,0,0,.084)}.switch-input:checked+.switch-label:after{background-color:var(--accent);-webkit-transform:translate(80%,-50%);transform:translate(80%,-50%)}.switch-input:checked+label[for=beer-temp].switch-label:after{background-color:#29aa29}.switch-input:checked+label[for=beer-set].switch-label:after{background-color:#f06464}.switch-input:checked+label[for=fridge-temp].switch-label:after{background-color:#59b8ff}.switch-input:checked+label[for=fridge-set].switch-label:after{background-color:#ffa14c}.switch-input:checked+label[for=room-temp].switch-label:after{background-color:#aaa}.switch-input:checked+label[for=gravity].switch-label:after{background-color:#909}.switch-input:checked+label[for=aux-temp].switch-label:after{background-color:#f5e127}.switch-input:checked+label[for=filtersg].switch-label:after{background-color:#000abb}.switch-input:checked+label[for=pressure].switch-label:after{background-color:#00e}.switch-input:checked+label[for=pressure-set].switch-label:after{background-color:#f06464}.switch-input:checked+label[for=carbonation].switch-label:after{background-color:#aaa}.switch-input:checked+label[for=humidity].switch-label:after{background-color:#22d}.switch-input:checked+label[for=humidity-set].switch-label:after{background-color:#e11}.switch-input:checked+label[for=room-humidity].switch-label:after{background-color:#aaa}.switch-input:checked+label[for=sgchange1].switch-label:after{background-color:#d3d}.switch-input:checked+label[for=sgchange2].switch-label:after{background-color:#33d}.switch-input:checked+label[for=sgchange3].switch-label:after{background-color:#3d3}.modal{display:none;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;position:fixed;top:0;left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;z-index:1000;-webkit-transition:all .5s cubic-bezier(.23,1,.32,1);transition:all .5s cubic-bezier(.23,1,.32,1);-webkit-transition-delay:0s;transition-delay:0s;background:rgba(0,0,0,.3)}.modal-content{position:relative;padding:2.4rem;background:var(--card);background-clip:padding-box;-webkit-box-shadow:0 12px 15px 0 rgba(0,0,0,.25);box-shadow:0 12px 15px 0 rgba(0,0,0,.25);-webkit-transition:all .25s cubic-bezier(.23,1,.32,1);transition:all .25s cubic-bezier(.23,1,.32,1);max-width:600px;padding:2rem;margin-left:auto;margin-right:auto}.modal-content h2.message{font-size:18px;font-weight:700;text-transform:uppercase}.btn{display:inline-block;position:relative;cursor:pointer;height:35px;line-height:35px;padding:0 1.5rem;font-size:15px;font-weight:650;letter-spacing:0;text-align:center;text-transform:none;border-radius:999px;vertical-align:middle;white-space:nowrap;outline:0;border:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-webkit-transition:all .3s ease-out;transition:all .3s ease-out;background-color:transparent;margin-right:8px}.btn[disabled]{color:var(--line)}.btn[disabled]:hover{background-color:transparent;cursor:not-allowed}.btn--raised{background-color:var(--accent);color:var(--accent-on);-webkit-box-shadow:none;box-shadow:none}.btn--raised:hover{background-color:hsl(from var(--accent) h s calc(l - 10%))}.btn--primary{color:var(--accent)}.btn:hover{background-color:hsla(0,0%,60%,.2);cursor:pointer}[side]{width:340px;padding:16px 8px 16px 16px;overflow-y:auto;background:0 0;-webkit-box-shadow:none;box-shadow:none}@media (max-width:900px){[side]{width:100%;-webkit-box-ordinal-group:6;-ms-flex-order:5;order:5;padding:8px 16px 16px}}.data-pane{list-style-type:none;display:block;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:4px 14px 10px;margin-bottom:12px}.data-pane .heading{border-bottom:1px solid var(--line);padding-top:8px;padding-bottom:4px;margin-bottom:4px}.data-pane .heading strong{text-transform:none;letter-spacing:.01em;display:inline-block}.data-pane .heading #lcdControlState:empty+.for{display:none}.data-pane.info-card{display:grid;grid-template-columns:1fr 1fr;gap:8px;border-radius:14px;padding:12px;margin-bottom:10px}.data-pane.info-card>.heading{grid-column:1/-1;border-bottom:0;padding:0;margin:0}.data-pane.info-card>.heading strong{font-weight:500;font-size:.95rem}.info-title{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:8px;margin-bottom:8px}.info-badge{width:24px;height:24px;border-radius:8px;display:-webkit-inline-box;display:-ms-inline-flexbox;display:inline-flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;-webkit-box-flex:0;-ms-flex:0 0 24px;flex:0 0 24px}.info-badge svg{width:14px;height:14px;display:block}.info-badge-status{background:var(--accent-soft);color:var(--accent)}.info-badge-gravity{background:color-mix(in srgb,var(--accent-2) 22%,var(--card));color:var(--accent-2)}.info-badge-device{background:color-mix(in srgb,#59b8ff 20%,var(--card));color:#0795ff}.info-badge-system{background:color-mix(in srgb,var(--accent-dark) 10%,var(--card));color:var(--accent-dark)}.info-state-line{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:justify;-ms-flex-pack:justify;justify-content:space-between;gap:8px}#lcdControlState:not(:empty){border-radius:999px;padding:3px 8px;font-size:.75rem;font-weight:700;line-height:1.3;background:var(--paper);color:var(--muted)}#lcdControlState[data-tone=heat]:not(:empty){background:var(--accent-soft);color:var(--accent)}#lcdControlState[data-tone=cool]:not(:empty){background:color-mix(in srgb,#59b8ff 18%,var(--card));color:#26a2ff}#lcdControlState[data-tone=both]:not(:empty){background:color-mix(in srgb,var(--accent-2) 26%,var(--card));color:hsl(from var(--accent-2) h s calc(l - 6%))}.info-mode{color:var(--muted);font-size:.75rem;font-weight:500;white-space:nowrap}.info-card .info-tile{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;-webkit-box-pack:justify;-ms-flex-pack:justify;justify-content:space-between;gap:6px;min-height:64px;min-width:0;background:var(--paper);border:1px solid transparent;border-radius:10px;padding:8px 10px}.info-card .descriptor{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:6px;font-size:.72rem;font-weight:600;color:var(--muted);line-height:1.2}.status-series{width:8px;height:8px;border-radius:50%;-webkit-box-flex:0;-ms-flex:0 0 8px;flex:0 0 8px;background:var(--muted)}.info-card .info-tile>[id],.info-card .tile-measure,.info-card .tile-num{font-size:20px;font-weight:500;font-variant-numeric:tabular-nums;line-height:1.15;color:var(--ink)}.info-card .platounit,.info-card .tile-unit{font-size:.72rem;font-weight:500;color:var(--muted)}.info-card .tile-measure{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:baseline;-ms-flex-align:baseline;align-items:baseline;gap:2px}.info-card .is-empty{color:var(--muted);font-weight:500}.info-card .info-span{grid-column:1/-1}.info-card .info-tile-wide{grid-column:1/-1;-webkit-box-orient:horizontal;-webkit-box-direction:normal;-ms-flex-direction:row;flex-direction:row;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:justify;-ms-flex-pack:justify;justify-content:space-between;min-height:44px}.info-card .info-tile-wide>#gravity-device-last,.info-card .info-tile-wide>#sgchanged{font-size:.92rem;text-align:right}.info-card .info-tile-edit{position:relative;cursor:pointer;border:1px dashed var(--line)}.info-card .info-tile-edit:hover{background:hsl(from var(--paper) h s calc(l - 4%));border-color:hsl(from var(--line) h s calc(l - 12%))}.info-card .info-tile-edit #gravity-og,.info-card .info-tile-edit #gravity-sg{position:absolute;inset:0;z-index:1;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:end;-ms-flex-align:end;align-items:flex-end;padding:8px 28px 8px 10px;background:0 0;cursor:pointer}.info-card .info-tile-edit .platounit{position:absolute;right:22px;bottom:10px;z-index:2;pointer-events:none}.tile-pen{position:absolute;top:7px;right:7px;z-index:2;width:12px;height:12px;color:var(--muted);pointer-events:none}#recording:not(:empty){-ms-flex-item-align:start;align-self:flex-start;max-width:100%;border-radius:999px;padding:2px 8px;background:var(--accent-soft);color:var(--accent);font-size:.72rem;font-weight:700;line-height:1.3;overflow:hidden;text-overflow:ellipsis}.info-card .wifi-bars{margin-top:auto}.chart{width:calc(100% - 280px)}@media (max-width:599px){.chart{width:100%;margin-bottom:16px}}.chart-main{height:390px}.chart-p{height:130px}.chart-legend{list-style:none;width:280px;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;gap:8px}.chart-legend-row{background:var(--card);border:1px solid var(--line);border-radius:12px;color:var(--ink);font-variant-numeric:tabular-nums}.chart-legend .switch-input{position:absolute;opacity:0;pointer-events:none}.chart-legend .switch-label{min-width:0;margin:0;padding:0;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:8px;width:100%;cursor:pointer;font-weight:650;text-align:left;color:var(--ink)}.chart-legend .switch-label:after,.chart-legend .switch-label:before{display:none}.chart-legend .toggle{width:10px;height:10px;margin:0;border:0;border-radius:50%;-webkit-box-flex:0;-ms-flex:0 0 10px;flex:0 0 10px;background:currentColor}.chart-legend-row .legend-name,.chart-legend-row .legend-unit,.chart-legend-row .legend-value{color:var(--ink)}.chart-legend-row .legend-value{margin-left:auto;white-space:nowrap;font-variant-numeric:tabular-nums}.chart-legend-row .legend-unit{font-size:.72em;color:var(--muted);font-weight:600;margin-left:2px}.chart-legend-row.legend-primary{min-height:64px}.chart-legend-row.legend-primary .switch-label{min-height:64px;padding:10px 12px}.chart-legend-row.legend-primary .legend-num{font-size:1.65rem;font-weight:700;letter-spacing:-.03em;line-height:1}.chart-legend-row.beer-temp,.chart-legend-row.fridge-temp{margin-bottom:-8px;border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0}.chart-legend-row.legend-pill{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-pack:end;-ms-flex-pack:end;justify-content:flex-end;padding:0 10px 10px;border-top-left-radius:0;border-top-right-radius:0;background:var(--card)}.chart-legend-row.legend-pill .switch-label{width:auto;max-width:100%;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:.82rem;font-weight:650}.chart-legend-row.legend-pill .switch-label:hover{background:var(--paper)}.chart-legend-row.legend-pill .legend-num,.chart-legend-row.legend-pill .legend-value{font-size:.82rem;font-weight:650}.chart-legend-row.legend-extra{min-height:36px;border-radius:0}.chart-legend-row.legend-extra .switch-label{min-height:36px;padding:0 12px;font-size:.9rem}.chart-legend-row.aux-temp{margin-bottom:-8px;border-radius:12px 12px 0 0}.chart-legend-row.gravity{margin-bottom:-8px;border-top:0}.chart-legend-row.filtersg{border-radius:0 0 12px 12px;border-top:0}.chart-legend-row.legend-extra+.chart-legend-row.legend-extra{border-top:1px solid var(--line)}.legend-time-card{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-pack:justify;-ms-flex-pack:justify;justify-content:space-between;-webkit-box-align:start;-ms-flex-align:start;align-items:flex-start;gap:8px;padding:12px}.legend-clock{display:block;font-size:1.7rem;font-weight:700;line-height:1.05;letter-spacing:-.03em}.legend-date{display:block;margin-top:4px;font-size:.78rem;color:var(--muted)}.beer-chart-state{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;-webkit-box-align:end;-ms-flex-align:end;align-items:flex-end;gap:4px}.state-chip{border-radius:999px;border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:2px 8px;font-size:.72rem;font-weight:700;line-height:1.3;white-space:nowrap}.state-chip[data-tone=heat]{background:var(--accent-soft);color:var(--accent)}.state-chip[data-tone=cool]{background:var(--paper);color:var(--cool)}.chart-legend-row:has(input):not(:has(input:checked)){opacity:.48}.chart-legend-row:has(input):not(:has(input:checked)) .toggle{background:0 0!important;-webkit-box-shadow:inset 0 0 0 2px currentColor;box-shadow:inset 0 0 0 2px currentColor}.chart-legend-row:has(input):not(:has(input:checked)) .legend-value{text-decoration:line-through}.chart-legend .legend-value.is-empty{color:var(--muted);font-weight:500}.chart-legend-row.carbonation.legend-extra,.chart-legend-row.humidity.legend-extra,.chart-legend-row.pressure-set.legend-extra,.chart-legend-row.pressure.legend-extra,.chart-legend-row.room-humidity.legend-extra,.chart-legend-row.set-humidity.legend-extra{border-radius:12px;margin-top:0}#formula-btn{-ms-flex-item-align:end;align-self:flex-end;padding:4px 10px;font-size:.8rem}.forced-hidden{display:none!important}#gravity-og:hover,#gravity-sg:hover{cursor:pointer}.legend-label{width:100px;font-weight:700}.legend-label:hover{cursor:pointer}#formula-btn{float:right;display:none;font-style:italic;text-decoration:underline}#formula-btn:hover{cursor:pointer}#polynomialpane .modal-content{position:relative;max-width:800px}#pointlist{border-collapse:collapse}#pointlist th{border:solid 1px}#pointlist td{border:solid 1px;border-collapse:collapse}#xclose{float:right;font-size:14px;color:red}#xclose:hover{cursor:pointer}.wifi-bars{position:relative;height:16px;width:24px;display:inline-block}.no-display{display:none!important}#wifisignal{font-size:12pt;color:#000;font-family:Courier New,Courier,monospace;position:absolute;top:6px;left:4px;display:none}.rssi-bar{position:absolute;bottom:0;float:left;width:4px;border-radius:1px;background-color:#444}.rssi-bar1{height:4px;left:0}.rssi-bar2{height:8px;left:6px}.rssi-bar3{height:12px;left:12px}.rssi-bar4{height:16px;left:18px}.platounit{display:none}.keg-status-section{margin-top:16px;padding:16px;background:var(--card);border:1px solid var(--line);border-radius:18px}.keg-status-heading{margin:0 0 12px}.keg-status-heading h5{margin:0}.keg-status-heading a{color:var(--accent);font-weight:650}.keg-status-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}.keg-status-row{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:16px;min-height:170px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--card)}.corny-keg{width:84px;height:132px;-webkit-box-flex:0;-ms-flex:0 0 84px;flex:0 0 84px}.keg-outline{fill:none;stroke:#52645d;stroke-width:3}.keg-neck{fill:#9aa8a1;stroke:#52645d;stroke-width:2}.keg-liquid{fill:#d6a438;opacity:.9}.keg-status-details{display:grid;gap:4px}.keg-amount{font-size:1.25rem;font-weight:700}.keg-state{color:var(--muted);font-size:.9rem}.keg-beer{width:100%;max-width:16em;border:0;border-bottom:1px solid transparent;background:0 0;color:inherit;font:inherit;padding:0}.keg-beer:focus,.keg-beer:hover{border-bottom-color:var(--line);outline:0}.keg-beer.is-ok{color:var(--ok)}.keg-beer.is-bad{color:var(--danger)}#gdevice-battery{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:baseline;-ms-flex-align:baseline;align-items:baseline;gap:6px;-ms-flex-wrap:wrap;flex-wrap:wrap}.dash.chart-stage.is-hover .card.stat,.dash.chart-stage.is-hover .legend-chips .chart-legend-row:not(.forced-hidden),.dash.chart-stage.is-hover .read{-webkit-box-shadow:inset 0 0 0 1px var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent-soft)}.dash[viewport]{display:grid;gap:14px;padding:20px;min-width:0;min-height:0}.dash>.chart-legend{display:contents;width:auto}.dash .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:0;min-width:0}.dash .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.dash .card.stat{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;gap:10px}.dash .stat-top{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:10px}.dash .chart-legend-row{background:0 0;border:0;border-radius:0;margin:0;min-height:0;color:var(--ink)}.dash .legend-primary .switch-label{-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;-webkit-box-align:start;-ms-flex-align:start;align-items:flex-start;min-height:0;padding:0;gap:8px}.dash .legend-primary .legend-value{margin-left:0;font-size:30px;font-weight:650;letter-spacing:-.02em;line-height:1.1}.dash .legend-primary .legend-num{font-size:30px}.dash .legend-pill{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-pack:start;-ms-flex-pack:start;justify-content:flex-start;-ms-flex-item-align:start;align-self:flex-start;width:auto;padding:0}.dash .card.stat .legend-pill .switch-label{-webkit-box-orient:horizontal;-webkit-box-direction:normal;-ms-flex-direction:row;flex-direction:row;-ms-flex-wrap:nowrap;flex-wrap:nowrap;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-ms-flex-item-align:start;align-self:flex-start;width:auto;border:1px solid var(--line);border-radius:999px;background:var(--tile);padding:4px 10px;font-size:12px;color:var(--muted)}.dash .legend-pill .legend-value{margin-left:4px;width:auto;font-size:12px;white-space:nowrap}.dash .legend-name{display:-webkit-inline-box;display:-ms-inline-flexbox;display:inline-flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:7px;color:var(--muted);font-weight:600}.dash .legend-pill .legend-num,.dash .legend-pill .legend-value{color:var(--ink);font-weight:650}.dash .row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,.46fr);gap:14px;-webkit-box-align:start;-ms-flex-align:start;align-items:start}.dash .chart-card{min-height:0;height:auto;-ms-flex-item-align:start;align-self:start}.dash .chart{width:100%}.gv-seg{display:-webkit-inline-box;display:-ms-inline-flexbox;display:inline-flex;position:relative;-webkit-box-align:stretch;-ms-flex-align:stretch;align-items:stretch;padding:3px;border-radius:10px;background:var(--tile,#f9f5ef);border:1px solid var(--line);-webkit-box-shadow:inset 0 1px 2px rgba(0,0,0,.05);box-shadow:inset 0 1px 2px rgba(0,0,0,.05);-ms-flex-item-align:center;align-self:center;font-size:.78rem;line-height:1}.gv-seg.no-display{display:none}.gv-seg input{position:absolute;width:1px;height:1px;margin:0;opacity:0;pointer-events:none}.gv-seg label{position:relative;z-index:1;margin:0;padding:5px 11px;border-radius:8px;color:var(--muted,#7a6858);font-weight:650;white-space:nowrap;cursor:pointer;-webkit-transition:color .12s ease,background .12s ease,-webkit-box-shadow .12s ease;transition:color .12s ease,background .12s ease,-webkit-box-shadow .12s ease;transition:color .12s ease,background .12s ease,box-shadow .12s ease;transition:color .12s ease,background .12s ease,box-shadow .12s ease,-webkit-box-shadow .12s ease;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.gv-seg label:hover{color:var(--ink,#2c241c)}.gv-seg input:checked+label{background:var(--card,#fffdf8);color:var(--accent-dark,var(--accent,#9a431f));-webkit-box-shadow:0 1px 3px rgba(0,0,0,.12),inset 0 0 0 1px var(--line);box-shadow:0 1px 3px rgba(0,0,0,.12),inset 0 0 0 1px var(--line)}.gv-seg input:focus-visible+label{outline:2px solid var(--accent,#9a431f);outline-offset:1px}.gv-seg .gv-note{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.dash .chead{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:start;-ms-flex-align:start;align-items:flex-start;-webkit-box-pack:justify;-ms-flex-pack:justify;justify-content:space-between;gap:12px;-ms-flex-wrap:wrap;flex-wrap:wrap;margin-bottom:10px}.dash .chead h2{margin:0;font-size:15px;font-weight:700}.dash .read{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:8px;font-size:12px;color:var(--muted);padding:2px 4px;border-radius:999px}.dash .read .legend-clock,.dash .read .legend-date{display:inline;margin:0;font-size:12px;font-weight:600;letter-spacing:0;color:var(--muted)}.dash .read .beer-chart-state{-webkit-box-orient:horizontal;-webkit-box-direction:normal;-ms-flex-direction:row;flex-direction:row;-webkit-box-align:center;-ms-flex-align:center;align-items:center}.dash .legend-chips{display:-webkit-box;display:-ms-flexbox;display:flex;-ms-flex-wrap:wrap;flex-wrap:wrap;gap:8px;margin-bottom:10px}.dash .legend-extra{border:1px solid var(--line);border-radius:999px;background:var(--tile)}.dash .legend-extra .switch-label{-webkit-box-orient:horizontal;-webkit-box-direction:normal;-ms-flex-direction:row;flex-direction:row;min-height:0;padding:4px 11px;font-size:12px;gap:7px}.dash .legend-extra+.legend-extra{border-top:1px solid var(--line)}.dash .row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;width:auto;padding:0;overflow:visible}.dash .row3>#gravity-pane{grid-column:1;grid-row:1}.dash .row3>.gravity-device-pane{grid-column:2;grid-row:1}.dash .row3>.dash-note-card{grid-column:3;grid-row:1;height:100%;-ms-flex-item-align:stretch;align-self:stretch}.dash #status{position:relative}.dash #status .status-body{min-width:0}.dash #status .status-humidity{position:absolute;top:12px;right:12px;bottom:12px;max-width:46%;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;-webkit-box-align:end;-ms-flex-align:end;align-items:flex-end;gap:2px;overflow:hidden;font-size:12px;line-height:1.25;text-align:right;color:var(--ink)}.dash #status .status-humidity .descriptor{color:var(--muted)}.dash .row3>.data-pane{margin-bottom:0}.dash .keg-status-section{display:block;margin:0;padding:12px;-webkit-box-sizing:border-box;box-sizing:border-box;height:auto;min-height:0;overflow:visible;-ms-flex-item-align:start;align-self:start}.dash .keg-status-list{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;gap:8px;min-height:0;overflow:visible}.dash .keg-status-row{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-flex:0;-ms-flex:0 0 auto;flex:0 0 auto;-webkit-box-orient:horizontal;-webkit-box-direction:normal;-ms-flex-direction:row;flex-direction:row;-webkit-box-align:center;-ms-flex-align:center;align-items:center;min-height:0;gap:16px;padding:8px 12px;overflow:hidden;-webkit-box-sizing:border-box;box-sizing:border-box}.dash .corny-keg{width:84px;height:132px;-webkit-box-flex:0;-ms-flex:0 0 84px;flex:0 0 84px}.dash .keg-main{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-flex:0;-ms-flex:0 0 auto;flex:0 0 auto;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:16px;min-width:0;min-height:0}.dash .keg-status-details{gap:2px;-webkit-box-flex:0;-ms-flex:0 0 auto;flex:0 0 auto}.dash .keg-note{-webkit-box-flex:1;-ms-flex:1 1 0px;flex:1 1 0;width:auto;min-width:0;-ms-flex-item-align:stretch;align-self:stretch;min-height:0;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;gap:4px;overflow:hidden}.dash .keg-amount{font-size:1.15rem}.dash .keg-status-row.is-offline{opacity:.72}.dash .status-lines{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;gap:4px}.dash .status-mode{color:var(--muted);font-size:13px}.dash .status-mode #lcdControlMode,.dash .status-mode #recording{color:var(--ink);font-weight:650;margin-left:4px}.dash .status-mode #recording:not(:empty){-ms-flex-item-align:auto;align-self:auto;max-width:none;border-radius:0;padding:0;background:0 0;font-size:13px;line-height:inherit}.dash .status-wifi{display:-webkit-inline-box;display:-ms-inline-flexbox;display:inline-flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:8px}.dash .status-wifi .wifi-bars{margin-top:0}.dash .dash-note-card .dash-note-body{-webkit-box-flex:1;-ms-flex:1 1 auto;flex:1 1 auto;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;min-height:0;padding:0}.dash .dash-note-card .info-title,.dash .keg-note-title{-ms-flex-wrap:nowrap;flex-wrap:nowrap}.dash .dash-note-card .info-title{margin-bottom:8px}.dash .row3>.data-pane.dash-note-card{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;height:100%;-webkit-box-sizing:border-box;box-sizing:border-box}.dash .dash-note-card textarea,.dash .keg-note textarea{display:block;width:100%;margin:0;resize:none;overflow:auto;-webkit-box-sizing:border-box;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;background:var(--tile);color:var(--ink);font:inherit;font-size:13px;line-height:1.35;padding:8px}.dash .dash-note-card textarea{-webkit-box-flex:1;-ms-flex:1 1 auto;flex:1 1 auto;height:auto;min-height:0;max-height:none}.dash .keg-note-title{-webkit-box-flex:0;-ms-flex:0 0 auto;flex:0 0 auto;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:8px;font-size:12px;font-weight:650;color:var(--muted)}.dash .keg-note textarea{-webkit-box-flex:1;-ms-flex:1 1 0px;flex:1 1 0;height:0;min-height:0;max-height:none}.dash .note-save{-webkit-box-flex:0;-ms-flex:0 0 auto;flex:0 0 auto;display:-webkit-inline-box;display:-ms-inline-flexbox;display:inline-flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;height:28px;margin:0;padding:0 12px;border:1px solid var(--accent);border-radius:8px;background:var(--accent);color:var(--accent-on);font-size:12px;font-weight:650;line-height:1;letter-spacing:0;-webkit-box-shadow:none;box-shadow:none;cursor:pointer}.dash .note-save:hover:not(:disabled){background:var(--accent-dark);border-color:var(--accent-dark);color:var(--accent-on)}.dash .note-save:disabled{background:var(--tile);border:1px solid var(--line);color:var(--muted);opacity:1;cursor:not-allowed}.dash .note-result{-webkit-box-flex:0;-ms-flex:0 0 auto;flex:0 0 auto;font-size:12px;font-weight:650;line-height:1}.dash .note-result.is-ok{color:var(--ok)}.dash .note-result.is-bad{color:var(--danger)}.dash #lcdControlState:not(:empty){-ms-flex-item-align:start;align-self:flex-start;font-size:13px;padding:5px 12px}@media (max-width:900px){.dash .stats{grid-template-columns:repeat(2,minmax(0,1fr))}.dash .row2,.dash .row3{grid-template-columns:minmax(0,1fr)}.dash .row3>#gravity-pane,.dash .row3>.dash-note-card,.dash .row3>.gravity-device-pane{grid-column:1;grid-row:auto;height:auto}.dash[viewport]{padding:14px}}</style></head><body onload=init()><svg width=0 height=0 style=position:absolute aria-hidden=true focusable=false><symbol id=i-layout-dashboard viewBox="0 0 24 24"><rect width=7 height=9 x=3 y=3 rx=1 /><rect width=7 height=5 x=14 y=3 rx=1 /><rect width=7 height=9 x=14 y=12 rx=1 /><rect width=7 height=5 x=3 y=16 rx=1 /></symbol><symbol id=i-sliders-vertical viewBox="0 0 24 24"><path d="M10 8h4"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M17 16h4"/><path d="M19 12V3"/><path d="M19 21v-5"/><path d="M3 14h4"/><path d="M5 10V3"/><path d="M5 21v-7"/></symbol><symbol id=i-file-text viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol><symbol id=i-cpu viewBox="0 0 24 24"><path d="M12 20v2"/><path d="M12 2v2"/><path d="M17 20v2"/><path d="M17 2v2"/><path d="M2 12h2"/><path d="M2 17h2"/><path d="M2 7h2"/><path d="M20 12h2"/><path d="M20 17h2"/><path d="M20 7h2"/><path d="M7 20v2"/><path d="M7 2v2"/><rect x=4 y=4 width=16 height=16 rx=2 /><rect x=8 y=8 width=8 height=8 rx=1 /></symbol><symbol id=i-scale viewBox="0 0 24 24"><path d="M12 3v18"/><path d="m19 8 3 8a5 5 0 0 1-6 0zV7"/><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1"/><path d="m5 8 3 8a5 5 0 0 1-6 0zV7"/><path d="M7 21h10"/></symbol><symbol id=i-settings viewBox="0 0 24 24"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx=12 cy=12 r=3 /></symbol><symbol id=i-flask-conical viewBox="0 0 24 24"><path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"/><path d="M6.453 15h11.094"/><path d="M8.5 2h7"/></symbol><symbol id=i-gauge viewBox="0 0 24 24"><path d="M3.34 19a10 10 0 1 1 17.32 0"/><path d="m12 14 4-4"/><path d="M9.5 21.2h5"/></symbol></svg><header layout horizontal main-justified cross-center relative class="header header-rail"><h1 class=header_title><a id=hostname href=/index.htm>yeast2tap</a> <span id=verinfo class=header_version-display></span></h1><div navigation><div menutoggle><input type=checkbox> <span></span> <span></span> <span></span><ul class=options><li><a href=/index.htm><svg class=ic><use href=#i-layout-dashboard /></svg>Dashboard</a></li><li><a href=/control.htm><svg class=ic><use href=#i-sliders-vertical /></svg>Control Mode</a></li><li><a href=/logging.htm><svg class=ic><use href=#i-file-text /></svg>Logs</a></li><li><a href=/setup.htm><svg class=ic><use href=#i-cpu /></svg>Device Setup</a></li><li><a href=/scale.htm><svg class=ic><use href=#i-scale /></svg>Scale</a></li><li><a href=/config.htm><svg class=ic><use href=#i-settings /></svg>Settings</a></li><li><a href=/gravity.htm><svg class=ic><use href=#i-flask-conical /></svg>Hydrometer Setup</a></li><li class=nav-pressure><a href=/pressure.htm><svg class=ic><use href=#i-gauge /></svg>Pressure</a></li></ul></div></div><div class=rail-themes><div class=theme-picker role=radiogroup aria-label="Theme"><button type=button class=theme-swatch data-theme-choice="" onclick='applyYeastTheme("",!0)' title="Yeast2Tap"><span class=theme-dot style=background:#9a431f></span></button> <button type=button class=theme-swatch data-theme-choice=brew onclick='applyYeastTheme("brew",!0)' title="Brew Classic"><span class=theme-dot style=background:#a84e25></span></button> <button type=button class=theme-swatch data-theme-choice=lab onclick='applyYeastTheme("lab",!0)' title="Clean Lab"><span class=theme-dot style=background:#0b7d79></span></button> <button type=button class=theme-swatch data-theme-choice=hops onclick='applyYeastTheme("hops",!0)' title="Hops &amp; Copper"><span class=theme-dot style=background:#254a3c></span></button> <button type=button class=theme-swatch data-theme-choice=amber onclick='applyYeastTheme("amber",!0)' title="Modern Amber"><span class=theme-dot style=background:#e6a23c></span></button> <button type=button class=theme-swatch data-theme-choice=sage onclick='applyYeastTheme("sage",!0)' title="Sage"><span class=theme-dot style=background:#3f6b2e></span></button> <button type=button class=theme-swatch data-theme-choice=slate onclick='applyYeastTheme("slate",!0)' title="Slate"><span class=theme-dot style=background:#285f9f></span></button> <button type=button class=theme-swatch data-theme-choice=plum onclick='applyYeastTheme("plum",!0)' title="Plum"><span class=theme-dot style=background:#6b3a82></span></button></div></div></header><script>window.applyPressureNav&&applyPressureNav(),void 0!==window.__yeastTheme&&window.applyYeastTheme&&applyYeastTheme(window.__yeastTheme)</script><div style=display:none><span id=ylabel>Temperature</span><span id=y2label>Gravity</span><span id=psilabel>Pressure(psi)</span><span id=vollabel>CO2 Vol</span><span id=rhlabel>Relative Humidity</span></div><svg width=0 height=0 style=position:absolute aria-hidden=true focusable=false><symbol id=i-droplet viewBox="0 0 24 24"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></symbol><symbol id=i-thermometer viewBox="0 0 24 24"><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/></symbol><symbol id=i-house viewBox="0 0 24 24"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol><symbol id=i-barrel viewBox="0 0 24 24"><path d="M10 3a41 41 0 000 18"/><path d="M14 3a41 41 0 010 18"/><path d="M16.997 21a2 2 0 001.68-.92 15.25 15.25 0 000-16.16 2 2 0 00-1.68-.92h-10a2 2 0 00-1.681.92 15.25 15.25 0 000 16.16 2 2 0 001.681.92z"/><path d="M3.54 16h16.914"/><path d="M3.54 8h16.914"/></symbol><symbol id=i-pencil viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></symbol><symbol id=i-activity viewBox="0 0 24 24"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></symbol><symbol id=i-radio viewBox="0 0 24 24"><path d="M16.247 7.761a6 6 0 0 1 0 8.478"/><path d="M19.075 4.933a10 10 0 0 1 0 14.134"/><path d="M4.925 19.067a10 10 0 0 1 0-14.134"/><path d="M7.753 16.239a6 6 0 0 1 0-8.478"/><circle cx=12 cy=12 r=2 /></symbol><symbol id=i-refrigerator viewBox="0 0 24 24"><path d="M5 6a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6Z"/><path d="M5 10h14"/><path d="M15 7v6"/></symbol></svg><div class="dash chart-stage" viewport><div class=chart-legend><section class=stats><div class="card stat"><div class="chart-legend-row beer-temp legend-primary"><input type=checkbox id=beer-temp name=set-name class=switch-input checked> <label onclick=BChart.toggle(BeerTempLine) for=beer-temp class=switch-label><span class=stat-top><span class=badge aria-hidden=true><svg class=ic><use href=#i-thermometer /></svg></span><span class=legend-name><span class="beer-temp toggle legend-dot"></span>Beer Temp</span></span><div class=legend-value id=lcdBeerTemp>--</div></label></div><div class="chart-legend-row beer-set legend-pill"><input type=checkbox id=beer-set name=set-name class=switch-input checked> <label onclick=BChart.toggle(BeerSetLine) for=beer-set class=switch-label><span class="beer-set toggle legend-dot"></span> <span class=legend-name>Beer Set</span><div class=legend-value id=lcdBeerSet>--</div></label></div></div><div class="card stat"><div class="chart-legend-row fridge-temp legend-primary"><input type=checkbox id=fridge-temp name=set-name class=switch-input checked> <label onclick=BChart.toggle(FridgeTempLine) for=fridge-temp class=switch-label><span class=stat-top><span class=badge aria-hidden=true><svg class=ic><use href=#i-refrigerator /></svg></span><span class=legend-name><span class="fridge-temp toggle legend-dot"></span>Fridge Temp</span></span><div class=legend-value id=lcdFridgeTemp>--</div></label></div><div class="chart-legend-row fridge-set legend-pill"><input type=checkbox id=fridge-set name=set-name class=switch-input checked> <label onclick=BChart.toggle(FridgeSetLine) for=fridge-set class=switch-label><span class="fridge-set toggle legend-dot"></span> <span class=legend-name>Fridge Set</span><div class=legend-value id=lcdFridgeSet>--</div></label></div></div><div class="card stat"><div class="chart-legend-row room-temp legend-primary"><input type=checkbox id=room-temp name=set-name class=switch-input checked> <label onclick=BChart.toggle(RoomTempLine) for=room-temp class=switch-label><span class=stat-top><span class=badge aria-hidden=true><svg class=ic><use href=#i-house /></svg></span><span class=legend-name><span class="room-temp toggle legend-dot"></span><span id=room-name style=touch-action:manipulation>Ferm. Chamber</span></span></span><div class=legend-value id=lcdRoomTemp>--</div></label></div></div><div class="card stat" id=status><div class=status-body><div class=stat-top><span class=badge aria-hidden=true><svg class=ic><use href=#i-activity /></svg></span><strong>Status:</strong></div><strong id=lcdControlState class=status-chip></strong><div class=status-lines><span class=status-mode><span class=descriptor>Mode:</span><span id=lcdControlMode></span></span> <span class=status-mode><span class=descriptor>Writing Log:</span><span id=recording></span></span> <span class="status-mode status-wifi"><span class=descriptor>WiFi:</span><span id=rssi class=wifi-bars><span class="rssi-bar rssi-bar1"></span> <span class="rssi-bar rssi-bar2"></span> <span class="rssi-bar rssi-bar3"></span> <span class="rssi-bar rssi-bar4"></span></span></span></div></div><div id=humidity-pan class="status-humidity no-display"><span class=no-display id=hc-state-info><span id=hc-state></span></span> <span class=no-display id=humidity-info><span class=descriptor>Chamber Humidity</span><span id=humidity></span></span> <span class=no-display id=humidity-set-info><span class=descriptor>Target RH</span><span id=humidity-set></span></span> <span class=no-display id=room-humidity-info><span class=descriptor>Room Humidity</span><span id=room-humidity></span></span></div></div></section><section class=row2><div class="card chart-card"><div class=chead><h2>Temperature</h2><div class="read chart-legend-row time legend-time-card"><span class=beer-chart-legend-time>Date / Time</span><span class=beer-chart-state>state</span></div></div><div class=legend-chips><div class="chart-legend-row aux-temp legend-extra"><input type=checkbox id=aux-temp name=set-name class=switch-input checked> <label onclick=BChart.toggle(AuxTempLine) for=aux-temp class=switch-label><span class="aux-temp toggle legend-dot"></span> <span class=legend-name>Aux Temp</span><div class=legend-value>--</div></label></div><div class="chart-legend-row gravity legend-extra"><input type=checkbox id=gravity name=set-name class=switch-input checked> <label onclick=BChart.toggle(GravityLine) for=gravity class=switch-label><span class="gravity toggle legend-dot"></span> <span class=legend-name>Gravity<span class=platounit>&deg;P</span></span><div class=legend-value>--</div></label></div><div class="chart-legend-row filtersg legend-extra"><input type=checkbox id=filtersg name=set-name class=switch-input checked> <label onclick=BChart.toggle(FilteredSgLine) for=filtersg class=switch-label><span class="filtersg toggle legend-dot"></span> <span class=legend-name>Filtered SG<span class=platounit>&deg;P</span></span><div class=legend-value>--</div></label></div><div id=gravity-view-bar class="gv-seg no-display" role=radiogroup aria-label="Gravity shown"><input type=radio id=gv-corrected name=gravity_view value=corrected checked onchange=setGravityView(this.value)> <label for=gv-corrected title="Offset and temperature correction are applied, as the controller stored them.">Corrected</label> <input type=radio id=gv-uncorrected name=gravity_view value=uncorrected onchange=setGravityView(this.value)> <label for=gv-uncorrected title="Offset and temperature correction removed from this chart only; the tiles on the right still show the controller value.">Uncorrected</label> <span id=gravity-view-note class=gv-note aria-live=polite></span></div><div class="chart-legend-row pressure pressure-group forced-hidden legend-extra"><input type=checkbox id=pressure name=set-name class=switch-input checked> <label onclick=BChart.toggle(PressureLine,1) for=pressure class=switch-label><span class="pressure toggle legend-dot"></span> <span class=legend-name>Pressure</span><div class=legend-value>--</div></label></div><div class="chart-legend-row pressure-set pressure-group forced-hidden legend-extra"><input type=checkbox id=pressure-set name=set-name class=switch-input checked> <label onclick=BChart.toggle(PressureSetLine) for=pressure-set class=switch-label><span class="pressure-set toggle legend-dot"></span> <span class=legend-name>Pressure Set</span><div class=legend-value>--</div></label></div><div class="chart-legend-row carbonation pressure-group forced-hidden legend-extra"><input type=checkbox id=carbonation name=set-name class=switch-input checked> <label onclick=BChart.toggle(CarbonationLine) for=carbonation class=switch-label><span class="carbonation toggle legend-dot"></span> <span class=legend-name>CO2 Vol.</span><div class=legend-value>--</div></label></div><div class="chart-legend-row humidity humidity-group forced-hidden legend-extra"><input type=checkbox id=l-humidity name=set-name class=switch-input checked> <label onclick=BChart.toggle(ChamberHumidityLine) for=l-humidity class=switch-label><span class="humidity toggle legend-dot"></span> <span class=legend-name>Humidity</span><div class=legend-value>--</div></label></div><div class="chart-legend-row set-humidity humidity-set humidity-group forced-hidden legend-extra"><input type=checkbox id=humidity-set name=set-name class=switch-input checked> <label onclick=BChart.toggle(SetHumidityLine) for=humidity-set class=switch-label><span class="humidity-set toggle legend-dot"></span> <span class=legend-name>Target RH</span><div class=legend-value>--</div></label></div><div class="chart-legend-row room-humidity humidity-group forced-hidden legend-extra"><input type=checkbox id=l-room-humidity name=set-name class=switch-input checked> <label onclick=BChart.toggle(RoomHumidityLine) for=l-room-humidity class=switch-label><span class="room-humidity toggle legend-dot"></span> <span class=legend-name>Room RH</span><div class=legend-value>--</div></label></div><div class="chart-legend-row sgchange1 forced-hidden"><span class="sgchange1 toggle"></span><div class=legend-value>--</div></div><div class="chart-legend-row sgchange2 forced-hidden"><span class="sgchange2 toggle"></span><div class=legend-value>--</div></div><div class="chart-legend-row sgchange3 forced-hidden"><span class="sgchange3 toggle"></span><div class=legend-value>--</div></div><div class=chart-legend-row id=formula-btn onclick=openpolynomialpane()>f</div></div><div class=chart><div id=div_g class=chart-main></div><div id=div_p class="chart-p pressure-group forced-hidden"></div><div id=div_h class="chart-p humidity-group forced-hidden"></div></div></div><section class="card keg-status-section" id=keg-status-section aria-label="Keg levels"><div class=keg-status-heading layout horizontal main-justified cross-center><h5><span class=badge aria-hidden=true><svg class=ic><use href=#i-barrel /></svg></span>Kegs</h5><a href=/scale.htm>Scale settings</a></div><div class=keg-status-list id=keg-status-list></div></section></section></div><div side class=row3><ul id=gravity-pane class="data-pane gravity-pane info-card"><li class=heading><div class=info-title><span class=badge aria-hidden=true><svg class=ic><use href=#i-droplet /></svg></span><strong>gravity data:</strong></div></li><li class="info-tile info-tile-edit"><span class=descriptor>Original Gravity:</span><span id=gravity-og onclick=inputOG()>--</span><span class=platounit>&deg;P</span><svg class="ic tile-pen"><use href=#i-pencil /></svg></li><li class="info-tile info-tile-edit"><span class=descriptor>Specific Gravity</span><span id=gravity-sg onclick=inputSG()>--</span><span class=platounit>&deg;P</span><svg class="ic tile-pen"><use href=#i-pencil /></svg></li><li class=info-tile><span class=descriptor>ATT:</span><span class=tile-measure><span id=gravity-att>--</span><span class=tile-unit>%</span></span></li><li class=info-tile><span class=descriptor>ABV:</span><span class=tile-measure><span id=gravity-abv>--</span><span class=tile-unit>%</span></span></li><li class="info-tile info-tile-wide"><span class=descriptor>SG Changed(48/24/12H):</span><div id=sgchanged></div></li></ul><ul class="data-pane gravity-device-pane info-card"><li class=heading><div class=info-title><span class=badge aria-hidden=true><svg class=ic><use href=#i-radio /></svg></span><strong><span class="gd-option ispindel-info"> iSpindel data:</span><span class="gd-option tilt-info">Tilt&trade; Hydrometer</span><span class="gd-option pill-info">RAPT Pill Hydrometer</span></strong></div></li><li class="info-tile gd-option ispindel-info pill-info"><span class=descriptor>Tilt:</span><span id=gdevice-angle>--</span></li><li class="info-tile gd-option ispindel-info pill-info"><span class=descriptor>Battery:</span><span id=gdevice-battery>--</span></li><li class="info-tile gd-option tilt-info"><span class=descriptor>Raw SG</span><span id=tilt-raw>--</span></li><li class=info-tile><span class=descriptor>Temperature</span><span id=gravity-device-temp>--</span></li><li class=info-tile id=ispindel-rssi-line><span class=descriptor>RSSI</span><div id=gravity-device-rssi class=wifi-bars><div class="rssi-bar rssi-bar1"></div><div class="rssi-bar rssi-bar2"></div><div class="rssi-bar rssi-bar3"></div><div class="rssi-bar rssi-bar4"></div></div></li><li class="info-tile info-tile-wide"><span class=descriptor>Last Update:</span><span id=gravity-device-last>--</span></li></ul><ul class="data-pane ptc-pane" id=ptc-pane style=display:none><li class=heading layout horizontal main-justified><strong>Glycol Temp Control:</strong><div style=display:inline-block><strong><span id=ptc-state-idle>IDLE</span><span id=ptc-state-run style=display:none>RUNNING</span></strong></div></li><li layout horizontal main-justified><span class=descriptor></span> for <span id=ptc-time></span></li><li layout horizontal main-justified><span class=descriptor>Range:</span><span id=ptc-set></span></li></ul><ul class="data-pane capping-info-pane"><li class=heading layout horizontal main-justified><strong> Spunding Status: </strong><div style=display:inline-block><strong><span id=capstate-open class=capstate>Open</span><span id=capstate-close class=capstate>Spunding</span></strong></div></li><li layout horizontal main-justified><span class=descriptor>Condition:</span><div style=display:inline-block><span id=cs-sgcon class=capstate>gravity &lt;= <span id=capgravityset></span></span> <span id=cs-timecon class=capstate>after <span id=captimeset></span></span> <span id=cs-mancap class=capstate>Manual Spunding</span><span id=cs-manopen class=capstate>Manual Open</span></div></li></ul><ul class=data-pane id=pressure-info-pane><li layout horizontal main-justified><span class=descriptor>Pressure</span><span><span id=pressure-psi></span> psi</span></li></ul><ul class="data-pane info-card dash-note-card"><li class=heading><div class=info-title><span class=badge aria-hidden=true><svg class=ic><use href=#i-file-text /></svg></span><strong>Notes</strong><button type=button class="btn note-save" id=dash-note-save disabled>Save note</button> <span class=note-result id=dash-note-result aria-live=polite></span></div></li><li class=dash-note-body><textarea id=dash-note maxlength=1000 spellcheck=false aria-label="Notes"></textarea></li></ul></div></div><footer layout horizontal main-justified cross-center class=footer><span>yeast2tap</span></footer><div class=error><div class=errormsg id=error_waitcontroller> waiting for update from script ... </div><div class=errormsg id=error_connect> Failed to connect to server. </div><div class=errormsg id=error_noupdate> Controller not updating data. </div></div><div id=dlg_loading class=modal><div class=modal-content><p> Communicating with yeast2tap... </p></div></div><div id=dlg_addgravity class=modal><div class=modal-content><span class="message sg"> Add gravity Record: </span><span class="message og"> Set Original Gravity: </span><p> Please enter the gravity value. </p><ul style=list-style-type:none><li><input class=sginput type=text size=6 onchange=inputsg_change()><span class=platounit>&deg;P</span></li><li>~ <span id=sginput-sg-ispindel></span><span class=platounit>&deg;P</span>@ <span id=sginput-ispindel-temp></span> &deg;<sapn class=temp-unit>C</sapn></li><li><span class="gd-option ispindel-info pill-info">Tilt:</span><span class="gd-option tilt-info"> Raw SG </span><input class=sginput type=text size=6 id=tilt-angle></li></ul><div class=dialog-buttons><button class="btn btn--rised" onclick=dismissgravity()>Cancel</button> <button class="btn btn--rised" onclick=inputgravity()>OK</button></div></div></div><div id=polynomialpane class=modal><div class=modal-content><table><tr><td><table id=pointlist><thead><tr><th> Tilt </th><th> SG<span class=platounit>&deg;P</span></th><th> Calculated </th><th> Error </th><th> Ignored </th></tr></thead><tobdy><tr class=pl_calpoint><td class=pl_tilt></td><td class=pl_sg></td><td class=pl_value></td><td class=pl_error></td><td><input class=pl_ignored_cb type=checkbox></td></tr></tobdy></table><div style=float:right><button class="btn btn--rised" onclick=applyIgnoreMask()>Apply</button></div></td><td><div id=graph></div><span id=polynormial></span></td></tr></table><div class=dialog-buttons><button class="btn btn--rised" onclick=closepolynomialpane()>OK</button></div></div></div></body></html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="<%= page_lang %>">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!-- build:include partials/theme-init.html -->
+	<!-- /build -->
+	<title><%= scale_page_title %></title>
+	<meta name="apple-mobile-web-app-title" content="yeast2tap">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<script type="text/javascript" src="/dygraph.min.js" ignore></script>
+	<script src="/bwf.js" ignore></script>
+	<script src="/shared.js" ignore></script>
+	<script type="text/javascript" src="/num.js" ignore></script>
+	<script src="js/script-scale.js"></script>
+	<link rel="stylesheet" href="js/dygraph-2.2.1/dygraph.min.css">
+	<link rel="stylesheet" href="style-gravity.css">
+	<style>
+		#scale-main{max-width:1000px;margin:auto;padding:16px}
+		.scale-toolbar,.scale-reading-row,.scale-actions,.scale-fields,.scale-history-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+		.scale-toolbar,.scale-reading-row,.scale-history-head{border-bottom:1px solid #ddd;padding:12px 0}
+		.scale-toolbar h4,.scale-panel h5{margin:0}
+		.scale-toolbar select{max-width:220px}
+		.scale-reading-row{justify-content:space-between;background:var(--tile);padding:16px;margin:12px 0}
+		#gross-weight{font-size:1.7rem;font-weight:700}
+		#scale-state,.scale-help,.scale-note{color:var(--muted)}
+		#correction-state.is-error{color:var(--danger)}
+		.scale-panel{padding:16px 0;border-bottom:1px solid #ddd}
+		.scale-help{max-width:760px;line-height:1.5}
+		.scale-fields label{display:flex;flex-direction:column;gap:4px}
+		#scale-chart{height:330px;margin-top:8px}
+		.scale-legend{min-height:1.7em;line-height:1.7}
+		.scale-legend-item{display:inline-block;margin-right:10px;cursor:pointer}
+		.scale-legend-item.is-off{opacity:.45;text-decoration:line-through}
+		.scale-legend-x{margin-right:8px;font-weight:700}
+		.scale-toolbar,.scale-reading-row,.scale-panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:0 0 14px}
+		.scale-toolbar,.scale-reading-row,.scale-history-head,.scale-panel{border-bottom:0}
+		@media(max-width:650px){#scale-main{padding:10px}.scale-reading-row{align-items:flex-start;flex-direction:column}#scale-chart{height:260px}}
+	</style>
+</head>
+<body onload="ScalePage.init()">
+	    <!-- build:include partials/icons-nav.html -->
+    <!-- /build -->
+<!-- build:include partials/header.html -->
+	<!-- /build -->
+<div viewport layout vertical>
+	<main id="scale-main">
+		<section class="scale-toolbar">
+			<h4><span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-scale"/></svg></span><%= scale_heading %></h4>
+			<label for="scale-select"><%= gravity_device %></label>
+			<select id="scale-select"></select>
+			<fieldset>
+				<legend><%= scale_use_scale %></legend>
+				<label><input type="radio" name="use-scale" value="1"> <%= scale_on %></label>
+				<label><input type="radio" name="use-scale" value="0"> <%= control_off %></label>
+			</fieldset>
+			<button class="btn btn--raised" id="save-use"><%= control_save %></button>
+		</section>
+		<section class="scale-reading-row">
+			<div>
+				<div id="gross-weight">--</div>
+				<div id="scale-state"><%= scale_loading_scale %></div>
+			</div>
+			<div>
+				<div id="scale-device-name"></div>
+				<div id="scale-keg-name"></div>
+				<div><%= scale_keg_temperature %> <span id="keg-temperature">--</span></div>
+			</div>
+			<div class="scale-actions">
+				<button class="btn" id="tare-button"><%= scale_zero_platform %></button>
+				<button class="btn" id="keg-change-button"><%= scale_keg_changed %></button>
+			</div>
+		</section>
+		<section class="scale-panel">
+			<h5><span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-scale"/></svg></span><%= gravity_calibration %></h5>
+			<p class="scale-help"><%= scale_help_zero %></p>
+			<div class="scale-fields">
+				<label><%= scale_known_weight_g %><input id="known-weight" type="text" inputmode="decimal" class="num" value="1000"></label>
+				<button class="btn btn--raised" id="calibrate-button"><%= scale_calculate_factor %></button>
+				<span id="calibration-state"><%= scale_not_calibrated %></span>
+			</div>
+			<div class="scale-fields">
+				<label><%= scale_stability_limit %><input id="cal-limit" type="text" inputmode="decimal" class="num"></label>
+				<button class="btn" id="save-cal-limit"><%= scale_save_limit %></button>
+				<span id="cal-limit-grams" class="scale-note"></span>
+			</div>
+			<p class="scale-help"><%= scale_help_limit %></p>
+			<div class="scale-fields">
+				<label><%= scale_empty_keg_g %><input id="empty-keg" type="text" inputmode="decimal" class="num"></label>
+				<label><%= scale_capacity_l %><input id="capacity-liters" type="text" inputmode="decimal" class="num"></label>
+				<label><%= scale_beer_density %><input id="beer-density" type="text" inputmode="decimal" class="num"></label>
+				<button class="btn btn--raised" id="save-keg"><%= scale_save_keg %></button>
+			</div>
+		</section>
+		<section class="scale-panel">
+			<div class="scale-history-head">
+				<h5><span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-scale"/></svg></span><%= scale_history_heading %></h5>
+				<button class="btn" id="measure-button"><%= scale_measure_now %></button>
+				<label><%= scale_daily_time %><input id="daily-time" type="time" value="08:00"></label>
+				<label><%= scale_history_days %><input id="retention-days" type="text" inputmode="numeric" class="num" value="90"></label>
+				<label><%= scale_sample_every %><input id="sample-minutes" type="text" inputmode="numeric" class="num" value="2"></label>
+				<label><%= scale_sample_for %><input id="sample-hours" type="text" inputmode="numeric" class="num" value="24"></label>
+				<button class="btn" id="sample-start"><%= scale_start_sampling %></button>
+				<button class="btn" id="sample-stop"><%= scale_stop_sampling %></button>
+				<span id="sample-state" class="scale-note"></span>
+				<button class="btn" id="save-daily"><%= scale_save_daily %></button>
+				<button class="btn" id="export-data-button"><%= scale_export_data %></button>
+				<button class="btn" id="reset-history-button"><%= scale_reset_history %></button>
+			</div>
+			<div id="measure-state" class="scale-note"></div>
+			<div id="scale-legend" class="scale-legend"></div>
+			<div id="scale-chart"></div>
+			<p class="scale-note"><%= scale_history_note %></p>
+		</section>
+		<section class="scale-panel">
+			<h5><span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-scale"/></svg></span><%= scale_temp_correction %></h5>
+			<p class="scale-help"><%= scale_correction_help %></p>
+			<div class="scale-fields">
+				<label><%= scale_correction_formula %><input id="correction-formula" type="text"></label>
+				<button class="btn btn--raised" id="save-correction"><%= scale_save_formula %></button>
+				<button class="btn" id="clear-correction"><%= control_clear %></button>
+				<span id="correction-state" class="scale-note"></span>
+			</div>
+		</section>
+	</main>
+</div>
+	<!-- build:include partials/footer.html -->
+	<!-- /build -->
+</body>
+</html>

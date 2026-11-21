@@ -1,0 +1,15 @@
+<script>
+window.__numDotMsg = "<%= js_num_dot_msg %>";
+(function () {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/theme", true);
+    xhr.onload = function () {
+        if (xhr.status < 200 || xhr.status >= 300) return;
+        var name = "";
+        try { name = JSON.parse(xhr.responseText).theme || ""; } catch (e) { return; }
+        window.__yeastTheme = name;
+        if (window.applyYeastTheme) applyYeastTheme(name);
+    };
+    xhr.send();
+})();
+</script>

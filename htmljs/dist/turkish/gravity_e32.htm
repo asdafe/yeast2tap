@@ -1,0 +1,791 @@
+<!DOCTYPE html><html lang="tr"><head><meta http-equiv=content-type content="text/html; charset=utf-8"><meta name=viewport content="width=device-width,initial-scale=1"><script>window.__numDotMsg="Ondalık için virgül (2,75) değil nokta (2.75) kullan.",function(){var t=new XMLHttpRequest;t.open("GET","/theme",!0),t.onload=function(){if(!(t.status<200||300<=t.status)){var e="";try{e=JSON.parse(t.responseText).theme||""}catch(e){return}window.__yeastTheme=e,window.applyYeastTheme&&applyYeastTheme(e)}},t.send()}()</script><title> yeast2tap Hidrometre Kurulumu </title><meta name=apple-mobile-web-app-title content=yeast2tap><meta name=apple-mobile-web-app-capable content=yes><script type=text/javascript src=/bwf.js ignore></script><script type=text/javascript src=/shared.js ignore></script><script type=text/javascript src=/num.js ignore></script><script>!function(n,r){"function"==typeof define&&define.amd?define("regression",r):"undefined"!=typeof module?module.exports=r():n.regression=r()}(this,function(){"use strict";function v(n,i){var o=n.reduce(function(n,r){return n+r[1]},0)/n.length,r=n.reduce(function(n,r){var t=r[1]-o;return n+t*t},0);return 1-n.reduce(function(n,r,t){var o=i[t],e=r[1]-o[1];return n+e*e},0)/r}function d(n,r){var t=Math.pow(10,r);return Math.round(n*t)/t}var i={linear:function(n,r,t){for(var o,e,i,u=[0,0,0,0,0],a=n.length,l=0;l<a;l++)null!==n[l][1]&&(u[0]+=n[l][0],u[1]+=n[l][1],u[2]+=n[l][0]*n[l][0],u[3]+=n[l][0]*n[l][1],u[4]+=n[l][1]*n[l][1]);return e=(a*u[3]-u[0]*u[1])/(a*u[2]-u[0]*u[0]),i=u[1]/a-e*u[0]/a,o=n.map(function(n){var r=n[0];return[r,e*r+i]}),{r2:v(n,o),equation:[e,i],points:o,string:"y = "+d(e,t.precision)+"x + "+d(i,t.precision)}},linearthroughorigin:function(n,r,t){for(var o,e,i=[0,0],u=0;u<n.length;u++)null!==n[u][1]&&(i[0]+=n[u][0]*n[u][0],i[1]+=n[u][0]*n[u][1]);return o=i[1]/i[0],e=n.map(function(n){var r=n[0];return[r,o*r]}),{r2:v(n,e),equation:[o],points:e,string:"y = "+d(o,t.precision)+"x"}},exponential:function(n,r,t){for(var o,e,i,u,a=[0,0,0,0,0,0],l=0;l<n.length;l++)null!==n[l][1]&&(a[0]+=n[l][0],a[1]+=n[l][1],a[2]+=n[l][0]*n[l][0]*n[l][1],a[3]+=n[l][1]*Math.log(n[l][1]),a[4]+=n[l][0]*n[l][1]*Math.log(n[l][1]),a[5]+=n[l][0]*n[l][1]);return o=a[1]*a[2]-a[5]*a[5],e=Math.exp((a[2]*a[3]-a[5]*a[4])/o),i=(a[1]*a[4]-a[5]*a[3])/o,u=n.map(function(n){var r=n[0];return[r,e*Math.exp(i*r)]}),{r2:v(n,u),equation:[e,i],points:u,string:"y = "+d(e,t.precision)+"e^("+d(i,t.precision)+"x)"}},logarithmic:function(n,r,t){for(var o,e,i,u=[0,0,0,0],a=n.length,l=0;l<a;l++)null!==n[l][1]&&(u[0]+=Math.log(n[l][0]),u[1]+=n[l][1]*Math.log(n[l][0]),u[2]+=n[l][1],u[3]+=Math.pow(Math.log(n[l][0]),2));return e=(a*u[1]-u[2]*u[0])/(a*u[3]-u[0]*u[0]),o=(u[2]-e*u[0])/a,i=n.map(function(n){var r=n[0];return[r,o+e*Math.log(r)]}),{r2:v(n,i),equation:[o,e],points:i,string:"y = "+d(o,t.precision)+" + "+d(e,t.precision)+" ln(x)"}},power:function(n,r,t){for(var o,e,i,u=[0,0,0,0],a=n.length,l=0;l<a;l++)null!==n[l][1]&&(u[0]+=Math.log(n[l][0]),u[1]+=Math.log(n[l][1])*Math.log(n[l][0]),u[2]+=Math.log(n[l][1]),u[3]+=Math.pow(Math.log(n[l][0]),2));return e=(a*u[1]-u[2]*u[0])/(a*u[3]-u[0]*u[0]),o=Math.exp((u[2]-e*u[0])/a),i=n.map(function(n){var r=n[0];return[r,o*Math.pow(r,e)]}),{r2:v(n,i),equation:[o,e],points:i,string:"y = "+d(o,t.precision)+"x^"+d(e,t.precision)}},polynomial:function(n,r,t){var o,e,i,u,a,l,p,f,s=[],c=[],h=0,g=0,M=n.length;for(e=void 0===r?3:r+1,i=0;i<e;i++){for(a=0;a<M;a++)null!==n[a][1]&&(h+=Math.pow(n[a][0],i)*n[a][1]);for(s.push(h),o=[],u=h=0;u<e;u++){for(a=0;a<M;a++)null!==n[a][1]&&(g+=Math.pow(n[a][0],i+u));o.push(g),g=0}c.push(o)}for(c.push(s),p=function(n,r){var t=0,o=0,e=0,i=0,u=0,a=n.length-1,l=new Array(r);for(t=0;t<a;t++){for(o=(i=t)+1;o<a;o++)Math.abs(n[t][o])>Math.abs(n[t][i])&&(i=o);for(e=t;e<a+1;e++)u=n[e][t],n[e][t]=n[e][i],n[e][i]=u;for(o=t+1;o<a;o++)for(e=a;t<=e;e--)n[e][o]-=n[e][t]*n[t][o]/n[t][t]}for(o=a-1;0<=o;o--){for(u=0,e=o+1;e<a;e++)u+=n[e][o]*l[e];l[o]=(n[a][o]-u)/n[o][o]}return l}(c,e),l=n.map(function(n){var o=n[0],r=p.reduce(function(n,r,t){return n+r*Math.pow(o,t)},0);return[o,r]}),f="y = ",i=p.length-1;0<=i;i--)f+=1<i?d(p[i],t.precision)+"x^"+i+" + ":1===i?d(p[i],t.precision)+"x + ":d(p[i],t.precision);return{r2:v(n,l),equation:p,points:l,string:f}},lastvalue:function(n,r,t){for(var o=[],e=null,i=0;i<n.length;i++)null!==n[i][1]&&isFinite(n[i][1])?(e=n[i][1],o.push([n[i][0],n[i][1]])):o.push([n[i][0],e]);return{r2:v(n,o),equation:[e],points:o,string:""+d(e,t.precision)}}};return function(n,r,t,o){var e="object"==typeof t&&void 0===o?t:o||{};return e.precision||(e.precision=2),"string"==typeof n?i[n.toLowerCase()](r,t,e):null}})</script><script>var gdcurl = "/gdc";
+const DTTilt = 2;
+const DTiSpindel=1;
+const DTPill = 3;
+const MaxCalPoint=10;
+
+function mac2str(macs) {
+    if (macs.length !== 6) {
+        throw new Error("MAC address must be an array of 6 integers");
+    }
+    var revmac= macs.toReversed();
+    const macString = revmac.map(byte => byte.toString(16).toUpperCase().padStart(2, '0')).join(':');
+    return macString;
+}
+
+function pillAddress(mac){
+    var reg=mac.slice(0);
+    reg[0] = reg[0] - 2;
+    return mac2str(reg) +"(" + mac2str(mac) +")";
+}
+
+function toFixed() {
+    var texts = document.querySelectorAll("input[type=text]");
+    for (var i = 0; i < texts.length; i++) {
+        texts[i].onchange = function() {
+            // Expand exponent notation (1e-3) to plain decimals, and refuse a
+            // comma instead of letting it become NaN.
+            if (this.value.match(/[\-\d\.]+e[\+\-][\d]+/)) {
+                var v = Num.parse(this.value);
+                if (v !== null) this.value = v.toFixed(9);
+                else Num.mark(this, true);
+            }
+        };
+    }
+}
+
+// The raw half of a calibration point is stored in device-specific steps:
+//   Tilt        -> SG * 10000   (SGToSetting)
+//   iSpindel/Pill -> angle * 100  (AngleToSetting)
+// Y2TSettings.h defines both macros and ExternalData::_deriveFormula() picks by
+// device type. window.device is the value the rest of the page already keeps in
+// sync; window.dev was never assigned, so Tilt points were written 100x too small.
+function fromSetting(points){
+    var pts=[];
+    for(var i=0;i<points.length;i++){
+        var raw = (window.device==DTTilt)? points[i][0]/10000:points[i][0]/100;
+        var gravity= window.plato? points[i][1]/100:points[i][1]/10000;
+        pts.push([raw,gravity]);
+    }
+    return pts;
+}
+
+function toSetting(points){
+    var pts=[];
+    for(var i=0;i<points.length;i++){
+        var raw = (window.device==DTTilt)? points[i][0]*10000:points[i][0]*100;
+        var gravity= window.plato? points[i][1]*100:points[i][1]*10000;
+        pts.push([Math.round(raw),Math.round(gravity)]);
+    }
+    return pts;
+}
+
+function fill(setting) {
+    Q("#device-type").value = setting.dev;
+    window.device=setting.dev;
+    window.plato =setting.plato;
+    for (var name in setting) {
+        var ele = Q("input[name=" + name + "]");
+        if (ele) {
+            if (ele.type == "checkbox") ele.checked = setting[name];
+            else ele.value = setting[name];
+        }
+    }
+    if(typeof setting["color"] != "undefined") Q("#tiltcolor").value = setting.color;
+    if(typeof setting["calpts"] != "undefined"){
+        TCEditor.setPoints(fromSetting(setting.calpts));
+    }
+    if(typeof setting["mac"]!= "undefined"){
+        Q("#pilladdr").innerHTML = pillAddress(setting["mac"]);
+        window.pMAC = setting["mac"];
+    }
+    // The correction coefficients live in the EEPROM, not in the text box, so
+    // rebuild the formula the user typed earlier from what came back.
+    window.tiltCoeffs = (setting["ttce"] && setting["ttce"].length >= 4) ? setting["ttce"] : null;
+    window.tiltCoeffUnit = setting["ttceunit"];
+    renderTiltFormula();
+    if (typeof renderFormulaNote === "function") renderFormulaNote();
+
+    // GravityMon is 0 = auto (follow the name the device reports), 1 = on,
+    // 2 = off. The checkbox shows the effective state.
+    window.gravityMonSetting = (typeof setting["gravitymon"] === "number") ? setting["gravitymon"] : 0;
+    window.gravityMonDetected = !!setting["gravitymondetected"];
+    applyGravityMon();
+}
+
+// The controller reports "gravitymondetected" from the name the hydrometer sends.
+function gravityMonActive() {
+    if (window.gravityMonSetting === 1) return true;
+    if (window.gravityMonSetting === 2) return false;
+    return !!window.gravityMonDetected;
+}
+
+function applyGravityMon() {
+    var box = Q("#gravitymon");
+    if (box) box.checked = gravityMonActive();
+    var on = gravityMonActive();
+    // Two separate hints: one next to the Calculated-by switch, one inside the
+    // Calibration card.
+    var calNote = Q("#gravitymon-cal-note");
+    if (calNote) calNote.hidden = !on;
+    var adminNote = Q("#gravitymon-admin-note");
+    if (adminNote) adminNote.hidden = !on;
+}
+
+/* ---------- temperature correction formula ------------------------------ */
+
+// y = c0 + c1*t + c2*t^2 + c3*t^3, the same shape ExternalData::_remoteHydrometerReport
+// evaluates. Fixed notation is required: the firmware's number parser rejects
+// exponent form, and coefficients arrive as float32 noise (0.0030552861280739307),
+// so round them — but never below the point where JS would switch to 5e-7.
+function coeffText(v) {
+    var n = Number(v);
+    if (n === 0) return "0";
+    var s = String(Number(n.toPrecision(10)));
+    if (s.indexOf("e") >= 0) s = n.toFixed(12);
+    return s.indexOf(".") >= 0 ? s.replace(/0+$/, "").replace(/\.$/, "") : s;
+}
+
+function tiltFormulaText(c) {
+    if (!c || c.length < 4) return "";
+    var text = coeffText(c[0]);
+    for (var i = 1; i < 4; i++) {
+        var v = Number(c[i]);
+        if (!v) continue;
+        text += (v < 0 ? " " : " +") + coeffText(c[i]) + (i === 1 ? "*t" : "*t^" + i);
+    }
+    return text;
+}
+
+function renderTiltFormula() {
+    var box = Q("#tilt-correction-formula");
+    if (!box) return;
+    box.value = tiltFormulaText(window.tiltCoeffs);
+}
+
+// Parses "c0 + c1*t + c2*t^2 + c3*t^3" (in any term order, * optional).
+// Returns [c0,c1,c2,c3] or null when the text is not a polynomial in t.
+function parseTiltFormula(text) {
+    var s = String(text == null ? "" : text).replace(/\s+/g, "");
+    if (s === "") return [0, 0, 0, 0];
+    if (s.indexOf(",") >= 0) return null;
+    var out = [0, 0, 0, 0];
+    var rest = s;
+    while (rest.length) {
+        var m = /^([+-]?)(\d*\.?\d*)(\*?t(?:\^(\d+))?)?/.exec(rest);
+        if (!m || m[0] === "") return null;
+        var sign = m[1] === "-" ? -1 : 1;
+        var numText = m[2];
+        var hasT = !!m[3];
+        var power = hasT ? (m[4] === undefined ? 1 : parseInt(m[4], 10)) : 0;
+        if (numText === "" && hasT) numText = "1";
+        if (numText === "" || power > 3) return null;
+        out[power] += sign * Number(numText);
+        rest = rest.slice(m[0].length);
+    }
+    for (var i = 0; i < 4; i++) if (!isFinite(out[i])) return null;
+    return out;
+}
+
+function getFormula(){
+    var pts = TCEditor.getPoints();
+    var coes;
+    if(pts.length < 2){
+        coes= [0,1,0,0];
+    } else {
+        var poly = regression('polynomial', pts, (pts.length > 3) ? 3 : ((pts.length > 2) ? 2 : 1), {
+            precision: 9
+        });
+        coes= [
+            poly.equation[0],
+            poly.equation[1],
+            (pts.length > 2)? poly.equation[2]:0,
+            (pts.length > 3)? poly.equation[3]:0,
+        ];
+    }
+    // The embedded page has no a0..a3 inputs; write them when they exist
+    // (classic page) and always show the curve as text.
+    for(var i=0;i<4;i++) {
+        var f = Q('input[name="a' + i +'"]');
+        if (f) f.value = coes[i];
+    }
+    var out = Q("#cal_coeffs");
+    if (out) {
+        // Nothing fitted yet: showing "y = 1x" would pretend a curve exists.
+        out.innerHTML = (pts.length < 2) ? "" : formatPoly(coes);
+    }
+    window.calCoeffs = coes;
+}
+
+function formatPoly(coes){
+    var parts = [];
+    var names = ["", "x", "x&sup2;", "x&sup3;"];
+    for (var i = 3; i >= 0; i--) {
+        var v = Number(coes[i]);
+        if (!isFinite(v)) v = 0;
+        if (i > 0 && Math.abs(v) < 1e-12) continue;
+        var sign = (v < 0) ? "&minus;" : (parts.length ? "+" : "");
+        parts.push(sign + Math.abs(v).toFixed(6) + "&nbsp;" + names[i]);
+    }
+    return "y = " + (parts.length ? parts.join(" ") : "0");
+}
+
+function save() {
+    var inputs = document.getElementsByTagName("input");
+    var setting = {};
+
+    setting.dev = window.device;
+    setting.calpts= toSetting(TCEditor.getPoints());
+
+    for (var i = 0; i < inputs.length; i++) {
+        var ele = inputs[i];
+        if(ele.name != "" && ! ele.classList.contains('notsave') ){
+            if (ele.type == "checkbox") setting[ele.name] = ele.checked;
+            else if (ele.type == "text" && ele.classList.contains("num")) {
+                // Numeric settings travel as real JSON numbers; a comma is refused
+                // here instead of reaching the controller as a silent zero.
+                var v = Num.field(ele, ele.name);
+                if (v === null) return;
+                setting[ele.name] = v;
+            } else if (ele.type == "text") setting[ele.name] = ele.value;
+        }
+    }
+    if(setting.dev ==2){
+        setting.color =  Q("#tiltcolor").value;
+    }else if(setting.dev ==3){
+       if(typeof window.pMAC == "undefined"){
+            alert("Geçersiz Pill seçildi");
+            return;
+       }
+       setting.mac =  window.pMAC;
+    }
+
+    // Temperature correction coefficients. The box is display + entry for the
+    // very numbers the controller stores, so a formula typed here survives a
+    // reload instead of being dropped.
+    //
+    // The coefficients describe either the tilt angle (curve turns an angle into
+    // SG) or the reported SG. The tag must follow the mode that is being saved,
+    // and the firmware drops numbers only when the tag and the numbers arrive
+    // together. An untouched, non-empty box therefore only re-sends them when the
+    // mode changed; an empty box sends nothing at all.
+    var formulaBox = Q("#tilt-correction-formula");
+    var formulaUnit = effectiveFormulaUnit(); // 2 = tilt angle, 1 = SG
+    if (formulaBox && formulaBox.value.trim() !== "") {
+        var coeffs = parseTiltFormula(formulaBox.value);
+        if (coeffs === null) {
+            setSaveNote("Düzeltme formülü geçerli değil. 0.003 - 0.0001*t + 0.0000002*t^2 gibi terimler kullanın.", false);
+            alert("Düzeltme formülü geçerli değil. 0.003 - 0.0001*t + 0.0000002*t^2 gibi terimler kullanın.");
+            return;
+        }
+        var same = window.tiltCoeffs && window.tiltCoeffs.length === 4 &&
+            Math.abs(window.tiltCoeffs[0] - coeffs[0]) < 1e-9 &&
+            Math.abs(window.tiltCoeffs[1] - coeffs[1]) < 1e-9 &&
+            Math.abs(window.tiltCoeffs[2] - coeffs[2]) < 1e-9 &&
+            Math.abs(window.tiltCoeffs[3] - coeffs[3]) < 1e-9;
+        if (!same || formulaUnit !== window.tiltCoeffUnit) {
+            setting.ttce = coeffs;
+            setting.ttceunit = formulaUnit;
+        }
+    }
+
+    // The calibration curve itself lives in the coefficients the page fits from
+    // the points; without it the controller keeps the identity curve and the
+    // "Calculated by yeast2tap" switch would appear to do nothing.
+    getFormula();
+    if (window.calCoeffs && setting.calpts && setting.calpts.length >= 2) {
+        setting.gcce = window.calCoeffs;
+    }
+
+    // 0 keeps following the detected name, 1/2 are the user's explicit choice.
+    setting.gravitymon = (typeof window.gravityMonSetting === "number") ? window.gravityMonSetting : 0;
+
+    //    console.log("result=" + setting);
+    setSaveNote("Kaydediliyor…");
+    s_ajax({
+        url: gdcurl,
+        m: "POST",
+        mime: "aplication/json",
+        data: JSON.stringify(setting),
+        success: function(a) {
+            setSaveNote("Kaydedildi");
+            if (setting.ttce) {
+                window.tiltCoeffs = setting.ttce.slice();
+                window.tiltCoeffUnit = setting.ttceunit;
+            }
+            updateCalibrationState();
+        },
+        fail: function(a) {
+            setSaveNote("Kaydedilmedi: kontrolcü ayarları kabul etmedi.", false);
+            alert("veri güncellenemedi:" + a)
+        }
+    });
+}
+
+var saveNoteTimer = null;
+
+// Feedback in the save bar: visible, reversible and self-clearing. Alerts alone
+// were easy to miss and left no trace that anything happened.
+function setSaveNote(text, ok) {
+    var el = Q("#save-note");
+    if (!el) return;
+    el.innerHTML = text || "";
+    el.className = "g-save-note" + (text && ok === false ? " is-bad" : "");
+    if (saveNoteTimer) { clearTimeout(saveNoteTimer); saveNoteTimer = null; }
+    if (text && ok !== false) {
+        saveNoteTimer = setTimeout(function () { el.innerHTML = ""; }, 4000);
+    }
+}
+
+function displaysub(){
+    const i_h=[1,0,1,1];
+    const t_h=[1,1,0,1];
+    const p_h=[1,1,1,0];
+    var d=window.device;
+    Q("#ispindel-pane").style.display = i_h[d]? "none":"";
+    Q("#tilt-pane").style.display = t_h[d]? "none":"";
+    Q("#pill-pane").style.display = p_h[d]? "none":"";
+    // Tilt reports raw SG, the others report a tilt angle.
+    document.body.classList.toggle("is-tilt", d == DTTilt);
+    var names = ["Yok", "iSpindel", "Tilt", "Rapt Pill"];
+    var chip = Q("#dev-chip");
+    var label = Q("#dev-chip-text");
+    if (label) label.innerHTML = names[d] || names[0];
+    if (chip) chip.className = "g-chip" + (d ? " is-live" : "");
+}
+
+function validSG(g){
+    if(g > 0.8 && g<1.5) return true;
+    return false;
+}
+var TCEditor={
+init:function(){
+    var tr=Q("#tiltcalpoints tr.calpoint");
+    tr.parentNode.removeChild(tr);
+    this.tr=tr;
+    this.points=[];
+    Q("#btn-addcal").disabled=false;
+    Q("#btn-addcal").onclick=function(){ TCEditor.add();};
+},
+getPoints:function(){
+    return this.points;
+},
+setPoints:function(points){
+    this.points=points;
+    this.render();
+},
+add:function(){
+    var uncal = Num.field(Q("#uncalvalue"),"Kalibre edilmemiş değer");
+    if(uncal===null) return;
+    var cal = Num.field(Q("#calvalue"),"Kalibre edilmiş değer");
+    if(cal===null) return;
+
+    this.points.push([uncal,cal]);
+    this.remove_all();
+    this.render();
+},
+remove_all:function(){
+    doAll("#tiltcalpoints tr.calpoint",function(div){
+        div.parentNode.removeChild(div);
+    });
+},
+clear:function(){
+    this.removeall();
+    this.points=[];
+},
+newPoint:function(idx,data){
+    var tr= this.tr.cloneNode(true);
+    var t=this;
+    tr.querySelector(".delbutton").onclick=function(e){
+        e.preventDefault();
+        console.log("del "+idx);
+        t.points.splice(idx,1);
+        t.remove_all();
+        t.render();
+        return false;
+    };
+
+    tr.querySelector(".uncaldata").innerHTML="" + data[0];
+    tr.querySelector(".caldata").innerHTML="" + data[1];
+
+    return tr;
+},
+
+render:function(){
+    this.points.sort((a,b)=>{
+        if(a[0] < b[0]) return -1;
+        else if(a[0] > b[0]) return 1;
+        else{
+            if (a[1] < b[1]) return -1;
+            else if (a[1] > b[1]) return 1;
+            else return 0;
+        }
+    });
+    for(var i=0;i< this.points.length;i++){
+        var tr=this.newPoint(i,this.points[i]);
+        Q("#tiltcalpoints tbody").appendChild(tr);
+    }
+    Q("#btn-addcal").disabled =(this.points.length >= MaxCalPoint);
+    updateCalibrationState();
+}
+};
+
+function tiltcal(){
+    if(window.device == 2){
+        doAll(".info-angle",function(div){ div.style.display="none"});
+        doAll(".info-rawsg",function(div){div.style.display=""});
+        }else{
+            doAll(".info-angle",function(div){ div.style.display=""});
+            doAll(".info-rawsg",function(div){div.style.display="none"});    
+    }    
+    
+    Q("#dlg_addcalpoint").style.display="block";
+}
+function closeTiltCal(){
+    Q("#dlg_addcalpoint").style.display="none";
+    getFormula();
+    updateCalibrationState();
+    return false;
+}
+
+/* ---------- calibration state chip -------------------------------------- */
+
+// Three honest states:
+//   fewer than 2 points      -> nothing can be applied yet
+//   2+ points, teaching off  -> the curve is ready, the user can apply it
+//   2+ points, teaching on   -> the controller is using the curve
+function updateCalibrationState(){
+    var n = (window.TCEditor && TCEditor.getPoints) ? TCEditor.getPoints().length : 0;
+    var applied = !!(Q("#cal") && Q("#cal").checked);
+    var chip = Q("#formula-state");
+    var text = Q("#formula-text");
+
+    var pts = Q("#cal-points");
+    if (pts) pts.innerHTML = "" + n;
+    var limit = Q("#cal-limit-note");
+    if (limit) limit.innerHTML = n + " / " + MaxCalPoint;
+
+    if (!chip || !text) return;
+    chip.className = "g-chip";
+    if (n < 2) {
+        text.innerHTML = "2 nokta gerekli";
+    } else if (applied) {
+        chip.className = "g-chip is-live";
+        text.innerHTML = "Formül uygulandı";
+    } else {
+        chip.className = "g-chip is-ready";
+        text.innerHTML = "Hazır - cihaza uygula";
+    }
+    // Keep the curve text in step with the point list; getFormula() only writes
+    // the DOM, it never calls back here.
+    if (n >= 2 && Q("#cal_coeffs") && typeof getFormula === "function") getFormula();
+    if (typeof renderFormulaNote === "function") renderFormulaNote();
+}
+
+/* ---------- correction basis note --------------------------------------- */
+
+// The four coefficients describe one quantity only: the tilt angle (when the
+// calibration curve turns an angle into SG) or the reported SG itself. The
+// basis follows the device, not the "Calculated by yeast2tap" switch: a
+// GravityMon or iSpindel sends SG, so its polynomial corrects SG even while the
+// curve is off. Getting this wrong silently disables the formula.
+function effectiveFormulaUnit(){
+    return (String(window.device) === "2" && Q("#cal") && Q("#cal").checked) ? 2 : 1;
+}
+
+function formulaPolyValueAt(t){
+    var c = window.tiltCoeffs;
+    if (!c || c.length < 4) return null;
+    var v = c[0] + c[1] * t + c[2] * t * t + c[3] * t * t * t;
+    return isFinite(v) ? v : null;
+}
+
+// Says which basis the stored numbers are on, and (for SG coefficients) what
+// the polynomial adds at the hydrometer's current temperature. That is the
+// quickest way to see whether the formula is doing anything at all.
+function renderFormulaNote(){
+    var el = Q("#formula-unit-note");
+    if (!el) return;
+    var box = Q("#tilt-correction-formula");
+    if (!box || box.value.trim() === "") { el.innerHTML = ""; el.className = "g-hint"; return; }
+
+    var unit = window.tiltCoeffUnit;
+    var want = effectiveFormulaUnit();
+    var parts = [];
+    var warn = false;
+
+    if (unit === 2 && want !== 2) {
+        // Stored as an angle correction but the device reports SG: the firmware
+        // does not apply it, and only a save with the right basis will.
+        parts.push("Eğim açısı katsayıları olarak saklanmışlar, bu nedenle bildirilen yoğunluk düzeltilmiyor. SG katsayıları olarak saklamak için Kaydet'e basın.");
+        warn = true;
+    } else if (unit === 2) {
+        parts.push("Eğim açısı katsayıları olarak saklanır: kalibrasyon eğrisinden önce açıya uygulanır.");
+    } else if (unit === 1) {
+        parts.push("SG katsayıları olarak saklanır: bildirilen yoğunluğa uygulanır.");
+    } else {
+        parts.push("Kontrolcü bu katsayıların hangi büyüklüğü tanımladığını kaydetmemiş; ayarlamak için Kaydet'e basın.");
+    }
+
+    var tc = Q("#tc");
+    if (tc && !tc.checked) {
+        parts.push("Sıcaklık düzeltmesi kapalı, bu nedenle polinom uygulanmaz.");
+    } else if (unit === 1) {
+        // What the controller actually did on the last reading: the difference
+        // between the reported and the corrected gravity. This is the direct
+        // answer to "is the formula doing anything?".
+        var d = (typeof window.gdDelta === "number" && isFinite(window.gdDelta)) ? window.gdDelta : null;
+        if (d !== null) {
+            parts.push("Son okuma: kontrolcü %v SG uyguladı."
+                .replace("%v", (d >= 0 ? "+" : "&minus;") + Math.abs(d).toFixed(4)));
+        }
+    }
+
+    el.innerHTML = parts.join(" ");
+    el.className = "g-hint" + (warn ? " is-warn" : "");
+}
+
+/* ---------- last reading ------------------------------------------------ */
+
+var gravityStatusTimer = null;
+var STATUS_PERIOD_MS = 10000;
+
+function usesPlato(){
+    return !!(Q("#plato") && Q("#plato").checked);
+}
+
+function fmtGravity(sg){
+    if (sg === null || typeof sg === "undefined" || !isFinite(sg)) return "--";
+    if (usesPlato()) return BrewMath.sg2pla(sg).toFixed(1) + " &deg;P";
+    return sg.toFixed(3);
+}
+
+// Difference the controller applied: offset plus the temperature polynomial.
+function fmtGravityDelta(raw, corrected){
+    if (raw === null || corrected === null || !isFinite(raw) || !isFinite(corrected)) return "--";
+    if (usesPlato()) {
+        var p = BrewMath.sg2pla(corrected) - BrewMath.sg2pla(raw);
+        return (p >= 0 ? "+" : "&minus;") + Math.abs(p).toFixed(1) + " &deg;P";
+    }
+    var d = corrected - raw;
+    return (d >= 0 ? "+" : "&minus;") + Math.abs(d).toFixed(3);
+}
+
+function fmtStamp(epoch){
+    if (!epoch) return "--";
+    var d = new Date(epoch * 1000);
+    if (isNaN(d.getTime())) return "--";
+    return d.toLocaleDateString() + " " + d.toLocaleTimeString();
+}
+
+function setChipText(chipSel, textSel, text, cls){
+    var chip = Q(chipSel);
+    var label = Q(textSel);
+    if (label) label.innerHTML = text;
+    if (chip) chip.className = "g-chip" + (cls ? " " + cls : "");
+}
+
+// A hydrometer sleeps between reports, so "connected" is never true. The chip
+// only says whether a report arrived recently enough to trust the numbers.
+function refreshGravityStatus(){
+    s_ajax({
+        url: "/getstatus",
+        m: "GET",
+        success: function(d) {
+            var j;
+            try { j = JSON.parse(d); } catch (e) { return; }
+            var g = j.gravity || {};
+            var raw = (typeof g.reportedSg === "number") ? g.reportedSg : null;
+            var fixed = (typeof g.sg === "number") ? g.sg : null;
+
+            var rep = Q("#lv-reported"), cor = Q("#lv-corrected"), del = Q("#lv-delta");
+            if (rep) rep.innerHTML = fmtGravity(raw);
+            if (cor) cor.innerHTML = fmtGravity(fixed);
+            if (del) del.innerHTML = fmtGravityDelta(raw, fixed);
+            // The formula note quotes the same difference: it is the controller's
+            // own evidence that the polynomial ran.
+            window.gdDelta = (raw !== null && fixed !== null) ? (fixed - raw) : null;
+            if (typeof renderFormulaNote === "function") renderFormulaNote();
+            var upd = Q("#lv-updated");
+            if (upd) upd.innerHTML = fmtStamp(g.lastUpdate);
+            var dev = Q("#lv-device");
+            if (dev) dev.innerHTML = g.enabled && g.device ? g.device : "";
+
+            if (!g.enabled) {
+                setChipText("#conn-chip", "#conn-text", "Cihaz yok", "");
+            } else if (!g.lastUpdate) {
+                setChipText("#conn-chip", "#conn-text", "Veri bekleniyor", "");
+            } else {
+                var age = Math.round(Date.now() / 1000) - g.lastUpdate;
+                if (age >= 0 && age < 600) {
+                    setChipText("#conn-chip", "#conn-text", "Veri alınıyor", "is-live");
+                } else {
+                    setChipText("#conn-chip", "#conn-text", "Güncel veri yok", "");
+                }
+            }
+        }
+    });
+}
+
+function startGravityStatus(){
+    refreshGravityStatus();
+    if (gravityStatusTimer) clearInterval(gravityStatusTimer);
+    gravityStatusTimer = setInterval(refreshGravityStatus, STATUS_PERIOD_MS);
+}
+
+function init(classic) {
+    if (typeof classic == "undefined") classic = false;
+    window.device=0; // default to NONE
+    displaysub();
+    Q("#device-type").onchange=function(){
+        window.device = Q("#device-type").value;
+        displaysub();
+        if (typeof renderFormulaNote === "function") renderFormulaNote();
+    };
+
+    toFixed();
+    s_ajax({
+        url: gdcurl + "?data",
+        m: "GET",
+        success: function(a) {
+            fill(JSON.parse(a));
+            displaysub();
+            updateCalibrationState();
+            getFormula();
+            // The markup starts with Plato checked; the device may say otherwise,
+            // so re-render the reading once the real settings are known.
+            refreshGravityStatus();
+        },
+        fail: function(a) {
+            alert("veri alınamadı:" + a)
+        }
+    });
+    TCEditor.init();
+    DevSelect.init();
+
+    // The curve only counts as "applied" when Calculated by yeast2tap is on.
+    if (Q("#cal")) Q("#cal").onchange = updateCalibrationState;
+    if (Q("#plato")) Q("#plato").onchange = refreshGravityStatus;
+    if (Q("#tc")) Q("#tc").onchange = function () {
+        if (typeof renderFormulaNote === "function") renderFormulaNote();
+    };
+    // The GravityMon box overrides the auto-detection; reflect it immediately.
+    if (Q("#gravitymon")) Q("#gravitymon").onchange = function () {
+        window.gravityMonSetting = this.checked ? 1 : 2;
+        applyGravityMon();
+    };
+
+    startGravityStatus();
+    
+    if (!classic) {
+        getActiveNavItem();
+        Q("#verinfo").innerHTML = "v" + JSVERSION;
+    }
+}
+
+var DevSelect={
+init:function(){
+    var tr=Q("#dlg_sel_dev tr.device-list-row");
+    tr.parentNode.removeChild(tr);
+    this.tr=tr;
+    this.list=[];
+},
+close:function (){
+    DevSelect.stopScan();
+    Q("#dlg_sel_dev").style.display="none";
+},
+select:function(r){
+    Q("#devsel-done").disabled = false;
+    DevSelect.deviceSelected = r;
+    if(window.device ==2){
+        Q("#tiltcolor").value = r.c;
+    }else{
+        Q("#pilladdr").innerHTML = pillAddress(r.a);
+        window.pMAC = r.a;
+    }
+},
+done: function (){
+    DevSelect.close();
+},
+    
+requestScan:function (){
+    this.list=[];
+    var url = (window.device == 2)? "/tcmd?scan=1":"/pill?scan=1" 
+    s_ajax({
+        url: url,
+        success: function(a) {
+        },
+        fail: function(a) {
+            DevSelect.fail("Kontrolcüye bağlanırken hata oluştu.");
+        }
+    });
+},
+
+stopScan:function (){
+    this.list=[];
+    var url = (window.device == 2)? "/tcmd?scan=0":"/pill?scan=0" 
+    s_ajax({
+        url: url,
+        success: function(a) {
+        },
+        fail: function(a) {
+        }
+    });
+},
+
+fail:function(msg){
+    Q("#neterror").innerHTML = msg;
+},
+addRow:function(dev, isTilt){
+    const Color=["Kırmızı","Yeşil","Siyah","Mor","Turuncu","Mavi","Sarı","Pembe"];
+
+        var tr= DevSelect.tr.cloneNode(true);
+        tr.querySelector(".sg").innerHTML="" + dev.g;
+        tr.querySelector(".temp").innerHTML ="" + dev.t;
+        tr.querySelector(".rssi").innerHTML=""+ dev.r;
+        tr.querySelector(".did").innerHTML="" + (isTilt? Color[dev.c]:pillAddress(dev.a));
+        tr.addEventListener('click', function() {
+            doAll("#devseltable tr.device-list-row",function(div){
+                div.classList.remove('selected');
+            });
+            // Add 'selected' class to the clicked row
+            this.classList.add('selected');
+            DevSelect.select(dev);
+        });
+        Q("#devseltable tbody").appendChild(tr);
+},
+scanResult:function (r){
+    var isTilt=(typeof r["tilt"]!= "undefined");
+    var dev = isTilt? r.tilt:r.pill;
+    var duplicated = false;
+    function maccom(m1,m2){
+        for(var i=0;i<6;i++) if(m1[i] != m2[i]) return false;
+        return true;
+    }
+    if(isTilt) DevSelect.list.forEach(function(sdev){
+        if(dev.c == sdev.c) duplicated=true;
+    });
+    else DevSelect.list.forEach(function(sdev){
+        if(maccom(dev.a,sdev.a)) duplicated=true;
+    });
+    if(duplicated) return;
+    DevSelect.list.push(dev);
+    DevSelect.addRow(dev,isTilt);
+},
+
+ connect:function(){
+    if(typeof window.connecting != "undefined") return true;
+    window.connect=true;
+    window.TU = 'F';
+    BWF.init({
+        //     reconnect: false,
+        onconnect: function() {
+            // send 
+            DevSelect.requestScan();
+        },
+        error:function(e){
+            DevSelect.fail("Kontrolcüye bağlanılamadı.");
+        },
+        handlers:{
+            T:function(j){
+                DevSelect.scanResult(j);
+            },
+            A:function(info){
+                if(typeof info["tu"] != "undefined") window.TU = info.tu;
+            }
+        }});
+    return false;
+},
+
+scan:function(){
+    Q("#devsel-done").disabled = true;
+    doAll("#devseltable tr.device-list-row",function(div){
+        div.parentNode.removeChild(div);
+    });
+    if(DevSelect.connect()){
+        DevSelect.requestScan();
+    }
+    Q("#neterror").innerHTML = "Cihaz aranıyor...";
+    Q("#dlg_sel_dev").style.display="block";
+}
+};</script><style>:root{--paper:#f3eee6;--card:#fffdf8;--tile:#f9f5ef;--line:#e4d5c3;--ink:#2c241c;--muted:#7a6858;--accent:#9a431f;--accent-on:#fffdf8;--accent-soft:#f3e1d4;--accent-dark:#6e2e18;--accent-2:#c9842a;--cool:rgb(89, 184, 255);--ok:#3a9a47;--danger:#b42318}[data-theme=sage]{--paper:#e9eee6;--card:#fbfdf9;--tile:#f3f6f0;--line:#d3ddcd;--ink:#1f2a21;--muted:#66746a;--accent:#3f6b2e;--accent-on:#fbfdf9;--accent-soft:#e3eddc;--accent-dark:#25431a;--accent-2:#7f8f3a}[data-theme=slate]{--paper:#e8ecf0;--card:#fbfcfd;--tile:#f3f6f8;--line:#d3dbe3;--ink:#1b2630;--muted:#64717d;--accent:#285f9f;--accent-on:#fbfcfd;--accent-soft:#dde8f4;--accent-dark:#173a63;--accent-2:#4f86c0}[data-theme=plum]{--paper:#efeaf0;--card:#fdfbfe;--tile:#f6f2f8;--line:#ddd3e2;--ink:#26202b;--muted:#70657a;--accent:#6b3a82;--accent-on:#fdfbfe;--accent-soft:#eadff0;--accent-dark:#432352;--accent-2:#9a5aa8}[data-theme=brew]{--paper:#f7f3ea;--card:#fffcf6;--tile:#f3ede0;--line:#e6dcc9;--ink:#302720;--muted:#7a6a58;--accent:#a84e25;--accent-on:#fffcf6;--accent-soft:#f4e1d3;--accent-dark:#6f3317;--accent-2:#d6a84f}[data-theme=lab]{--paper:#f0f4fa;--card:#ffffff;--tile:#f3f6fb;--line:#d9e2ee;--ink:#20324a;--muted:#5f7088;--accent:#0b7d79;--accent-on:#ffffff;--accent-soft:#d8f0ef;--accent-dark:#0a4f4d;--accent-2:#5aa9e6}[data-theme=hops]{--paper:#f5f0e6;--card:#fcfaf4;--tile:#efe9dc;--line:#ddd5c2;--ink:#343a36;--muted:#667069;--accent:#254a3c;--accent-on:#f5f0e6;--accent-soft:#dbeadf;--accent-dark:#163026;--accent-2:#b85c38}[data-theme=amber]{--paper:#faf7f0;--card:#ffffff;--tile:#f5f1e7;--line:#e8e1d2;--ink:#252a30;--muted:#666d75;--accent:#e6a23c;--accent-on:#252a30;--accent-soft:#fbecd0;--accent-dark:#8a5a0f;--accent-2:#8a6ccf}*{-webkit-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0}body,html{height:100%}a{text-decoration:none}html{line-height:1.5;font-family:"Segoe UI",system-ui,sans-serif;font-weight:400;color:var(--ink)}@media only screen and (min-width:0){html{font-size:14px}}@media only screen and (min-width:992px){html{font-size:14.5px}}@media only screen and (min-width:1200px){html{font-size:15px}}body{background:var(--paper)}h1,h2,h3,h4,h5,h6{font-weight:400;line-height:1.1}h1 a,h2 a,h3 a,h4 a,h5 a,h6 a{font-weight:inherit}h1{font-size:4.2rem;line-height:110%;margin:2.1rem 0 1.68rem 0}h2{font-size:3.56rem;line-height:110%;margin:1.78rem 0 1.424rem 0}h3{font-size:2.92rem;line-height:110%;margin:1.46rem 0 1.168rem 0}h4{font-size:2.28rem;line-height:110%;margin:1.14rem 0 .912rem 0}h5{font-size:1.64rem;line-height:110%;margin:.82rem 0 .656rem 0}h6{font-size:1rem;line-height:110%;margin:.5rem 0 .4rem 0}em{font-style:italic}strong{font-weight:500}small{font-size:75%}.light{font-weight:300}.thin{font-weight:200}html [layout],html [layout][horizontal],html [layout][vertical]{display:-webkit-box;display:-ms-flexbox;display:flex}html [layout][horizontal]{-webkit-box-orient:horizontal;-webkit-box-direction:normal;-ms-flex-direction:row;flex-direction:row}html [layout][vertical]{-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column}html [flex]{-webkit-box-flex:1;-ms-flex:1;flex:1;-ms-flex-preferred-size:.000000001px;flex-basis:.000000001px}html [layout][center-center],html [layout][cross-center]{-webkit-box-align:center;-ms-flex-align:center;align-items:center}html [layout][cross-end]{-webkit-box-align:end;-ms-flex-align:end;align-items:flex-end}html [layout][center-center],html [layout][main-center]{-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center}html [layout][main-justified]{-webkit-box-pack:justify;-ms-flex-pack:justify;justify-content:space-between}html [layout][main-distributed]{-ms-flex-pack:distribute;justify-content:space-around}html [hidden]{display:none!important}html [relative]{position:relative}.header{height:64px;background:var(--card);-webkit-box-shadow:none;box-shadow:none;border-bottom:1px solid var(--line);padding:0 16px;z-index:2}.header_title{font-size:26px;line-height:64px;color:var(--accent);font-weight:700;letter-spacing:-.03em;margin:0;padding:0}.header_title a{color:inherit;text-decoration:none}.header_version-display{font-size:13px;color:var(--muted);font-weight:650}@media (max-width:700px){[navigation] [menuToggle]{display:block;position:relative;z-index:1;top:3px;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}}[navigation] input{display:none}@media (max-width:700px){[navigation] input{display:block;width:40px;height:32px;position:absolute;top:-7px;left:-5px;cursor:pointer;opacity:0;z-index:2;-webkit-touch-callout:none}[navigation] input:checked~ul{-webkit-transform:scale(1,1);transform:scale(1,1);opacity:1}[navigation] input:checked~span{opacity:1;-webkit-transform:rotate(45deg) translate(-2px,-1px);transform:rotate(45deg) translate(-2px,-1px);background:#232323}[navigation] input:checked~span:nth-last-child(3){opacity:0;-webkit-transform:rotate(0) scale(.2,.2);transform:rotate(0) scale(.2,.2)}[navigation] input:checked~span:nth-last-child(2){opacity:1;-webkit-transform:rotate(-45deg) translate(0,-1px);transform:rotate(-45deg) translate(0,-1px)}}[navigation] span{display:none}@media (max-width:700px){[navigation] span{display:block;width:33px;height:4px;margin-bottom:5px;position:relative;background:var(--accent);border-radius:3px;z-index:1;-webkit-transform-origin:4px 0;transform-origin:4px 0;-webkit-transition:background .5s cubic-bezier(.77,.2,.05,1),opacity .55s ease,-webkit-transform .5s cubic-bezier(.77,.2,.05,1);transition:background .5s cubic-bezier(.77,.2,.05,1),opacity .55s ease,-webkit-transform .5s cubic-bezier(.77,.2,.05,1);transition:transform .5s cubic-bezier(.77,.2,.05,1),background .5s cubic-bezier(.77,.2,.05,1),opacity .55s ease;transition:transform .5s cubic-bezier(.77,.2,.05,1),background .5s cubic-bezier(.77,.2,.05,1),opacity .55s ease,-webkit-transform .5s cubic-bezier(.77,.2,.05,1)}[navigation] span:first-child{-webkit-transform-origin:0 0;transform-origin:0 0}[navigation] span:nth-last-child(2){-webkit-transform-origin:0 100%;transform-origin:0 100%}}[navigation] .options{list-style-type:none;height:100%}[navigation] .options>li{display:inline-block;height:100%}[navigation] .options a{color:var(--ink);text-transform:none;font-weight:650;height:100%;padding:8px;display:inline-block;line-height:48px;border-bottom:3px solid transparent}[navigation] .options a.active{border-bottom:3px solid var(--accent);color:var(--accent)}[navigation] .options a:hover{border-bottom:3px solid var(--accent-2)}@media (max-width:700px){[navigation] .options{padding-top:64px;position:fixed;display:block;width:100vw;height:100vh;right:0;top:0;background:#ededed;list-style-type:none;-webkit-font-smoothing:antialiased;-webkit-transform-origin:0 0;transform-origin:0 0;-webkit-transform:translate(100%,0);transform:translate(100%,0);-webkit-transition:-webkit-transform .5s cubic-bezier(.77,.2,.05,1);transition:-webkit-transform .5s cubic-bezier(.77,.2,.05,1);transition:transform .5s cubic-bezier(.77,.2,.05,1);transition:transform .5s cubic-bezier(.77,.2,.05,1),-webkit-transform .5s cubic-bezier(.77,.2,.05,1)}[navigation] .options>li{display:block;height:auto;text-align:center}[navigation] .options a{color:#222;height:auto;width:100%;display:block}[navigation] .options a.active{color:var(--accent-2);border:none}[navigation] .options a:hover{background:#ccc;border:none}}.footer{height:44px;background:0 0;color:var(--muted);padding:0 16px}.footer a{color:var(--accent);font-weight:650}[viewport]{min-height:calc(100% - 104px)}@media (max-width:900px){[viewport]{-webkit-box-orient:vertical!important;-webkit-box-direction:normal!important;-ms-flex-direction:column!important;flex-direction:column!important;min-height:0}}[main]{padding:16px;overflow-y:auto}@media (max-width:900px){[main]{overflow:initial}}@media (max-width:599px){[main]>[layout] .chart-legend{width:100%}}@media (max-width:599px){[main]>[layout]{-webkit-box-orient:vertical!important;-webkit-box-direction:normal!important;-ms-flex-direction:column!important;flex-direction:column!important}}.error{position:fixed;left:20px;bottom:24px;background-color:var(--ink);border-radius:14px;padding:12px 24px 17px 24px;vertical-align:middle;color:#fff;-webkit-box-shadow:0 7px 18px rgba(0,0,0,.2);box-shadow:0 7px 18px rgba(0,0,0,.2);z-index:30}.error:empty{display:none}body:has(.header-rail) .error{left:240px}@media (max-width:700px){body:has(.header-rail) .error{left:12px;right:12px;bottom:78px}}input[type=datetime-local],input[type=number],input[type=password],input[type=text]{width:100%;max-width:280px;margin:8px 0;display:block;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--card);color:var(--ink)}input[type=datetime-local]:focus,input[type=number]:focus,input[type=password]:focus,input[type=text]:focus{-webkit-box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent);outline:0;border-color:var(--accent)}input[type=datetime-local]:invalid,input[type=number]:invalid,input[type=password]:invalid,input[type=text]:invalid{border-color:#b42318}.hide{display:none!important}html .header.header-rail[layout][horizontal]{position:fixed;z-index:20;left:0;top:0;bottom:0;width:220px;height:auto;margin:0;padding:22px 14px 16px;background:var(--card);border-right:1px solid var(--line);border-bottom:0;-webkit-box-shadow:none;box-shadow:none;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;-webkit-box-align:stretch;-ms-flex-align:stretch;align-items:stretch;-webkit-box-pack:start;-ms-flex-pack:start;justify-content:flex-start;gap:8px}html .header.header-rail .header_title{font-size:22px;line-height:1.15;padding:0 8px}html .header.header-rail .header_version-display{display:block;margin-top:2px}html .header.header-rail [navigation]{width:100%;min-height:0;-webkit-box-flex:1;-ms-flex:1;flex:1;overflow:auto}html .header.header-rail [menuToggle]>input,html .header.header-rail [menuToggle]>span{display:none}html .header.header-rail .options{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;height:auto;margin:0;padding:8px 0 0;gap:4px;list-style:none;-webkit-transform:none;transform:none;position:static;width:auto;background:0 0}html .header.header-rail .options>li{display:block;height:auto}html .header.header-rail .options a{color:var(--ink);text-transform:none;letter-spacing:0;font-weight:650;line-height:1.25;height:auto;width:auto;padding:10px 12px;border:0;border-radius:12px;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:10px;white-space:normal}html .header.header-rail .options a.active{background:var(--accent);color:var(--accent-on);border:0}html .header.header-rail .options a:hover{background:var(--accent-soft);color:var(--ink);border:0}html .header.header-rail .options a.active:hover{background:var(--accent-dark);color:var(--accent-on)}html .header.header-rail .options>li.nav-pressure{display:none}body.show-pressure .header-rail .options>li.nav-pressure{display:block}body:has(.header-rail) [viewport]{margin-left:220px;min-height:calc(100% - 44px)}body:has(.header-rail) .footer{margin-left:220px}@media (max-width:700px){html .header.header-rail[layout][horizontal]{top:auto;bottom:0;left:0;right:0;width:100%;height:64px;-webkit-box-orient:horizontal;-webkit-box-direction:normal;-ms-flex-direction:row;flex-direction:row;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:start;-ms-flex-pack:start;justify-content:flex-start;padding:0 8px;border-right:0;border-top:1px solid var(--line);gap:8px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}html .header.header-rail[layout][horizontal]::-webkit-scrollbar{display:none}html .header.header-rail .header_title{position:fixed;top:0;left:0;right:0;height:46px;line-height:46px;padding:0 16px;background:var(--card);border-bottom:1px solid var(--line);font-size:20px;z-index:19}html .header.header-rail .header_version-display{display:inline;margin-left:6px}html .header.header-rail [navigation]{-webkit-box-flex:0;-ms-flex:0 0 auto;flex:0 0 auto;width:auto;min-width:0;overflow:visible}html .header.header-rail [menuToggle]{top:0;width:auto}html .header.header-rail .options{-webkit-box-orient:horizontal;-webkit-box-direction:normal;-ms-flex-direction:row;flex-direction:row;-webkit-box-align:center;-ms-flex-align:center;align-items:center;overflow:visible;width:-webkit-max-content;width:-moz-max-content;width:max-content;height:64px;padding:0;gap:4px}html .header.header-rail .options>li{-webkit-box-flex:0;-ms-flex:0 0 auto;flex:0 0 auto}html .header.header-rail .options a{white-space:nowrap;line-height:36px;padding:0 12px}html .header.header-rail .rail-themes{-ms-flex-item-align:center;align-self:center;margin-top:0;padding:0 8px 0 4px;border-top:0;border-left:0;-webkit-box-flex:0;-ms-flex:0 0 auto;flex:0 0 auto}html .header.header-rail .rail-themes .theme-picker{-ms-flex-wrap:nowrap;flex-wrap:nowrap}body:has(.header-rail) [viewport]{margin-left:0;margin-top:46px;margin-bottom:64px;min-height:0}body:has(.header-rail) .footer{margin-left:0;margin-bottom:64px}}.ic{width:18px;height:18px;-webkit-box-flex:0;-ms-flex:none;flex:none;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.badge{width:32px;height:32px;border-radius:10px;background:var(--accent-soft);color:var(--accent-dark);display:-webkit-inline-box;display:-ms-inline-flexbox;display:inline-flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;-webkit-box-flex:0;-ms-flex:none;flex:none}.navitem:has(>.badge),h4:has(>.badge),h5:has(>.badge){display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:10px}html .header.header-rail .header_title a{color:var(--accent-dark)}.rail-themes{margin-top:auto;padding-top:12px;border-top:1px solid var(--line)}.theme-picker{display:-webkit-box;display:-ms-flexbox;display:flex;-ms-flex-wrap:wrap;flex-wrap:wrap;gap:8px}.theme-swatch{width:22px;height:22px;padding:0;border:0;border-radius:50%;background:0 0;cursor:pointer;font-size:0;line-height:0}.theme-swatch.is-selected{outline:2px solid var(--ink);outline-offset:2px}.theme-dot{width:22px;height:22px;border-radius:50%;display:block;-webkit-box-shadow:inset 0 0 0 1px rgba(0,0,0,.15);box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}.btn{display:inline-block;position:relative;cursor:pointer;height:35px;line-height:35px;padding:0 1.5rem;font-size:15px;font-weight:650;letter-spacing:0;text-align:center;text-transform:none;border-radius:999px;vertical-align:middle;white-space:nowrap;outline:0;border:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-webkit-transition:all .3s ease-out;transition:all .3s ease-out;background-color:transparent;margin-right:8px}.btn[disabled]{color:var(--line)}.btn[disabled]:hover{background-color:transparent;cursor:not-allowed}.btn--raised{background-color:var(--accent);color:var(--accent-on);-webkit-box-shadow:none;box-shadow:none}.btn--raised:hover{background-color:hsl(from var(--accent) h s calc(l - 10%))}.btn--primary{color:var(--accent)}.btn:hover{background-color:hsla(0,0%,60%,.2);cursor:pointer}.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:18px;-webkit-box-shadow:none;box-shadow:none;padding:16px;position:relative;margin-bottom:16px}.card:hover{-webkit-box-shadow:none;box-shadow:none}.card-footer{padding:16px 0 0;margin:8px 0 0;border-top:1px solid #ccc;text-align:right}.inline-header{width:140px;min-width:140px;font-weight:700;padding-right:8px}.small-heading{font-size:20px;padding:16px 0 8px}.modal{display:none;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;position:fixed;top:0;left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;z-index:1000;-webkit-transition:all .5s cubic-bezier(.23,1,.32,1);transition:all .5s cubic-bezier(.23,1,.32,1);-webkit-transition-delay:0s;transition-delay:0s;background:rgba(0,0,0,.3)}.modal-content{position:relative;padding:2.4rem;background:var(--card);background-clip:padding-box;-webkit-box-shadow:0 12px 15px 0 rgba(0,0,0,.25);box-shadow:0 12px 15px 0 rgba(0,0,0,.25);-webkit-transition:all .25s cubic-bezier(.23,1,.32,1);transition:all .25s cubic-bezier(.23,1,.32,1);max-width:600px;padding:2rem;margin-left:auto;margin-right:auto}.modal-content h2.message{font-size:18px;font-weight:700;text-transform:uppercase}select.md{width:100%;font-size:16px;height:25.6px;padding:4 4 2;background:0 0;border:none;line-height:1.6;-webkit-box-shadow:none;box-shadow:none}.switch-input{display:none}.switch-label{position:relative;display:inline-block;min-width:148px;cursor:pointer;font-weight:500;text-align:left;margin:0;padding:4px 0 4px 44px}.switch-label:after,.switch-label:before{content:"";position:absolute;margin:0;outline:0;top:50%;-webkit-transform:translate(0,-50%);transform:translate(0,-50%);-webkit-transition:all .3s ease;transition:all .3s ease}.switch-label:before{left:1px;width:34px;height:14px;background-color:#ddd;border-radius:8px}.switch-label:after{left:0;width:20px;height:20px;background-color:#fafafa;border-radius:50%;-webkit-box-shadow:0 3px 1px -2px rgba(0,0,0,.14),0 2px 2px 0 rgba(0,0,0,.098),0 1px 5px 0 rgba(0,0,0,.084);box-shadow:0 3px 1px -2px rgba(0,0,0,.14),0 2px 2px 0 rgba(0,0,0,.098),0 1px 5px 0 rgba(0,0,0,.084)}.switch-input:checked+.switch-label:after{background-color:var(--accent);-webkit-transform:translate(80%,-50%);transform:translate(80%,-50%)}.switch-input:checked+label[for=beer-temp].switch-label:after{background-color:#29aa29}.switch-input:checked+label[for=beer-set].switch-label:after{background-color:#f06464}.switch-input:checked+label[for=fridge-temp].switch-label:after{background-color:#59b8ff}.switch-input:checked+label[for=fridge-set].switch-label:after{background-color:#ffa14c}.switch-input:checked+label[for=room-temp].switch-label:after{background-color:#aaa}.switch-input:checked+label[for=gravity].switch-label:after{background-color:#909}.switch-input:checked+label[for=aux-temp].switch-label:after{background-color:#f5e127}.switch-input:checked+label[for=filtersg].switch-label:after{background-color:#000abb}.switch-input:checked+label[for=pressure].switch-label:after{background-color:#00e}.switch-input:checked+label[for=pressure-set].switch-label:after{background-color:#f06464}.switch-input:checked+label[for=carbonation].switch-label:after{background-color:#aaa}.switch-input:checked+label[for=humidity].switch-label:after{background-color:#22d}.switch-input:checked+label[for=humidity-set].switch-label:after{background-color:#e11}.switch-input:checked+label[for=room-humidity].switch-label:after{background-color:#aaa}.switch-input:checked+label[for=sgchange1].switch-label:after{background-color:#d3d}.switch-input:checked+label[for=sgchange2].switch-label:after{background-color:#33d}.switch-input:checked+label[for=sgchange3].switch-label:after{background-color:#3d3}.gravity-page{display:grid;gap:16px;padding:20px;-ms-flex-line-pack:start;align-content:start;min-width:0}.gravity-page h1,.gravity-page h2,.gravity-page h3,.gravity-page h4,.gravity-page h5,.gravity-page h6{margin:0;font-weight:700;line-height:1.2}.gravity-page .card,.gravity-page .modal .card{border-radius:16px;padding:14px 16px;-webkit-box-shadow:none;box-shadow:none;margin-bottom:0}.gravity-page .btn{display:-webkit-inline-box;display:-ms-inline-flexbox;display:inline-flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;gap:8px;height:auto;line-height:1.2;padding:8px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:13px;font-weight:650;margin-right:0;text-decoration:none}.gravity-page .btn:hover{border-color:var(--accent);background:var(--tile)}.gravity-page .btn .ic{width:16px;height:16px}.gravity-page .btn.btn--raised{background:var(--accent);border-color:var(--accent);color:var(--accent-on)}.gravity-page .btn.btn--raised:hover{background:var(--accent-dark);border-color:var(--accent-dark)}.gravity-page .btn.sm{padding:5px 11px;font-size:12px;border-radius:9px}.gravity-page .btn.sm .ic{width:14px;height:14px}.gravity-page .btn[disabled]{opacity:.45;cursor:not-allowed}.g-head{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:12px;-ms-flex-wrap:wrap;flex-wrap:wrap}.g-head-title{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:12px;-webkit-box-flex:1;-ms-flex:1 1 240px;flex:1 1 240px;min-width:0}.g-head-title h1{font-size:20px}.g-head-tools{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:8px;-ms-flex-wrap:wrap;flex-wrap:wrap}.g-sub{font-size:12px;font-weight:500;color:var(--muted)}.g-k{font-size:12px;font-weight:650;color:var(--muted)}.g-hint{font-size:11.5px;font-weight:500;color:var(--muted)}.g-hint.is-warn{color:#b42318;font-weight:650}.g-chip{display:-webkit-inline-box;display:-ms-inline-flexbox;display:inline-flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:6px;font-size:12px;font-weight:650;padding:3px 10px;border-radius:999px;background:var(--tile);border:1px solid var(--line);color:var(--muted);white-space:nowrap}.g-chip b{color:var(--ink);font-weight:650}.g-chip .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);-webkit-box-flex:0;-ms-flex:none;flex:none}.g-chip.is-live{background:var(--accent-soft);border-color:transparent;color:var(--accent-dark)}.g-chip.is-live .dot{background:var(--ok);-webkit-box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 18%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 18%,transparent)}.g-chip.is-ready{background:color-mix(in srgb,var(--accent-2) 18%,var(--card));border-color:transparent;color:var(--accent-dark)}.g-chip.is-live.is-ready{background:var(--accent-soft)}.g-card-head{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:11px;-ms-flex-wrap:wrap;flex-wrap:wrap}.g-card-head .ttl{-webkit-box-flex:1;-ms-flex:1 1 180px;flex:1 1 180px;min-width:0;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;gap:2px}.g-card-head h2{font-size:16px}.g-body{margin-top:14px}.g-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.g-field{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;gap:5px;min-width:0}.g-field>span:first-child{font-size:12px;font-weight:600;color:var(--muted)}.g-field.wide{grid-column:1/-1}.gravity-page input[type=text],.gravity-page select{width:100%;min-height:36px;padding:7px 10px;font:inherit;font-size:13px;color:var(--ink);background:var(--tile);border:1px solid var(--line);border-radius:10px}.gravity-page input:focus,.gravity-page select:focus{outline:0;border-color:var(--accent);-webkit-box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent)}.gravity-page input[disabled]{color:var(--muted);opacity:1}.g-mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px}.g-note{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:start;-ms-flex-align:start;align-items:flex-start;gap:8px;margin:12px 0 0;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--accent-2) 14%,var(--card));border:1px solid color-mix(in srgb,var(--accent-2) 40%,var(--line));font-size:12.5px;color:var(--ink)}.g-note[hidden]{display:none}.g-note .ic{width:16px;height:16px;margin-top:1px;-webkit-box-flex:0;-ms-flex:none;flex:none;color:var(--accent-dark)}.g-sep{border:0;border-top:1px solid var(--line);margin:16px 0 12px}.gravity-page textarea{width:100%;min-height:36px;padding:7px 10px;font:inherit;font-size:13px;color:var(--ink);background:var(--tile);border:1px solid var(--line);border-radius:10px;resize:vertical}.gravity-page textarea:focus{outline:0;border-color:var(--accent);-webkit-box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent)}.g-formula{min-height:58px;font-size:12px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}.g-unit{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:6px}.g-unit input{-webkit-box-flex:1;-ms-flex:1;flex:1;min-width:0}.g-unit>span{-webkit-box-flex:0;-ms-flex:none;flex:none;font-size:12px;font-weight:600;color:var(--muted)}.g-sw{position:relative;display:-webkit-inline-box;display:-ms-inline-flexbox;display:inline-flex;-webkit-box-flex:0;-ms-flex:none;flex:none}.g-sw input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer;z-index:1}.g-sw .track{width:38px;height:22px;border-radius:999px;background:var(--line);display:block;-webkit-transition:background .15s ease;transition:background .15s ease}.g-sw .track::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--card);-webkit-box-shadow:0 1px 2px rgba(0,0,0,.2);box-shadow:0 1px 2px rgba(0,0,0,.2);-webkit-transition:-webkit-transform .15s ease;transition:-webkit-transform .15s ease;transition:transform .15s ease;transition:transform .15s ease,-webkit-transform .15s ease}.g-sw input:checked+.track{background:var(--accent)}.g-sw input:checked+.track::after{-webkit-transform:translateX(16px);transform:translateX(16px)}.g-sw input:focus-visible+.track{-webkit-box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 20%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 20%,transparent)}.g-toggle-row{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card)}.g-toggle-row+.g-toggle-row{margin-top:8px}.g-toggle-row .txt{-webkit-box-flex:1;-ms-flex:1;flex:1;min-width:0}.g-toggle-row b{display:block;font-size:13px;font-weight:650}.g-toggle-row small{display:block;font-size:12px;color:var(--muted)}.g-grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;-webkit-box-align:start;-ms-flex-align:start;align-items:start}.g-stack{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;gap:16px;min-width:0}.g-readings{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.g-read{background:var(--tile);border-radius:12px;padding:9px 11px;min-width:0}.g-read span{display:block;font-size:11px;font-weight:600;color:var(--muted)}.g-read b{display:block;font-size:17px;font-weight:650;font-variant-numeric:tabular-nums;white-space:nowrap}.g-read.is-device b{color:var(--muted)}.g-read.is-final b{color:var(--accent)}.g-meta{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:10px;-ms-flex-wrap:wrap;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted)}.g-meta .ic{width:14px;height:14px}.device-row{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:end;-ms-flex-align:end;align-items:flex-end;gap:10px;-ms-flex-wrap:wrap;flex-wrap:wrap}.device-row .g-field{-webkit-box-flex:1;-ms-flex:1 1 200px;flex:1 1 200px}.device-row .btn{min-height:36px}#ispindel-pane,#pill-pane,#tilt-pane{margin-top:12px;padding:12px;border-radius:12px;background:var(--tile);display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;gap:10px}.pane-head{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:8px;font-size:13px;font-weight:700}.mac{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12.5px;font-weight:650;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:2px 8px;word-break:break-all}.cal-row{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:12px;-ms-flex-wrap:wrap;flex-wrap:wrap}.cal-row .txt{-webkit-box-flex:1;-ms-flex:1 1 200px;flex:1 1 200px;min-width:0}.cal-row b{display:block;font-size:13px;font-weight:650}.cal-row small{display:block;font-size:12px;color:var(--muted)}.cal-coeffs{margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--tile);font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;color:var(--muted);word-break:break-word}.cal-coeffs:empty{display:none}.g-save-bar{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:12px;-ms-flex-wrap:wrap;flex-wrap:wrap}.g-save-bar .note{-webkit-box-flex:1;-ms-flex:1 1 200px;flex:1 1 200px;font-size:12px;color:var(--muted)}.g-save-note{font-size:12px;font-weight:650;color:var(--ok)}.g-save-note.is-bad{color:var(--danger)}.gravity-page .modal,.modal{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.32);-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;padding:16px;overflow-y:auto}.gravity-page .modal.open,.modal.open{display:-webkit-box;display:-ms-flexbox;display:flex}.gravity-page .modal-content,.modal-content{position:relative;background:var(--card);border-radius:16px;padding:20px;width:min(560px,100%);margin:auto;-webkit-box-shadow:0 12px 32px rgba(0,0,0,.25);box-shadow:0 12px 32px rgba(0,0,0,.25);max-height:calc(100vh - 32px);overflow-y:auto}.g-modal-head{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:10px;margin-bottom:14px}.g-modal-head h2{font-size:16px;-webkit-box-flex:1;-ms-flex:1;flex:1;min-width:0}.g-modal-head .badge{width:28px;height:28px;border-radius:9px}.g-modal-head .badge .ic{width:15px;height:15px}.g-modal-close{-webkit-box-flex:0;-ms-flex:none;flex:none;display:-webkit-inline-box;display:-ms-inline-flexbox;display:inline-flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;width:30px;height:30px;padding:0;border:0;border-radius:8px;background:0 0;color:var(--muted);cursor:pointer}.g-modal-close:hover{background:var(--tile);color:var(--ink)}.g-modal-close .ic{width:16px;height:16px}.g-modal-foot{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:end;-ms-flex-pack:end;justify-content:flex-end;gap:8px;-ms-flex-wrap:wrap;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}.cal-inputs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr)) auto;gap:10px;-webkit-box-align:end;-ms-flex-align:end;align-items:end}.cal-inputs .btn{min-height:36px}.cal-lbl{font-size:12px;font-weight:600;color:var(--muted)}.info-rawsg{display:none}body.is-tilt .info-angle{display:none}body.is-tilt .info-rawsg{display:inline}#tiltcalpoints{width:100%;border-collapse:collapse;margin-top:14px}#tiltcalpoints th{text-align:left;font-size:12px;font-weight:650;color:var(--muted);padding:8px;border-bottom:1px solid var(--line)}#tiltcalpoints td{padding:8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;font-size:13px;color:var(--ink)}#tiltcalpoints tr:last-child td{border-bottom:0}#tiltcalpoints td:first-child{width:36px}#tiltcalpoints .delbutton{width:28px;height:28px;padding:0;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--danger);font-weight:700;cursor:pointer}#tiltcalpoints .delbutton:hover{border-color:var(--danger);background:color-mix(in srgb,var(--danger) 8%,var(--card))}#neterror{display:block;font-size:12.5px;font-weight:650;color:var(--muted);min-height:1.2em}#devseltable{width:100%;border-collapse:collapse;margin-top:10px}#devseltable th{text-align:left;font-size:12px;font-weight:650;color:var(--muted);padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}#devseltable td{padding:10px 8px;border-bottom:1px solid var(--line);font-size:13px;font-variant-numeric:tabular-nums;color:var(--ink)}#devseltable tbody tr{cursor:pointer}#devseltable tbody tr:hover{background:var(--tile)}#devseltable tbody tr.selected{background:var(--accent-soft)}#devseltable tbody tr.selected td{color:var(--accent-dark);font-weight:650}#devseltable .did{font-family:ui-monospace,Consolas,monospace;font-size:12px}.num-bad{border-color:var(--danger)!important}@media (max-width:1080px){.g-grid2{grid-template-columns:minmax(0,1fr)}}@media (max-width:700px){.gravity-page{padding:14px}.g-head{-webkit-box-align:start;-ms-flex-align:start;align-items:flex-start}.g-head-tools{width:100%}.g-head-tools .btn{-webkit-box-flex:1;-ms-flex:1 1 auto;flex:1 1 auto}.g-fields{grid-template-columns:minmax(0,1fr)}.g-field.wide{grid-column:auto}.g-readings{grid-template-columns:minmax(0,1fr)}.device-row{-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;-webkit-box-align:stretch;-ms-flex-align:stretch;align-items:stretch}.device-row .g-field{-webkit-box-flex:0;-ms-flex:0 0 auto;flex:0 0 auto}.device-row .btn{width:100%}.cal-inputs{grid-template-columns:minmax(0,1fr)}.g-save-bar .btn{width:100%}}</style></head><body onload=init()><svg width=0 height=0 style=position:absolute aria-hidden=true focusable=false><symbol id=i-layout-dashboard viewBox="0 0 24 24"><rect width=7 height=9 x=3 y=3 rx=1 /><rect width=7 height=5 x=14 y=3 rx=1 /><rect width=7 height=9 x=14 y=12 rx=1 /><rect width=7 height=5 x=3 y=16 rx=1 /></symbol><symbol id=i-sliders-vertical viewBox="0 0 24 24"><path d="M10 8h4"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M17 16h4"/><path d="M19 12V3"/><path d="M19 21v-5"/><path d="M3 14h4"/><path d="M5 10V3"/><path d="M5 21v-7"/></symbol><symbol id=i-file-text viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol><symbol id=i-cpu viewBox="0 0 24 24"><path d="M12 20v2"/><path d="M12 2v2"/><path d="M17 20v2"/><path d="M17 2v2"/><path d="M2 12h2"/><path d="M2 17h2"/><path d="M2 7h2"/><path d="M20 12h2"/><path d="M20 17h2"/><path d="M20 7h2"/><path d="M7 20v2"/><path d="M7 2v2"/><rect x=4 y=4 width=16 height=16 rx=2 /><rect x=8 y=8 width=8 height=8 rx=1 /></symbol><symbol id=i-scale viewBox="0 0 24 24"><path d="M12 3v18"/><path d="m19 8 3 8a5 5 0 0 1-6 0zV7"/><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1"/><path d="m5 8 3 8a5 5 0 0 1-6 0zV7"/><path d="M7 21h10"/></symbol><symbol id=i-settings viewBox="0 0 24 24"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx=12 cy=12 r=3 /></symbol><symbol id=i-flask-conical viewBox="0 0 24 24"><path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"/><path d="M6.453 15h11.094"/><path d="M8.5 2h7"/></symbol><symbol id=i-gauge viewBox="0 0 24 24"><path d="M3.34 19a10 10 0 1 1 17.32 0"/><path d="m12 14 4-4"/><path d="M9.5 21.2h5"/></symbol></svg><header layout horizontal main-justified cross-center relative class="header header-rail"><h1 class=header_title><a id=hostname href=/index.htm>yeast2tap</a> <span id=verinfo class=header_version-display></span></h1><div navigation><div menutoggle><input type=checkbox> <span></span> <span></span> <span></span><ul class=options><li><a href=/index.htm><svg class=ic><use href=#i-layout-dashboard /></svg>Panel</a></li><li><a href=/control.htm><svg class=ic><use href=#i-sliders-vertical /></svg>Kontrol Modu</a></li><li><a href=/logging.htm><svg class=ic><use href=#i-file-text /></svg>Kayıtlar</a></li><li><a href=/setup.htm><svg class=ic><use href=#i-cpu /></svg>Cihaz Kurulumu</a></li><li><a href=/scale.htm><svg class=ic><use href=#i-scale /></svg>Ölçek</a></li><li><a href=/config.htm><svg class=ic><use href=#i-settings /></svg>Ayarlar</a></li><li><a href=/gravity.htm><svg class=ic><use href=#i-flask-conical /></svg>Hidrometre Kurulumu</a></li><li class=nav-pressure><a href=/pressure.htm><svg class=ic><use href=#i-gauge /></svg>Basınç</a></li></ul></div></div><div class=rail-themes><div class=theme-picker role=radiogroup aria-label="Tema"><button type=button class=theme-swatch data-theme-choice="" onclick='applyYeastTheme("",!0)' title="Yeast2Tap"><span class=theme-dot style=background:#9a431f></span></button> <button type=button class=theme-swatch data-theme-choice=brew onclick='applyYeastTheme("brew",!0)' title="Klasik demleme"><span class=theme-dot style=background:#a84e25></span></button> <button type=button class=theme-swatch data-theme-choice=lab onclick='applyYeastTheme("lab",!0)' title="Temiz laboratuvar"><span class=theme-dot style=background:#0b7d79></span></button> <button type=button class=theme-swatch data-theme-choice=hops onclick='applyYeastTheme("hops",!0)' title="Şerbetçiotu &amp; Bakır"><span class=theme-dot style=background:#254a3c></span></button> <button type=button class=theme-swatch data-theme-choice=amber onclick='applyYeastTheme("amber",!0)' title="Modern kehribar"><span class=theme-dot style=background:#e6a23c></span></button> <button type=button class=theme-swatch data-theme-choice=sage onclick='applyYeastTheme("sage",!0)' title="Adaçayı"><span class=theme-dot style=background:#3f6b2e></span></button> <button type=button class=theme-swatch data-theme-choice=slate onclick='applyYeastTheme("slate",!0)' title="Arduvaz"><span class=theme-dot style=background:#285f9f></span></button> <button type=button class=theme-swatch data-theme-choice=plum onclick='applyYeastTheme("plum",!0)' title="Erik"><span class=theme-dot style=background:#6b3a82></span></button></div></div></header><script>window.applyPressureNav&&applyPressureNav(),void 0!==window.__yeastTheme&&window.applyYeastTheme&&applyYeastTheme(window.__yeastTheme)</script><svg width=0 height=0 style=position:absolute aria-hidden=true focusable=false><symbol id=i-droplet viewBox="0 0 24 24"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></symbol></svg> <svg width=0 height=0 style=position:absolute aria-hidden=true focusable=false><symbol id=i-g-activity viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></symbol><symbol id=i-g-radio viewBox="0 0 24 24"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx=12 cy=12 r=2 /><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"/></symbol><symbol id=i-g-search viewBox="0 0 24 24"><circle cx=11 cy=11 r=8 /><path d="m21 21-4.3-4.3"/></symbol><symbol id=i-g-save viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></symbol><symbol id=i-g-plus viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol><symbol id=i-g-x viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol><symbol id=i-g-sliders viewBox="0 0 24 24"><path d="M10 8h4"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M17 16h4"/><path d="M19 12V3"/><path d="M19 21v-5"/><path d="M3 14h4"/><path d="M5 10V3"/><path d="M5 21v-7"/></symbol><symbol id=i-g-check viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id=i-g-clock viewBox="0 0 24 24"><circle cx=12 cy=12 r=10 /><path d="M12 6v6l4 2"/></symbol></svg><div viewport class=gravity-page><section class="card g-head"><div class=g-head-title><span class=badge aria-hidden=true><svg class=ic><use href=#i-droplet /></svg></span><div><h1>yeast2tap Hidrometre Kurulumu</h1><div class=g-sub>Kablosuz hidrometre, yoğunluk hesaplama ve kalibrasyon</div></div></div><div class=g-head-tools><span class=g-chip id=dev-chip><span class=dot></span><span id=dev-chip-text>Yok</span></span><button class="btn btn--raised" type=button onclick="return save(),!1"><svg class=ic><use href=#i-g-save /></svg>Kaydet </button></div></section><div class=g-grid2><div class=g-stack><section class=card><header class=g-card-head><span class=badge aria-hidden=true><svg class=ic><use href=#i-g-activity /></svg></span><div class=ttl><h2>Son okuma</h2><span class=g-sub>Cihazın gönderdiği ve kontrolcünün bildirdiği</span></div><span class=g-chip id=conn-chip><span class=dot></span><span id=conn-text>Veri bekleniyor</span></span></header><div class=g-body><div class=g-readings><div class="g-read is-device"><span>Cihazdan</span><b id=lv-reported>--</b></div><div class="g-read is-final"><span>Düzeltme sonrası</span><b id=lv-corrected>--</b></div><div class=g-read><span>Düzeltme</span><b id=lv-delta>--</b></div></div><div class=g-meta><svg class=ic><use href=#i-g-clock /></svg> <span>Son güncelleme <b id=lv-updated>--</b></span> <span id=lv-device></span></div></div></section><section class=card><header class=g-card-head><span class=badge aria-hidden=true><svg class=ic><use href=#i-g-radio /></svg></span><div class=ttl><h2>Kablosuz hidrometre</h2><span class=g-sub>Yoğunluk okumalarını hangi hidrometrenin gönderdiği</span></div></header><div class=g-body><div class=device-row><label class=g-field><span>Cihaz</span><select id=device-type name=color><option value=0>Yok</option><option value=1>iSpindel</option><option value=2>Tilt &trade;</option><option value=3>Rapt Pill</option></select></label></div><div id=ispindel-pane><div class=pane-head><span class=badge><svg class=ic><use href=#i-droplet /></svg></span>iSpindel</div><p class=g-sub style=margin:0>iSpindel kendi yoğunluğunu Wi-Fi üzerinden bildirir; bir şey seçmek gerekmez.</p><div class=ispindelsub></div></div><div id=tilt-pane><div class=pane-head><span class=badge><svg class=ic><use href=#i-droplet /></svg></span>Tilt&trade; Hidrometre</div><div class=device-row><label class=g-field><span>Tilt&trade; Renk</span><select id=tiltcolor name=color><option value=0>Kırmızı</option><option value=1>Yeşil</option><option value=2>Siyah</option><option value=3>Mor</option><option value=4>Turuncu</option><option value=5>Mavi</option><option value=6>Sarı</option><option value=7>Pembe</option></select></label> <button class=btn type=button onclick="return DevSelect.scan(),!1"><svg class=ic><use href=#i-g-search /></svg>Tara </button></div></div><div id=pill-pane><div class=pane-head><span class=badge><svg class=ic><use href=#i-droplet /></svg></span>Rapt Pill Hidrometre</div><div class=device-row><div class=g-field><span>MAC adresi</span><span class=mac id=pilladdr>--</span></div><button class=btn type=button onclick="return DevSelect.scan(),!1"><svg class=ic><use href=#i-g-search /></svg>Tara </button></div></div><div class=g-toggle-row><div class=txt><b>GravityMon</b><small>Hidrometre GravityMon çalıştırıyor (kendi yoğunluk hesaplaması).</small></div><span class=g-sw><input type=checkbox id=gravitymon name=gravitymon><span class=track></span></span></div></div></section><section class=card><header class=g-card-head><span class=badge aria-hidden=true><svg class=ic><use href=#i-g-sliders /></svg></span><div class=ttl><h2>Kalibrasyon</h2><span class=g-sub>Ham okumaları gerçek yoğunluğa eşler</span></div><span class=g-chip id=formula-state><span class=dot></span><span id=formula-text>2 nokta gerekli</span></span></header><div class=g-body><div class=cal-row><div class=txt><b>Kalibrasyon noktaları</b><small><span id=cal-points>0</span> / 10 &middot; kübik bir eğri oturtulur</small></div><button class=btn id=addbutton type=button onclick="return tiltcal(),!1"><svg class=ic><use href=#i-g-sliders /></svg>Noktaları düzenle </button></div><div class=cal-coeffs id=cal_coeffs></div><p class=g-note id=gravitymon-admin-note hidden><svg class=ic><use href=#i-g-info /></svg> <span>GravityMon açıyı zaten yoğunluğa dönüştürür, bu nedenle aşağıdaki noktalar yalnızca standart bir iSpindel için gerekir.</span></p></div></section></div><div class=g-stack><section class=card><header class=g-card-head><span class=badge aria-hidden=true><svg class=ic><use href=#i-droplet /></svg></span><div class=ttl><h2>Yoğunluk hesaplaması</h2><span class=g-sub>Kontrolcünün bildirdiği</span></div></header><div class=g-body><div class=g-fields><label class="g-field wide"><span>Yoğunluk ofseti</span><input type=text name=off class=num> <span class=g-hint>Her okumaya eklenir; SG veya Plato cinsinden.</span></label></div><div class=g-toggle-row><div class=txt><b>Plato kullan</b><small>SG 1.xxx yerine Plato bildir</small></div><span class=g-sw><input type=checkbox id=plato name=plato checked><span class=track></span></span></div><div class=g-toggle-row><div class=txt><b>yeast2tap tarafından hesaplanır</b><small>Kalibrasyon eğrisini ham okumalara uygula</small></div><span class=g-sw><input type=checkbox id=cal name=cal checked><span class=track></span></span></div><p class=g-note id=gravitymon-cal-note hidden><svg class=ic><use href=#i-g-info /></svg> <span>GravityMon yoğunluğu kendisi hesapladığında kalibrasyon gerekmez; 'yeast2tap tarafından hesaplanır' seçeneğini kapalı bırakın.</span></p></div></section><section class=card><header class=g-card-head><span class=badge aria-hidden=true><svg class=ic><use href=#i-g-sliders /></svg></span><div class=ttl><h2>Filtreleme ve kararlılık</h2><span class=g-sub>Yumuşatma ve bir okumanın ne zaman kararlı sayılacağı</span></div></header><div class=g-body><div class=g-fields><label class=g-field><span>Alçak geçiren filtre katsayısı</span><input type=text name=lpc class=num> <span class=g-hint>0 = yumuşatma yok, 0.99 = çok yumuşak.</span></label> <label class=g-field><span>Yoğunluk kararlılık eşiği</span><input type=text name=stpt class=num> <span class=g-hint>1 = 0.001 SG veya 0.1 Plato.</span></label></div><hr class=g-sep><label class="g-field wide" style=margin-top:12px><span>Sıcaklık düzeltme formülü</span><textarea class="notsave g-mono g-formula" id=tilt-correction-formula name=tilt-correction-formula rows=2 spellcheck=false placeholder="hidrometre sıcaklığının polinomu"></textarea> <span class=g-hint>Hidrometrenin kendi (yardımcı) sıcaklığında hesaplanır ve ofsetin üzerine eklenir.</span><span class=g-hint id=formula-unit-note></span></label><div class=g-toggle-row><div class=txt><b>Sıcaklık düzeltmesi</b><small>Yoğunluğu örnek sıcaklığına göre düzelt</small></div><span class=g-sw><input type=checkbox id=tc name=tc checked><span class=track></span></span></div></div></section><section class=card><div class=g-save-bar><span class=g-save-note id=save-note aria-live=polite></span> <span class=note>Kaydetme işlemi ayarları hemen kontrolcüye gönderir.</span><button class="btn btn--raised" type=button onclick="return save(),!1"><svg class=ic><use href=#i-g-save /></svg>Kaydet </button></div></section></div></div></div><div id=dlg_addcalpoint class=modal><div class=modal-content><div class=g-modal-head><span class=badge aria-hidden=true><svg class=ic><use href=#i-g-sliders /></svg></span><h2>Kalibrasyon</h2><button class=g-modal-close type=button onclick="return closeTiltCal()" aria-label="İptal"><svg class=ic><use href=#i-g-x /></svg></button></div><p class=g-sub style="margin:0 0 14px">Sensörün bildirdiği ham değeri ve ölçtüğünüz gerçek yoğunluğu girin.</p><div class=cal-inputs><label class=g-field><span class=cal-lbl><span class=info-angle>Tilt açısı</span><span class=info-rawsg>Ham SG</span></span><input class="notsave num" id=uncalvalue type=text inputmode=decimal></label> <label class=g-field><span>Yoğunluk</span><input class="notsave num" id=calvalue type=text inputmode=decimal></label> <button class="btn btn--raised" id=btn-addcal type=button><svg class=ic><use href=#i-g-plus /></svg>Ekle </button></div><table id=tiltcalpoints><thead><tr><th></th><th><span class=cal-lbl><span class=info-angle>Tilt açısı</span><span class=info-rawsg>Ham SG</span></span></th><th>Yoğunluk</th></tr></thead><tbody><tr class=calpoint><td><button class=delbutton type=button aria-label="Noktayı kaldır">X</button></td><td class=uncaldata></td><td class=caldata></td></tr></tbody></table><div class=g-modal-foot><span class=g-sub id=cal-limit-note style=margin-right:auto></span> <button class="btn btn--raised" type=button onclick="return closeTiltCal()">Tamam</button></div></div></div><div id=dlg_sel_dev class=modal><div class=modal-content><div class=g-modal-head><span class=badge aria-hidden=true><svg class=ic><use href=#i-g-search /></svg></span><h2>Cihaz seç</h2><button class=g-modal-close type=button onclick="return DevSelect.close()" aria-label="İptal"><svg class=ic><use href=#i-g-x /></svg></button></div><span id=neterror></span><table id=devseltable><thead><tr><th>Cihaz</th><th>Yoğunluk</th><th>Sıcaklık</th><th>RSSI</th></tr></thead><tbody><tr class=device-list-row><td class=did></td><td class=sg></td><td class=temp></td><td class=rssi></td></tr></tbody></table><div class=g-modal-foot><button class=btn type=button onclick="return DevSelect.close()">İptal</button> <button id=devsel-done class="btn btn--raised" type=button onclick="return DevSelect.done()">Tamam</button></div></div></div><div id=blockscreen class=modal><div id=blockscreencontent class=modal-content></div></div><footer layout horizontal main-justified cross-center class=footer><span>yeast2tap</span></footer></body></html>

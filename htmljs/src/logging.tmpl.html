@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+
+<html lang="<%= page_lang %>">
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- build:include partials/theme-init.html -->
+    <!-- /build -->
+    <title>
+        <%= log_page_title %>
+    </title>
+    <meta name="apple-mobile-web-app-title" content="yeast2tap">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <script type="text/javascript" src="/bwf.js" ignore></script>
+    <script type="text/javascript" src="/shared.js" ignore></script>
+    <script type="text/javascript" src="/num.js" ignore></script>
+    <script type="text/javascript" src="js/script-logging.js"></script>
+    <script type="text/javascript" src="js/mqtt.js"></script>
+    <link rel="stylesheet" href="style-logging.css">
+</head>
+
+<body onload="init();">
+
+        <!-- build:include partials/icons-nav.html -->
+    <!-- /build -->
+    <!-- icons used only by this page; kept here so every other page stays small -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+        <symbol id="i-play" viewBox="0 0 24 24"><path d="m6 3 14 9-14 9z"/></symbol>
+        <symbol id="i-stop-square" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></symbol>
+        <symbol id="i-broker" viewBox="0 0 24 24"><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 18h.01"/><path d="M10 18h.01"/><path d="M12 2v6"/><path d="m8 6 4-4 4 4"/></symbol>
+        <symbol id="i-hard-drive" viewBox="0 0 24 24"><path d="M22 12H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><path d="M6 16h.01"/><path d="M10 16h.01"/></symbol>
+        <symbol id="i-radio" viewBox="0 0 24 24"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"/></symbol>
+        <symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></symbol>
+        <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol>
+        <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></symbol>
+        <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+    </svg>
+<!-- build:include partials/header.html -->
+    <!-- /build -->
+
+    <div viewport class="logs-page">
+
+        <section class="card logs-head">
+            <div class="logs-head-title">
+                <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-file-text"/></svg></span>
+                <div>
+                    <h1><%= log_page_title %></h1>
+                    <div class="logs-sub"><%= log_page_sub %></div>
+                </div>
+            </div>
+            <div class="logs-head-tools">
+                <span class="logs-chip" id="log-state-chip"><span class="dot"></span><span id="log-state-text"><%= log_idle %></span></span>
+                <span class="logs-chip"><svg class="ic" style="width:14px;height:14px"><use href="#i-hard-drive"/></svg><b id="head-free">--</b><%= log_free_nbsp %></span>
+            </div>
+        </section>
+
+        <section class="card">
+            <header class="logs-card-head">
+                <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-file-text"/></svg></span>
+                <div class="ttl">
+                    <h3><%= log_local_log %></h3>
+                    <span class="logs-sub"><%= log_local_sub %></span>
+                </div>
+                <span class="logs-chip"><b id="log-count">0</b><%= log_logs_nbsp %></span>
+            </header>
+
+            <div class="logs-split">
+                <div class="logs-col">
+                    <div id=logstartinput>
+                        <span class="logs-k"><%= log_new_log_name %></span>
+                        <div class="logs-start">
+                            <label class="logs-field" style="flex:1 1 220px">
+                                <span><%= log_name %></span>
+                                <input type="text" id="logname" maxlength="24" autocomplete="off">
+                            </label>
+                            <button id="startlogbutton" class="btn btn--raised" type="button">
+                                <svg class="ic"><use href="#i-play"/></svg><%= log_start_logging %>
+                            </button>
+                        </div>
+                        <div class="logs-opts">
+                            <label class="logs-opt">
+                                <span>
+                                    <b><%= log_write_on_buffer_full %></b>
+                                    <small><%= log_wobf_hint %></small>
+                                </span>
+                                <span class="logs-sw"><input type="checkbox" id="wobf"><span class="track"></span></span>
+                            </label>
+                            <label class="logs-opt">
+                                <span>
+                                    <b><%= log_record_raw %></b>
+                                    <small><%= log_raw_hint %></small>
+                                </span>
+                                <span class="logs-sw"><input type="checkbox" id="calispindel"><span class="track"></span></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id=logstopinput style="display:none">
+                        <div class="logs-live">
+                            <span class="logs-pulse" aria-hidden="true"></span>
+                            <div class="ttl">
+                                <b><%= log_recording %> <span id="loggingtitle" class="logs-mono"></span></b>
+                                <span class="logs-sub"><%= log_since %> <span id=start-log-date class="logs-mono"></span></span>
+                            </div>
+                            <div class="logs-live-actions">
+                                <button id="livedlbutton" class="btn" type="button">
+                                    <svg class="ic"><use href="#i-download"/></svg><%= log_download_live %>
+                                </button>
+                                <button id="stoplogbutton" class="btn logs-danger" type="button">
+                                    <svg class="ic"><use href="#i-stop-square"/></svg><%= log_stop_logging %>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="logs-col">
+                    <span class="logs-k"><%= log_storage %></span>
+                    <div class="logs-storage">
+                        <div class="logs-donut-wrap">
+                            <svg class="logs-donut" viewBox="0 0 42 42" role="img" aria-label="<%= log_storage %>">
+                                <circle class="ring" cx="21" cy="21" r="15.915" pathLength="100"></circle>
+                                <circle class="val" id="fs-arc" cx="21" cy="21" r="15.915" pathLength="100" stroke-dasharray="0 100"></circle>
+                            </svg>
+                            <div class="logs-donut-pct"><b id="fs-pct">--</b><span><%= log_used %></span></div>
+                        </div>
+                        <div class="logs-stats">
+                            <div class="logs-stat"><span><%= log_used %></span><b id="fsused">--</b></div>
+                            <div class="logs-stat"><span><%= log_free %></span><b id="fsfree">--</b></div>
+                            <div class="logs-stat"><span><%= log_total %></span><b id="fssize">--</b></div>
+                        </div>
+                    </div>
+                    <div class="logs-meter" role="img" aria-label="<%= log_storage %>"><span id="fs-bar"></span></div>
+                    <div class="logs-legend">
+                        <span><i style="background:var(--accent)"></i><%= log_logs %></span>
+                        <span><i style="background:var(--line)"></i><%= log_free %></span>
+                    </div>
+
+                    <span class="logs-k"><%= log_device_health %></span>
+                    <div class="logs-health">
+                        <div class="logs-stat"><span><%= log_uptime %></span><b id="health-uptime">--</b></div>
+                        <div class="logs-stat"><span><%= log_heap_free %></span><b id="health-heap">--</b></div>
+                        <div class="logs-stat"><span><%= log_largest_block %></span><b id="health-block">--</b></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="logs-table-head">
+                <h4><%= log_recorded_log %></h4>
+                <span class="logs-chip" id="rec-count">0</span>
+            </div>
+            <div class="logs-table-wrap">
+                <!-- script-logging.js clones tr:nth-of-type(2) as its row template and
+                     removes it again, so the header row and the template row must stay
+                     in this table. -->
+                <table id="loglist">
+                    <tr>
+                        <th><%= log_log %></th>
+                        <th><%= log_date %></th>
+                        <th class="right"><%= log_action %></th>
+                    </tr>
+                    <tr>
+                        <td class="logid"></td>
+                        <td class="logdate"></td>
+                        <td class="right">
+                            <div class="logs-row-actions">
+                                <button class="dlbutton btn sm" type="button">
+                                    <svg class="ic"><use href="#i-download"/></svg><%= log_download %>
+                                </button>
+                                <button class="rmbutton btn sm logs-danger" type="button">
+                                    <svg class="ic"><use href="#i-trash"/></svg><%= log_delete %>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+        <div class="logs-grid2">
+
+            <section class="card" id="remote-log-card">
+                <header class="logs-card-head">
+                    <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-radio"/></svg></span>
+                    <div class="ttl">
+                        <h3><%= log_remote_log %></h3>
+                        <span class="logs-sub"><%= log_remote_sub %></span>
+                    </div>
+                    <span class="logs-sw"><input type="checkbox" id="enabled" aria-label="<%= log_remote_log %>"><span class="track"></span></span>
+                </header>
+
+                <div class="logs-off-note">
+                    <svg class="ic"><use href="#i-info"/></svg>
+                    <span><%= log_remote_off %></span>
+                </div>
+                <div class="logs-status" id="remote-status" role="status" aria-live="polite"></div>
+
+                <div id="remote-log-body">
+                    <div class="logs-fields">
+                        <label class="logs-field">
+                            <span><%= log_time_period %></span>
+                            <span class="logs-unit"><input type="text" id="period"><span><%= log_seconds %></span></span>
+                        </label>
+                        <label class="logs-field">
+                            <span><%= log_service_type %></span>
+                            <select id=service-type name=service onchange="serviceChange()">
+                                <option value="generichttp"><%= log_generic_http %></option>
+                                <option value="thingspeak"><%= log_thingspeak_site %></option>
+                                <option value="ubidots"><%= log_ubidots_site %></option>
+                                <option value="brewfather"><%= log_brewfather_service %></option>
+                                <option value="brewersfriend"><%= log_brewersfriend_service %></option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div id=service-opt>
+                        <div id=thingspeak class=service-options>
+                            <div class="logs-svc">
+                                <div class="logs-svc-head"><span class="badge"><svg class="ic"><use href="#i-radio"/></svg></span><%= log_thingspeak_site %></div>
+                                <label class="logs-field">
+                                    <span><%= log_thingspeak_api_key %></span>
+                                    <input type="text" id="thingspeak-apikey">
+                                </label>
+                                <span class="logs-k"><%= log_thingspeak_fields %></span>
+                                <div class="logs-fields">
+                                    <label class="logs-field"><span><%= log_field_1 %></span><select name=thingspeak-f1><option value="unused"><%= log_unused %></option><option value="b"><%= log_beertemp %></option><option value="B"><%= log_beerset %></option><option value="f"><%= log_fridgetemp %></option><option value="F"><%= log_fridgeset %></option><option value="r"><%= log_roomtemp %></option><option value="g"><%= log_gravity %></option><option value="p"><%= log_plato %></option><option value="a"><%= log_auxtemp %></option><option value="v"><%= log_voltage %></option><option value="t"><%= log_tilt_value %></option><option value="P"><%= log_pressure_reading %></option><option value="m"><%= log_mode_in_integer %></option></select></label>
+                                    <label class="logs-field"><span><%= log_field_2 %></span><select name=thingspeak-f2><option value="unused"><%= log_unused %></option><option value="b"><%= log_beertemp %></option><option value="B"><%= log_beerset %></option><option value="f"><%= log_fridgetemp %></option><option value="F"><%= log_fridgeset %></option><option value="r"><%= log_roomtemp %></option><option value="g"><%= log_gravity %></option><option value="p"><%= log_plato %></option><option value="a"><%= log_auxtemp %></option><option value="v"><%= log_voltage %></option><option value="t"><%= log_tilt_value %></option><option value="P"><%= log_pressure_reading %></option><option value="m"><%= log_mode_in_integer %></option></select></label>
+                                    <label class="logs-field"><span><%= log_field_3 %></span><select name=thingspeak-f3><option value="unused"><%= log_unused %></option><option value="b"><%= log_beertemp %></option><option value="B"><%= log_beerset %></option><option value="f"><%= log_fridgetemp %></option><option value="F"><%= log_fridgeset %></option><option value="r"><%= log_roomtemp %></option><option value="g"><%= log_gravity %></option><option value="p"><%= log_plato %></option><option value="a"><%= log_auxtemp %></option><option value="v"><%= log_voltage %></option><option value="t"><%= log_tilt_value %></option><option value="P"><%= log_pressure_reading %></option><option value="m"><%= log_mode_in_integer %></option></select></label>
+                                    <label class="logs-field"><span><%= log_field_4 %></span><select name=thingspeak-f4><option value="unused"><%= log_unused %></option><option value="b"><%= log_beertemp %></option><option value="B"><%= log_beerset %></option><option value="f"><%= log_fridgetemp %></option><option value="F"><%= log_fridgeset %></option><option value="r"><%= log_roomtemp %></option><option value="g"><%= log_gravity %></option><option value="p"><%= log_plato %></option><option value="a"><%= log_auxtemp %></option><option value="v"><%= log_voltage %></option><option value="t"><%= log_tilt_value %></option><option value="P"><%= log_pressure_reading %></option><option value="m"><%= log_mode_in_integer %></option></select></label>
+                                    <label class="logs-field"><span><%= log_field_5 %></span><select name=thingspeak-f5><option value="unused"><%= log_unused %></option><option value="b"><%= log_beertemp %></option><option value="B"><%= log_beerset %></option><option value="f"><%= log_fridgetemp %></option><option value="F"><%= log_fridgeset %></option><option value="r"><%= log_roomtemp %></option><option value="g"><%= log_gravity %></option><option value="p"><%= log_plato %></option><option value="a"><%= log_auxtemp %></option><option value="v"><%= log_voltage %></option><option value="t"><%= log_tilt_value %></option><option value="P"><%= log_pressure_reading %></option><option value="m"><%= log_mode_in_integer %></option></select></label>
+                                    <label class="logs-field"><span><%= log_field_6 %></span><select name=thingspeak-f6><option value="unused"><%= log_unused %></option><option value="b"><%= log_beertemp %></option><option value="B"><%= log_beerset %></option><option value="f"><%= log_fridgetemp %></option><option value="F"><%= log_fridgeset %></option><option value="r"><%= log_roomtemp %></option><option value="g"><%= log_gravity %></option><option value="p"><%= log_plato %></option><option value="a"><%= log_auxtemp %></option><option value="v"><%= log_voltage %></option><option value="t"><%= log_tilt_value %></option><option value="P"><%= log_pressure_reading %></option><option value="m"><%= log_mode_in_integer %></option></select></label>
+                                    <label class="logs-field"><span><%= log_field_7 %></span><select name=thingspeak-f7><option value="unused"><%= log_unused %></option><option value="b"><%= log_beertemp %></option><option value="B"><%= log_beerset %></option><option value="f"><%= log_fridgetemp %></option><option value="F"><%= log_fridgeset %></option><option value="r"><%= log_roomtemp %></option><option value="g"><%= log_gravity %></option><option value="p"><%= log_plato %></option><option value="a"><%= log_auxtemp %></option><option value="v"><%= log_voltage %></option><option value="t"><%= log_tilt_value %></option><option value="P"><%= log_pressure_reading %></option><option value="m"><%= log_mode_in_integer %></option></select></label>
+                                    <label class="logs-field"><span><%= log_field_8 %></span><select name=thingspeak-f8><option value="unused"><%= log_unused %></option><option value="b"><%= log_beertemp %></option><option value="B"><%= log_beerset %></option><option value="f"><%= log_fridgetemp %></option><option value="F"><%= log_fridgeset %></option><option value="r"><%= log_roomtemp %></option><option value="g"><%= log_gravity %></option><option value="p"><%= log_plato %></option><option value="a"><%= log_auxtemp %></option><option value="v"><%= log_voltage %></option><option value="t"><%= log_tilt_value %></option><option value="P"><%= log_pressure_reading %></option><option value="m"><%= log_mode_in_integer %></option></select></label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id=ubidots class=service-options>
+                            <div class="logs-svc">
+                                <div class="logs-svc-head"><span class="badge"><svg class="ic"><use href="#i-radio"/></svg></span><%= log_ubidots_site %></div>
+                                <div class="logs-fields">
+                                    <label class="logs-field">
+                                        <span><%= log_ubidots_account %></span>
+                                        <select name="ubidots-account">
+                                            <option value="1"><%= log_ubidots_educational %></option>
+                                            <option value="2"><%= log_ubidots_industrial %></option>
+                                        </select>
+                                    </label>
+                                    <label class="logs-field">
+                                        <span><%= log_ubidots_device %></span>
+                                        <input type="text" id="ubidots-device">
+                                    </label>
+                                    <label class="logs-field wide">
+                                        <span><%= log_ubidots_token %></span>
+                                        <input type="text" id="ubidots-token">
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id=brewfather class=service-options>
+                            <div class="logs-svc">
+                                <div class="logs-svc-head"><span class="badge"><svg class="ic"><use href="#i-radio"/></svg></span><%= log_brewfather_service %></div>
+                                <div class="logs-fields">
+                                    <label class="logs-field">
+                                        <span><%= log_brewfather_id %></span>
+                                        <input type="text" id="brewfather-id">
+                                    </label>
+                                    <label class="logs-field">
+                                        <span><%= log_brewfather_device_label %></span>
+                                        <input type="text" id="brewfather-device">
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id=brewersfriend class=service-options>
+                            <div class="logs-svc">
+                                <div class="logs-svc-head"><span class="badge"><svg class="ic"><use href="#i-radio"/></svg></span><%= log_brewersfriend_service %></div>
+                                <div class="logs-fields">
+                                    <label class="logs-field wide">
+                                        <span><%= log_brewersfriend_stream_apikey %></span>
+                                        <input type="text" id="brewersfriend-apikey">
+                                    </label>
+                                    <label class="logs-field">
+                                        <span><%= log_brewersfriend_beer %></span>
+                                        <input type="text" id="brewersfriend-beer">
+                                    </label>
+                                    <div class="logs-field">
+                                        <span><%= log_brewersfriend_gravity_unit %></span>
+                                        <div class="seg" role="radiogroup" aria-label="<%= log_brewersfriend_gravity_unit %>">
+                                            <input id="gu-sg" type="radio" name="BF-gu" value="gu-sg" checked>
+                                            <label for="gu-sg"><%= log_gravity_sg %></label>
+                                            <input id="gu-plato" type="radio" name="BF-gu" value="gu-plato">
+                                            <label for="gu-plato"><%= log_gravity_plato %></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id=generichttp class=service-options>
+                            <div class="logs-svc">
+                                <div class="logs-svc-head"><span class="badge"><svg class="ic"><use href="#i-radio"/></svg></span><%= log_generic_http %></div>
+
+                                <div class="logs-field">
+                                    <span><%= log_method %></span>
+                                    <div class="seg" role="radiogroup" aria-label="<%= log_method %>">
+                                        <input id="m_get" type="radio" name="method" checked onchange="cmethod(this);">
+                                        <label for="m_get"><%= log_http_get %></label>
+                                        <input id="m_post" type="radio" name="method" onchange="cmethod(this);">
+                                        <label for="m_post"><%= log_http_post %></label>
+                                        <input id="m_put" type="radio" name="method" onchange="cmethod(this);">
+                                        <label for="m_put"><%= log_http_put %></label>
+                                    </div>
+                                </div>
+
+                                <label class="logs-field wide">
+                                    <span><%= log_url %></span>
+                                    <input type="text" id="url" placeholder="http://host/path" onchange="checkurl(this);">
+                                </label>
+
+                                <div class="logs-fields">
+                                    <label class="logs-field wide">
+                                        <span><%= log_data_type %></span>
+                                        <input type="text" id="data-type" placeholder="<%= log_content_type %>">
+                                    </label>
+                                </div>
+                                <p class="logs-help"><%= log_data_type_hint %></p>
+
+                                <label class="logs-field wide">
+                                    <span><%= log_format %></span>
+                                    <div class="logs-fmt">
+                                        <textarea id="format" rows="4" oninput="checkformat(this)"></textarea>
+                                        <div class="logs-fmt-meta">
+                                            <span onmouseover="showformat(this)" onmouseout="hideformat()"><u><%= log_notation %></u></span>
+                                            <span class="logs-counter" id="fmthint">0/256</span>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="logs-card-foot">
+                        <span class="sp"></span>
+                        <button type="button" onclick="update();" class="btn btn--raised">
+                            <svg class="ic"><use href="#i-save"/></svg><%= log_update %>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card" id="mqtt">
+                <header class="logs-card-head">
+                    <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-broker"/></svg></span>
+                    <div class="ttl">
+                        <h3><%= mqtt_settings %></h3>
+                        <span class="logs-sub"><%= mqtt_sub %></span>
+                    </div>
+                    <span class="logs-sw"><input type="checkbox" id="mqtt-open" aria-label="<%= mqtt_settings %>"><span class="track"></span></span>
+                </header>
+
+                <div class="logs-off-note">
+                    <svg class="ic"><use href="#i-info"/></svg>
+                    <span><%= mqtt_off_hint %></span>
+                </div>
+
+                <div id="mqtt-body">
+                    <div class="logs-svc">
+                        <div class="logs-svc-head"><span class="badge"><svg class="ic"><use href="#i-broker"/></svg></span><%= mqtt_broker_settings %></div>
+                        <div class="logs-fields">
+                            <label class="logs-field">
+                                <span><%= mqtt_server %></span>
+                                <input name="mqtt_server" type="text" maxlength="64" class="nb mqtt-input">
+                            </label>
+                            <label class="logs-field">
+                                <span><%= mqtt_port %></span>
+                                <input name="mqtt_port" type="text" maxlength="5" class="nb mqtt-input">
+                            </label>
+                            <label class="logs-field">
+                                <span><%= mqtt_username %></span>
+                                <input name="mqtt_user" type="text" maxlength="64" class="nb mqtt-input">
+                            </label>
+                            <label class="logs-field">
+                                <span><%= mqtt_password %></span>
+                                <input name="mqtt_pass" type="text" maxlength="64" class="nb mqtt-input">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="logs-svc">
+                        <div class="logs-svc-head">
+                            <span class="badge"><svg class="ic"><use href="#i-radio"/></svg></span><%= mqtt_reporting %>
+                            <span class="sp"></span>
+                            <span class="logs-sw-row"><span class="logs-k"><%= mqtt_enabled %></span>
+                                <span class="logs-sw"><input type="checkbox" id="mqtt_log" name="mqtt_log" class="mqtt-input" checked><span class="track"></span></span>
+                            </span>
+                        </div>
+                        <div class="logs-fields">
+                            <label class="logs-field">
+                                <span><%= mqtt_time_period %></span>
+                                <span class="logs-unit"><input type="text" id="mqtt_period" name="mqtt_period" class="mqtt-input"><span><%= log_seconds %></span></span>
+                            </label>
+                            <label class="logs-field">
+                                <span><%= mqtt_report_format %></span>
+                                <select name="mqtt_format" class="mqtt-input">
+                                    <option value=0><%= mqtt_individual_topic %></option>
+                                    <option value=1><%= mqtt_whole_as_json %></option>
+                                </select>
+                            </label>
+                            <label class="logs-field wide">
+                                <span><%= mqtt_base_path %></span>
+                                <input name="mqtt_base" type="text" maxlength="64" class="nb mqtt-input">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="logs-svc">
+                        <div class="logs-svc-head">
+                            <span class="badge"><svg class="ic"><use href="#i-settings"/></svg></span><%= mqtt_remote_control %>
+                            <span class="sp"></span>
+                            <span class="logs-sw-row"><span class="logs-k"><%= mqtt_enabled %></span>
+                                <span class="logs-sw"><input type="checkbox" id="mqtt_enabled" name="mqtt_enabled" class="mqtt-input" checked><span class="track"></span></span>
+                            </span>
+                        </div>
+                        <div class="logs-fields">
+                            <label class="logs-field">
+                                <span><%= mqtt_mode_path %></span>
+                                <input name="mqtt_mode" type="text" maxlength="64" class="nb mqtt-input">
+                            </label>
+                            <label class="logs-field">
+                                <span><%= mqtt_beerset_path %></span>
+                                <input name="mqtt_beerset" type="text" maxlength="64" class="nb mqtt-input">
+                            </label>
+                            <label class="logs-field">
+                                <span><%= mqtt_fridgeset_path %></span>
+                                <input name="mqtt_fridgeset" type="text" maxlength="64" class="nb mqtt-input">
+                            </label>
+                            <label class="logs-field">
+                                <span><%= mqtt_cap_control_path %></span>
+                                <input name="mqtt_cap" type="text" maxlength="64" class="nb mqtt-input">
+                            </label>
+                            <label class="logs-field">
+                                <span><%= mqtt_ptc_path %></span>
+                                <input name="mqtt_ptc" type="text" maxlength="64" class="nb mqtt-input">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="logs-card-foot">
+                        <span class="sp"></span>
+                        <button type="submit" id="submitsavemqtt" class="btn btn--raised">
+                            <svg class="ic"><use href="#i-save"/></svg><%= mqtt_save %>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- build:include partials/footer.html -->
+    <!-- /build -->
+
+    <div id="formatlist">
+        <table>
+            <tr><th><%= log_notation_b %></th><td><%= log_beertemp %></td></tr>
+            <tr><th><%= log_notation_ub %></th><td><%= log_beerset %></td></tr>
+            <tr><th><%= log_notation_f %></th><td><%= log_fridgetemp %></td></tr>
+            <tr><th><%= log_notation_uf %></th><td><%= log_fridgeset %></td></tr>
+            <tr><th><%= log_notation_r %></th><td><%= log_roomtemp %></td></tr>
+            <tr><th><%= log_notation_g %></th><td><%= log_gravity %></td></tr>
+            <tr><th><%= log_notation_p %></th><td><%= log_plato %></td></tr>
+            <tr><th><%= log_notation_a %></th><td><%= log_auxtemp %></td></tr>
+            <tr><th><%= log_notation_h %></th><td><%= label_humidity %></td></tr>
+            <tr><th><%= log_notation_v %></th><td><%= log_voltage %></td></tr>
+            <tr><th><%= log_notation_t %></th><td><%= log_tilt_value %></td></tr>
+            <tr><th><%= log_notation_u %></th><td><%= log_timestamp %></td></tr>
+            <tr><th><%= log_notation_uu %></th><td><%= log_temperature_unit %></td></tr>
+            <tr><th><%= log_notation_m %></th><td><%= log_mode_in_integer %></td></tr>
+            <tr><th><%= log_notation_um %></th><td><%= log_mode_in_character %></td></tr>
+            <tr><th><%= log_notation_up %></th><td><%= log_pressure_reading %></td></tr>
+            <tr><th><%= log_notation_uh %></th><td><%= log_hostname %></td></tr>
+        </table>
+    </div>
+
+</body>
+
+</html>

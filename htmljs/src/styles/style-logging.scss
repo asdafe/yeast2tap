@@ -1,0 +1,999 @@
+@import 'import/vars';
+@import 'import/mixins';
+@import 'layout/reset';
+@import 'layout/typo';
+@import 'layout/layout';
+@import 'layout/base';
+@import 'ui-elements/buttons';
+@import 'ui-elements/card';
+@import 'ui-elements/modal';
+@import 'ui-elements/radio';
+@import 'ui-elements/switch';
+@import 'ui-elements/textarea';
+
+/* ==========================================================================
+   Logs page
+   Cards keep their ids; only the presentation layer is replaced. Everything
+   below is scoped by .logs-page so the shared layers stay untouched.
+   ========================================================================== */
+
+.logs-page {
+    display: grid;
+    gap: 16px;
+    padding: 20px;
+    align-content: start;
+    min-width: 0;
+}
+
+.logs-page h1,
+.logs-page h2,
+.logs-page h3,
+.logs-page h4,
+.logs-page h5,
+.logs-page h6 {
+    margin: 0;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+/* ---------- card and button skin (modern language, scoped) ---------- */
+
+.logs-page .card {
+    border-radius: 16px;
+    padding: 14px 16px;
+    box-shadow: none;
+    margin-bottom: 0;
+}
+
+.logs-page .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: auto;
+    line-height: 1.2;
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: $primary-text-color;
+    font-size: 13px;
+    font-weight: 650;
+    margin-right: 0;
+    text-decoration: none;
+}
+
+.logs-page .btn:hover {
+    border-color: $primary-color;
+    background: var(--tile);
+}
+
+.logs-page .btn .ic {
+    width: 16px;
+    height: 16px;
+}
+
+.logs-page .btn.btn--raised {
+    background: $primary-color;
+    border-color: $primary-color;
+    color: $primary-color-text;
+}
+
+.logs-page .btn.btn--raised:hover {
+    background: $primary-color-dark;
+    border-color: $primary-color-dark;
+}
+
+.logs-page .btn.logs-danger {
+    color: var(--danger);
+    border-color: var(--danger);
+    background: var(--card);
+}
+
+.logs-page .btn.logs-danger:hover {
+    background: #{'color-mix(in srgb, var(--danger) 8%, var(--card))'};
+}
+
+.logs-page .btn.sm {
+    padding: 5px 11px;
+    font-size: 12px;
+    border-radius: 9px;
+}
+
+.logs-page .btn.sm .ic {
+    width: 14px;
+    height: 14px;
+}
+
+.logs-page .btn[disabled] {
+    color: $secondary-text-color;
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+/* ---------- page head ---------- */
+
+.logs-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.logs-head-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1 1 240px;
+    min-width: 0;
+}
+
+.logs-head-title h1 {
+    font-size: 20px;
+}
+
+.logs-sub {
+    font-size: 12px;
+    font-weight: 500;
+    color: $secondary-text-color;
+}
+
+.logs-head-tools {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.logs-k {
+    font-size: 12px;
+    font-weight: 650;
+    color: $secondary-text-color;
+}
+
+/* ---------- chips ---------- */
+
+.logs-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 650;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--tile);
+    border: 1px solid var(--line);
+    color: $secondary-text-color;
+    white-space: nowrap;
+}
+
+.logs-chip b {
+    color: $primary-text-color;
+    font-weight: 650;
+}
+
+.logs-chip .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: $secondary-text-color;
+    flex: none;
+}
+
+.logs-chip.is-live {
+    background: $primary-color-light;
+    border-color: transparent;
+    color: $primary-color-dark;
+}
+
+.logs-chip.is-live .dot {
+    background: var(--ok);
+    box-shadow: 0 0 0 3px #{'color-mix(in srgb, var(--ok) 18%, transparent)'};
+}
+
+/* ---------- card head ---------- */
+
+.logs-card-head {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    flex-wrap: wrap;
+}
+
+.logs-card-head .ttl {
+    flex: 1 1 180px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.logs-card-head h3 {
+    font-size: 16px;
+}
+
+.logs-body {
+    margin-top: 14px;
+}
+
+/* ---------- form fields ---------- */
+
+.logs-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.logs-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.logs-field > span:first-child {
+    font-size: 12px;
+    font-weight: 600;
+    color: $secondary-text-color;
+}
+
+.logs-field.wide {
+    grid-column: 1 / -1;
+}
+
+.logs-page input[type="text"],
+.logs-page input[type="password"],
+.logs-page select,
+.logs-page textarea {
+    width: 100%;
+    min-height: 36px;
+    padding: 7px 10px;
+    font: inherit;
+    font-size: 13px;
+    color: $primary-text-color;
+    background: var(--tile);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+}
+
+.logs-page textarea {
+    min-height: 92px;
+    resize: vertical;
+    line-height: 1.45;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 12px;
+}
+
+.logs-page input:focus,
+.logs-page select:focus,
+.logs-page textarea:focus {
+    outline: none;
+    border-color: $primary-color;
+    box-shadow: 0 0 0 3px #{'color-mix(in srgb, var(--accent) 16%, transparent)'};
+}
+
+.logs-unit {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.logs-unit input {
+    flex: 1;
+}
+
+.logs-unit > span {
+    font-size: 12px;
+    font-weight: 600;
+    color: $secondary-text-color;
+}
+
+.logs-help {
+    margin: 0;
+    font-size: 12px;
+    color: $secondary-text-color;
+}
+
+.logs-help code {
+    font-size: 11px;
+    background: var(--tile);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 0 4px;
+}
+
+/* ---------- switches ---------- */
+
+.logs-sw {
+    position: relative;
+    display: inline-flex;
+    flex: none;
+}
+
+.logs-sw input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.logs-sw .track {
+    width: 38px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--line);
+    display: block;
+    transition: background .15s ease;
+}
+
+.logs-sw .track::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--card);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .2);
+    transition: transform .15s ease;
+}
+
+.logs-sw input:checked + .track {
+    background: $primary-color;
+}
+
+.logs-sw input:checked + .track::after {
+    transform: translateX(16px);
+}
+
+.logs-sw input:focus-visible + .track {
+    box-shadow: 0 0 0 3px #{'color-mix(in srgb, var(--accent) 20%, transparent)'};
+}
+
+.logs-sw-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ---------- segmented control (method, gravity unit) ---------- */
+
+.logs-page .seg,
+.logs-seg {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: var(--tile);
+    border-radius: 12px;
+    width: 100%;
+    min-width: 0;
+}
+
+.logs-page .seg label,
+.logs-seg label {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 6px 12px;
+    border-radius: 9px;
+    color: $secondary-text-color;
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.logs-page .seg input,
+.logs-seg input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.logs-page .seg input:checked + label,
+.logs-seg input:checked + label {
+    background: var(--card);
+    color: $primary-color-dark;
+    box-shadow: inset 0 0 0 1px var(--line);
+}
+
+/* ---------- local log ---------- */
+
+.logs-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(250px, 1fr);
+    gap: 18px;
+    align-items: start;
+    margin-top: 14px;
+}
+
+.logs-col {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.logs-start {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.logs-start .btn {
+    min-height: 36px;
+}
+
+.logs-opts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.logs-opt {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--card);
+    cursor: pointer;
+    min-width: 0;
+}
+
+.logs-opt b {
+    display: block;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.logs-opt small {
+    display: block;
+    font-size: 12px;
+    color: $secondary-text-color;
+}
+
+.logs-opt .logs-sw {
+    margin-left: auto;
+}
+
+/* ---------- storage gauge ---------- */
+
+.logs-storage {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+}
+
+.logs-donut-wrap {
+    position: relative;
+    width: 92px;
+    height: 92px;
+}
+
+.logs-donut {
+    width: 92px;
+    height: 92px;
+    transform: rotate(-90deg);
+}
+
+.logs-donut .ring {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 5;
+}
+
+.logs-donut .val {
+    fill: none;
+    stroke: $primary-color;
+    stroke-width: 5;
+    stroke-linecap: round;
+}
+
+.logs-donut-pct {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.logs-donut-pct b {
+    font-size: 19px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+.logs-donut-pct span {
+    font-size: 9px;
+    font-weight: 650;
+    color: $secondary-text-color;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.logs-stats {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+}
+
+.logs-stat {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    background: var(--tile);
+    border-radius: 10px;
+    padding: 6px 10px;
+}
+
+.logs-stat span {
+    font-size: 11px;
+    font-weight: 600;
+    color: $secondary-text-color;
+}
+
+.logs-stat b {
+    font-size: 14px;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.logs-meter {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--line);
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.logs-meter > span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: $primary-color;
+    border-radius: 999px;
+    transition: width .3s ease;
+}
+
+.logs-legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: $secondary-text-color;
+}
+
+.logs-legend i {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    margin-right: 5px;
+}
+
+/* ---------- device health ---------- */
+
+.logs-health {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+}
+
+/* ---------- recording bar ---------- */
+
+.logs-live {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: $primary-color-light;
+}
+
+.logs-live .ttl {
+    flex: 1 1 200px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.logs-live .ttl b {
+    font-size: 14px;
+    font-weight: 700;
+    color: $primary-color-dark;
+}
+
+.logs-live .ttl .logs-sub {
+    color: $primary-color-dark;
+    opacity: .85;
+}
+
+.logs-live-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.logs-pulse {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex: none;
+    background: var(--ok);
+    box-shadow: 0 0 0 4px #{'color-mix(in srgb, var(--ok) 20%, transparent)'};
+}
+
+.logs-mono {
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------- recorded log list ---------- */
+
+.logs-table-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 18px 0 4px;
+}
+
+.logs-table-head h4 {
+    font-size: 14px;
+}
+
+.logs-table-wrap {
+    overflow-x: auto;
+}
+
+#loglist {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#loglist th {
+    text-align: left;
+    font-size: 12px;
+    font-weight: 650;
+    color: $secondary-text-color;
+    padding: 8px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+}
+
+#loglist td {
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+    color: $primary-text-color;
+}
+
+#loglist tr:last-child td {
+    border-bottom: 0;
+}
+
+#loglist tbody tr:hover,
+#loglist tr:hover {
+    background: #{'color-mix(in srgb, var(--tile) 70%, transparent)'};
+}
+
+#loglist .right {
+    text-align: right;
+}
+
+#loglist .logid {
+    font-size: 13px;
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+#loglist .logdate {
+    font-size: 13px;
+    color: $secondary-text-color;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.logs-row-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+/* ---------- remote / mqtt grid ---------- */
+
+.logs-grid2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    align-items: start;
+}
+
+.logs-svc {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 14px;
+    background: var(--tile);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.logs-svc-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.logs-svc-head .sp {
+    flex: 1;
+}
+
+.logs-off-note {
+    display: none;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: var(--tile);
+    color: $secondary-text-color;
+    font-size: 13px;
+}
+
+.logs-off-note .ic {
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+}
+
+.card.is-collapsed .logs-off-note {
+    display: flex;
+}
+
+/* Short result line for a switch that applies itself (turning remote logging
+   off needs no Update press). Visible in both states, empty until used. */
+.logs-status {
+    display: none;
+    margin-top: 10px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 650;
+}
+
+.logs-status.is-shown {
+    display: block;
+}
+
+.logs-status.is-ok {
+    background: var(--tile);
+    color: var(--ok, #3a9a47);
+}
+
+.logs-status.is-bad {
+    background: var(--tile);
+    color: #b42318;
+}
+
+/* Both cards hide their settings while the switch is off. Turning the switch on
+   only reveals the fields; Save is what activates the service, so a half-filled
+   card is never posted to the controller. */
+.card.is-collapsed #remote-log-body,
+.card.is-collapsed #mqtt-body {
+    display: none;
+}
+
+.logs-svc-head .badge {
+    width: 26px;
+    height: 26px;
+    border-radius: 9px;
+}
+
+.logs-svc-head .badge .ic {
+    width: 15px;
+    height: 15px;
+}
+
+.logs-card-foot {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+}
+
+.logs-card-foot .sp {
+    flex: 1;
+}
+
+/* ---------- format helper ---------- */
+
+.logs-fmt {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.logs-fmt-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 12px;
+    color: $secondary-text-color;
+}
+
+.logs-fmt-meta u {
+    cursor: help;
+    font-weight: 650;
+}
+
+.logs-counter {
+    font-variant-numeric: tabular-nums;
+    font-weight: 650;
+}
+
+.logs-counter.is-over {
+    color: var(--danger);
+}
+
+#formatlist {
+    display: none;
+    position: absolute;
+    z-index: 40;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--card);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .18);
+    padding: 4px;
+    max-height: 320px;
+    overflow: auto;
+}
+
+#formatlist table {
+    width: auto;
+    border-collapse: collapse;
+}
+
+#formatlist th {
+    width: 44px;
+    padding: 5px 8px;
+    text-align: left;
+    font-family: ui-monospace, Consolas, monospace;
+    color: $primary-color-dark;
+    border-bottom: 1px solid var(--line);
+}
+
+#formatlist td {
+    padding: 5px 10px 5px 4px;
+    font-size: 12px;
+    border-bottom: 1px solid var(--line);
+    color: $primary-text-color;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 1100px) {
+    .logs-grid2 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
+    .logs-split {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 700px) {
+    .logs-page {
+        padding: 14px;
+    }
+
+    .logs-fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .logs-field.wide {
+        grid-column: auto;
+    }
+
+    .logs-opts,
+    .logs-health {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .logs-storage {
+        grid-template-columns: 84px minmax(0, 1fr);
+    }
+
+    .logs-donut,
+    .logs-donut-wrap {
+        width: 84px;
+        height: 84px;
+    }
+
+    /* stack each log row instead of scrolling it sideways */
+    .logs-table-wrap {
+        overflow: visible;
+    }
+
+    #loglist,
+    #loglist tbody,
+    #loglist td {
+        display: block;
+    }
+
+    #loglist th {
+        display: none;
+    }
+
+    #loglist tr {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas: "name date" "actions actions";
+        align-items: center;
+        gap: 8px 10px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--line);
+    }
+
+    #loglist tr:first-child {
+        display: none;
+    }
+
+    #loglist tr:last-child {
+        border-bottom: 0;
+    }
+
+    #loglist tr:hover {
+        background: transparent;
+    }
+
+    #loglist td {
+        border-bottom: 0;
+        padding: 0;
+    }
+
+    #loglist td:nth-child(1) {
+        grid-area: name;
+    }
+
+    #loglist td:nth-child(2) {
+        grid-area: date;
+        text-align: right;
+    }
+
+    #loglist td:nth-child(3) {
+        grid-area: actions;
+    }
+
+    #loglist .right {
+        text-align: left;
+    }
+
+    .logs-row-actions {
+        justify-content: flex-start;
+    }
+}

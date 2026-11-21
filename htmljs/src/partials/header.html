@@ -1,0 +1,50 @@
+<header layout horizontal main-justified cross-center relative class="header header-rail">
+    <h1 class="header_title"><a id="hostname" href="/index.htm">yeast2tap</a> <span id="verinfo" class="header_version-display"></span></h1>
+    <div navigation>
+        <div menuToggle>
+            <input type="checkbox" />
+            <span></span>
+            <span></span>
+            <span></span>
+            <ul class="options">
+                <li>
+                    <a href="/index.htm"><svg class="ic"><use href="#i-layout-dashboard"/></svg><%= menu2_graph %></a>
+                </li>
+                <li>
+                    <a href="/control.htm"><svg class="ic"><use href="#i-sliders-vertical"/></svg><%= menu2_control %></a>
+                </li>
+                <li>
+                    <a href="/logging.htm"><svg class="ic"><use href="#i-file-text"/></svg><%= menu2_logs %></a>
+                </li>
+                <li>
+                    <a href="/setup.htm"><svg class="ic"><use href="#i-cpu"/></svg><%= menu2_setup %></a>
+                </li>
+                <li>
+                    <a href="/scale.htm"><svg class="ic"><use href="#i-scale"/></svg><%= ui_scale %></a>
+                </li>
+                <li>
+                    <a href="/config.htm"><svg class="ic"><use href="#i-settings"/></svg><%= menu2_config %></a>
+                </li>
+                <li>
+                    <a href="/gravity.htm"><svg class="ic"><use href="#i-flask-conical"/></svg><%= menu2_gravity %></a>
+                </li>
+                <li class="nav-pressure">
+                    <a href="/pressure.htm"><svg class="ic"><use href="#i-gauge"/></svg><%= menu2_pressure %></a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="rail-themes">
+        <div class="theme-picker" role="radiogroup" aria-label="<%= ui_theme %>">
+            <button type="button" class="theme-swatch" data-theme-choice="" onclick="applyYeastTheme('', true)" title="<%= theme_yeast2tap %>"><span class="theme-dot" style="background:#9a431f"></span></button>
+            <button type="button" class="theme-swatch" data-theme-choice="brew" onclick="applyYeastTheme('brew', true)" title="<%= theme_brew %>"><span class="theme-dot" style="background:#a84e25"></span></button>
+            <button type="button" class="theme-swatch" data-theme-choice="lab" onclick="applyYeastTheme('lab', true)" title="<%= theme_lab %>"><span class="theme-dot" style="background:#0b7d79"></span></button>
+            <button type="button" class="theme-swatch" data-theme-choice="hops" onclick="applyYeastTheme('hops', true)" title="<%= ui_hops_copper %>"><span class="theme-dot" style="background:#254a3c"></span></button>
+            <button type="button" class="theme-swatch" data-theme-choice="amber" onclick="applyYeastTheme('amber', true)" title="<%= theme_amber %>"><span class="theme-dot" style="background:#e6a23c"></span></button>
+            <button type="button" class="theme-swatch" data-theme-choice="sage" onclick="applyYeastTheme('sage', true)" title="<%= theme_sage %>"><span class="theme-dot" style="background:#3f6b2e"></span></button>
+            <button type="button" class="theme-swatch" data-theme-choice="slate" onclick="applyYeastTheme('slate', true)" title="<%= theme_slate %>"><span class="theme-dot" style="background:#285f9f"></span></button>
+            <button type="button" class="theme-swatch" data-theme-choice="plum" onclick="applyYeastTheme('plum', true)" title="<%= theme_plum %>"><span class="theme-dot" style="background:#6b3a82"></span></button>
+        </div>
+    </div>
+</header>
+<script>if (window.applyPressureNav) applyPressureNav(); if (window.__yeastTheme !== undefined && window.applyYeastTheme) applyYeastTheme(window.__yeastTheme);</script>
