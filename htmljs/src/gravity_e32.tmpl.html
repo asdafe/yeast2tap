@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+
+<html lang="<%= page_lang %>">
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- build:include partials/theme-init.html -->
+    <!-- /build -->
+    <title>
+        <%= gravity_title %>
+    </title>
+    <meta name="apple-mobile-web-app-title" content="yeast2tap">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <script type="text/javascript" src="/bwf.js" ignore></script>
+    <script type="text/javascript" src="/shared.js" ignore></script>
+    <script type="text/javascript" src="/num.js" ignore></script>
+    <script type="text/javascript" src="js/vendor/regression.js"></script>
+    <script type="text/javascript" src="js/script-gravity-e32.js"></script>
+    <link rel="stylesheet" href="style-gravity.css">
+</head>
+
+<body onload=init()>
+
+        <!-- build:include partials/icons-nav.html -->
+    <!-- /build -->
+<!-- build:include partials/header.html -->
+    <!-- /build -->
+    <!-- build:include partials/icons-droplet.html -->
+    <!-- /build -->
+    <!-- icons used only by this page; kept here so other pages stay small -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+        <symbol id="i-g-activity" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></symbol>
+        <symbol id="i-g-radio" viewBox="0 0 24 24"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"/></symbol>
+        <symbol id="i-g-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+        <symbol id="i-g-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></symbol>
+        <symbol id="i-g-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+        <symbol id="i-g-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+        <symbol id="i-g-sliders" viewBox="0 0 24 24"><path d="M10 8h4"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M17 16h4"/><path d="M19 12V3"/><path d="M19 21v-5"/><path d="M3 14h4"/><path d="M5 10V3"/><path d="M5 21v-7"/></symbol>
+        <symbol id="i-g-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+        <symbol id="i-g-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+    </svg>
+
+    <div viewport class="gravity-page">
+
+        <section class="card g-head">
+            <div class="g-head-title">
+                <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-droplet"/></svg></span>
+                <div>
+                    <h1><%= gravity_title %></h1>
+                    <div class="g-sub"><%= gravity_page_sub %></div>
+                </div>
+            </div>
+            <div class="g-head-tools">
+                <span class="g-chip" id="dev-chip"><span class="dot"></span><span id="dev-chip-text"><%= gravity_none %></span></span>
+                <button class="btn btn--raised" type="button" onclick="save();return false;">
+                    <svg class="ic"><use href="#i-g-save"/></svg><%= gravity_save %>
+                </button>
+            
+
+                
+
+            </div>
+        </section>
+
+        <div class="g-grid2">
+            <div class="g-stack">
+
+                <section class="card">
+                    <header class="g-card-head">
+                        <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-g-activity"/></svg></span>
+                        <div class="ttl">
+                            <h2><%= gravity_last_reading %></h2>
+                            <span class="g-sub"><%= gravity_last_sub %></span>
+                        </div>
+                        <span class="g-chip" id="conn-chip"><span class="dot"></span><span id="conn-text"><%= gravity_waiting %></span></span>
+                    </header>
+                    <div class="g-body">
+                        <div class="g-readings">
+                            <div class="g-read is-device">
+                                <span><%= gravity_from_device %></span>
+                                <b id="lv-reported">--</b>
+                            </div>
+                            <div class="g-read is-final">
+                                <span><%= gravity_after_correction %></span>
+                                <b id="lv-corrected">--</b>
+                            </div>
+                            <div class="g-read">
+                                <span><%= gravity_correction %></span>
+                                <b id="lv-delta">--</b>
+                            </div>
+                        </div>
+                        <div class="g-meta">
+                            <svg class="ic"><use href="#i-g-clock"/></svg>
+                            <span><%= gravity_last_update %> <b id="lv-updated">--</b></span>
+                            <span id="lv-device"></span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <header class="g-card-head">
+                        <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-g-radio"/></svg></span>
+                        <div class="ttl">
+                            <h2><%= gravity_wireless_hydrometer %></h2>
+                            <span class="g-sub"><%= gravity_device_sub %></span>
+                        </div>
+                    </header>
+                    <div class="g-body">
+                        <div class="device-row">
+                            <label class="g-field">
+                                <span><%= gravity_device %></span>
+                                <select id="device-type" name="color">
+                                    <option value="0"><%= gravity_none %></option>
+                                    <option value="1"><%= grav_ispindel %></option>
+                                    <option value="2"><%= grav_tilt_tm %></option>
+                                    <option value="3"><%= grav_rapt_pill %></option>
+                                </select>
+                            </label>
+                        </div>
+
+                        <!-- device specific panes; displaysub() decides which one is visible -->
+                        <div id="ispindel-pane">
+                            <div class="pane-head"><span class="badge"><svg class="ic"><use href="#i-droplet"/></svg></span><%= grav_ispindel %></div>
+                            <p class="g-sub" style="margin:0"><%= gravity_ispindel_hint %></p>
+                            <div class="ispindelsub"></div>
+                        </div>
+
+                        <div id="tilt-pane">
+                            <div class="pane-head"><span class="badge"><svg class="ic"><use href="#i-droplet"/></svg></span><%= grav_tilt_hydrometer %></div>
+                            <div class="device-row">
+                                <label class="g-field">
+                                    <span><%= grav_tilt_color %></span>
+                                    <select id="tiltcolor" name="color">
+                                        <option value="0"><%= grav_red %></option>
+                                        <option value="1"><%= grav_green %></option>
+                                        <option value="2"><%= grav_black %></option>
+                                        <option value="3"><%= grav_purple %></option>
+                                        <option value="4"><%= grav_orange %></option>
+                                        <option value="5"><%= grav_blue %></option>
+                                        <option value="6"><%= grav_yellow %></option>
+                                        <option value="7"><%= grav_pink %></option>
+                                    </select>
+                                </label>
+                                <button class="btn" type="button" onclick="DevSelect.scan(); return false;">
+                                    <svg class="ic"><use href="#i-g-search"/></svg><%= gravity_scan %>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="pill-pane">
+                            <div class="pane-head"><span class="badge"><svg class="ic"><use href="#i-droplet"/></svg></span><%= grav_rapt_pill_hydrometer %></div>
+                            <div class="device-row">
+                                <div class="g-field">
+                                    <span><%= grav_mac_address %></span>
+                                    <span class="mac" id="pilladdr">--</span>
+                                </div>
+                                <button class="btn" type="button" onclick="DevSelect.scan(); return false;">
+                                    <svg class="ic"><use href="#i-g-search"/></svg><%= gravity_scan %>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="g-toggle-row">
+                            <div class="txt">
+                                <b><%= grav_gravitymon %></b>
+                                <small><%= gravity_mon_hint %></small>
+                            </div>
+                            <span class="g-sw"><input type="checkbox" id="gravitymon" name="gravitymon"><span class="track"></span></span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <header class="g-card-head">
+                        <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-g-sliders"/></svg></span>
+                        <div class="ttl">
+                            <h2><%= gravity_calibration %></h2>
+                            <span class="g-sub"><%= gravity_calibration_sub %></span>
+                        </div>
+                        <span class="g-chip" id="formula-state"><span class="dot"></span><span id="formula-text"><%= gravity_needs_points %></span></span>
+                    </header>
+                    <div class="g-body">
+                        <div class="cal-row">
+                            <div class="txt">
+                                <b><%= gravity_cal_points %></b>
+                                <small><span id="cal-points">0</span> <%= grav_cal_points_suffix %></small>
+                            </div>
+                            <button class="btn" id="addbutton" type="button" onclick="tiltcal(); return false;">
+                            <svg class="ic"><use href="#i-g-sliders"/></svg><%= gravity_edit_points %>
+                        </button>
+                    </div>
+                    <div class="cal-coeffs" id="cal_coeffs"></div>
+                        <p class="g-note" id="gravitymon-admin-note" hidden>
+                            <svg class="ic"><use href="#i-g-info"/></svg>
+                            <span><%= gravity_mon_admin_note %></span>
+                        </p>
+                </div>
+                </section>
+
+            </div>
+
+            <div class="g-stack">
+
+                <section class="card">
+                    <header class="g-card-head">
+                        <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-droplet"/></svg></span>
+                        <div class="ttl">
+                            <h2><%= gravity_calculation %></h2>
+                            <span class="g-sub"><%= gravity_calculation_sub %></span>
+                        </div>
+                    </header>
+                    <div class="g-body">
+                        <div class="g-fields">
+                            <label class="g-field wide">
+                                <span><%= gravity_offset %></span>
+                                <input type="text" name="off" class="num">
+                                <span class="g-hint"><%= gravity_offset_hint %></span>
+                            </label>
+                        </div>
+                        <div class="g-toggle-row">
+                            <div class="txt">
+                                <b><%= gravity_useplato %></b>
+                                <small><%= gravity_useplato_hint %></small>
+                            </div>
+                            <span class="g-sw"><input type="checkbox" id="plato" name="plato" checked><span class="track"></span></span>
+                        </div>
+                        <div class="g-toggle-row">
+                            <div class="txt">
+                                <b><%= gravity_calculated_by_controller %></b>
+                                <small><%= gravity_calby_hint %></small>
+                            </div>
+                            <span class="g-sw"><input type="checkbox" id="cal" name="cal" checked><span class="track"></span></span>
+                        </div>
+                        <p class="g-note" id="gravitymon-cal-note" hidden>
+                            <svg class="ic"><use href="#i-g-info"/></svg>
+                            <span><%= gravity_mon_cal_note %></span>
+                        </p>
+                    </div>
+                </section>
+
+
+                <section class="card">
+                    <header class="g-card-head">
+                        <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-g-sliders"/></svg></span>
+                        <div class="ttl">
+                            <h2><%= gravity_filtering %></h2>
+                            <span class="g-sub"><%= gravity_filtering_sub %></span>
+                        </div>
+                    </header>
+                    <div class="g-body">
+                        <div class="g-fields">
+                            <label class="g-field">
+                                <span><%= gravity_lpf_coefficient %></span>
+                                <input type="text" name="lpc" class="num">
+                                <span class="g-hint"><%= gravity_lpf_hint %></span>
+                            </label>
+                            <label class="g-field">
+                                <span><%= gravity_stable_threshold %></span>
+                                <input type="text" name="stpt" class="num">
+                                <span class="g-hint"><%= gravity_stpt_hint %></span>
+                            </label>
+                        </div>
+                        <hr class="g-sep">
+                        <label class="g-field wide" style="margin-top:12px">
+                            <span><%= gravity_tilt_formula %></span>
+                            <textarea class="notsave g-mono g-formula" id="tilt-correction-formula" name="tilt-correction-formula" rows="2" spellcheck="false" placeholder="<%= gravity_tilt_formula_ph %>"></textarea>
+                            <span class="g-hint"><%= gravity_tilt_formula_hint %></span>
+                            <span class="g-hint" id="formula-unit-note"></span>
+                        </label>
+                        <div class="g-toggle-row">
+                            <div class="txt">
+                                <b><%= gravity_temp_correction %></b>
+                                <small><%= gravity_tc_hint %></small>
+                            </div>
+                            <span class="g-sw"><input type="checkbox" id="tc" name="tc" checked><span class="track"></span></span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <div class="g-save-bar">
+                        <span class="g-save-note" id="save-note" aria-live="polite"></span>
+                        <span class="note"><%= gravity_save_hint %></span>
+                        <button class="btn btn--raised" type="button" onclick="save();return false;">
+                            <svg class="ic"><use href="#i-g-save"/></svg><%= gravity_save %>
+                        </button>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="dlg_addcalpoint" class="modal">
+        <div class="modal-content">
+            <div class="g-modal-head">
+                <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-g-sliders"/></svg></span>
+                <h2><%= gravity_calibration %></h2>
+                <button class="g-modal-close" type="button" onclick="return closeTiltCal();" aria-label="<%= dlg_cancel %>"><svg class="ic"><use href="#i-g-x"/></svg></button>
+            </div>
+            <p class="g-sub" style="margin:0 0 14px"><%= gravity_cal_dialog_hint %></p>
+
+            <div class="cal-inputs">
+                <label class="g-field">
+                    <span class="cal-lbl"><span class="info-angle"><%= gravity_tilt_angle %></span><span class="info-rawsg"><%= tilt_raw_sg %></span></span>
+                    <input class="notsave num" id="uncalvalue" type="text" inputmode="decimal">
+                </label>
+                <label class="g-field">
+                    <span><%= gravity_gravity %></span>
+                    <input class="notsave num" id="calvalue" type="text" inputmode="decimal">
+                </label>
+                <button class="btn btn--raised" id="btn-addcal" type="button">
+                    <svg class="ic"><use href="#i-g-plus"/></svg><%= control_add %>
+                </button>
+            </div>
+
+            <table id="tiltcalpoints">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th><span class="cal-lbl"><span class="info-angle"><%= gravity_tilt_angle %></span><span class="info-rawsg"><%= tilt_raw_sg %></span></span></th>
+                        <th><%= gravity_gravity %></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="calpoint">
+                        <td><button class="delbutton" type="button" aria-label="<%= gravity_remove_point %>"><%= grav_delete_symbol %></button></td>
+                        <td class="uncaldata"></td>
+                        <td class="caldata"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="g-modal-foot">
+                <span class="g-sub" id="cal-limit-note" style="margin-right:auto"></span>
+                <button class="btn btn--raised" type="button" onclick="return closeTiltCal();"><%= dlg_ok %></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="dlg_sel_dev" class="modal">
+        <div class="modal-content">
+            <div class="g-modal-head">
+                <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-g-search"/></svg></span>
+                <h2><%= gravity_select_device %></h2>
+                <button class="g-modal-close" type="button" onclick="return DevSelect.close();" aria-label="<%= dlg_cancel %>"><svg class="ic"><use href="#i-g-x"/></svg></button>
+            </div>
+            <span id="neterror"></span>
+
+            <table id="devseltable">
+                <thead>
+                    <tr>
+                        <th><%= gravity_device %></th>
+                        <th><%= gravity_gravity %></th>
+                        <th><%= gravity_temperature %></th>
+                        <th><%= grav_rssi %></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="device-list-row">
+                        <td class="did"></td>
+                        <td class="sg"></td>
+                        <td class="temp"></td>
+                        <td class="rssi"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="g-modal-foot">
+                <button class="btn" type="button" onclick="return DevSelect.close();"><%= dlg_cancel %></button>
+                <button id="devsel-done" class="btn btn--raised" type="button" onclick="return DevSelect.done();"><%= dlg_ok %></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="blockscreen" class="modal">
+        <div id="blockscreencontent" class="modal-content"></div>
+    </div>
+
+    <!-- build:include partials/footer.html -->
+    <!-- /build -->
+
+</body>
+
+</html>

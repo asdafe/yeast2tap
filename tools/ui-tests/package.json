@@ -1,0 +1,25 @@
+{
+  "name": "yeast2tap-ui-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node scripts/start-server.js",
+    "test:unit": "node --test server/*.test.js",
+    "test:smoke": "playwright test tests/smoke.spec.js",
+    "test:assets": "playwright test tests/assets.spec.js",
+    "test:pages": "playwright test tests/pages.spec.js",
+    "test:interactions": "playwright test tests/interactions.spec.js",
+    "test:lang": "playwright test tests/language.spec.js",
+    "test:numbers": "playwright test tests/numbers.spec.js",
+    "test:room": "playwright test tests/room-label.spec.js",
+    "test:scale": "playwright test tests/scale-chart.spec.js",
+    "test:logviewer": "playwright test tests/logviewer.spec.js",
+    "test:all": "playwright test",
+    "report:summary": "node scripts/summarize.js",
+    "verify:firmware": "node scripts/verify-firmware.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "ws": "8.18.3"
+  }
+}

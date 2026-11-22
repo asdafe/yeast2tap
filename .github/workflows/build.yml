@@ -1,0 +1,56 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['docs/**', 'documentation/**', '**/*.md']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  firmware:
+    name: ${{ matrix.env }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        env: [esp32, esp32-dev]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio
+          key: pio-${{ matrix.env }}-${{ hashFiles('platformio.ini') }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install PlatformIO
+        run: pip install --upgrade platformio esptool
+
+      - name: Build ${{ matrix.env }}
+        run: pio run -e ${{ matrix.env }}
+
+      - name: Merge into a single flashing image
+        run: |
+          BOOT_APP0="$HOME/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin"
+          esptool.py --chip esp32 merge_bin -o "yeast2tap-${{ matrix.env }}.bin" \
+            --flash_mode dio --flash_freq 40m --flash_size 4MB \
+            0x1000 ".pio/build/${{ matrix.env }}/bootloader.bin" \
+            0x8000 ".pio/build/${{ matrix.env }}/partitions.bin" \
+            0xe000 "$BOOT_APP0" \
+            0x10000 ".pio/build/${{ matrix.env }}/firmware.bin"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ matrix.env }}
+          path: |
+            yeast2tap-${{ matrix.env }}.bin
+            .pio/build/${{ matrix.env }}/firmware.bin
+          if-no-files-found: error

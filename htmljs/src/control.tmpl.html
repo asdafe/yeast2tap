@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+
+<html lang="<%= page_lang %>">
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- build:include partials/theme-init.html -->
+    <!-- /build -->
+    <title>
+        <%= menu2_control %>
+    </title>
+    <meta name="apple-mobile-web-app-title" content="yeast2tap">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <script type="text/javascript" src="js/dygraph-2.2.1/dygraph.min.js"></script>
+    <script type="text/javascript" src="/bwf.js" ignore></script>
+    <script type="text/javascript" src="/shared.js" ignore></script>
+    <script type="text/javascript" src="/num.js" ignore></script>
+    <script type="text/javascript" src="js/capper.js"></script>
+    <script type="text/javascript" src="js/ptc.js"></script>
+    <script type="text/javascript" src="js/script-control.js"></script>
+    <link rel="stylesheet" href="js/dygraph-2.2.1/dygraph.min.css">
+
+    <link rel="stylesheet" href="style-control.css">
+</head>
+
+<body onload="initctrl()">
+
+        <!-- build:include partials/icons-nav.html -->
+    <!-- build:include partials/icons-control.html -->
+    <!-- /build -->
+<!-- build:include partials/header.html -->
+    <!-- /build -->
+
+    <div viewport layout vertical class="ctrl">
+        <div main class="card">
+            <div class="head">
+                <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-sliders-vertical"/></svg></span>
+                <div>
+                    <h1><%= menu2_control %></h1>
+                    <div class="s" id="msub"><%= ctl_waiting_controller %></div>
+                </div>
+            </div>
+            <div class="field">
+                <span class="k"><%= ctl_control_method %></span>
+                <div class="seg" data-g="method">
+                    <button type="button" data-v="pid" aria-selected="true"><%= ctl_pid %></button>
+                    <button type="button" data-v="ind" aria-selected="false"><%= ctl_independent %></button>
+                </div>
+                <p class="hint" id="mhint"><%= ctl_pid_hint %></p>
+            </div>
+            <div id="pid-panel">
+                <div class="field">
+                    <span class="k"><%= ctl_controlled_variable %></span>
+                    <div class="seg" data-g="what">
+                        <button type="button" data-v="beer" aria-selected="true"><svg class="ic"><use href="#i-thermometer"/></svg><%= ctl_beer %></button>
+                        <button type="button" data-v="fridge" aria-selected="false"><svg class="ic"><use href="#i-refrigerator"/></svg><%= ctl_fridge %></button>
+                    </div>
+                </div>
+                <div class="field">
+                    <span class="k"><%= ctl_setpoint_source %></span>
+                    <div class="seg" data-g="src">
+                        <button type="button" data-v="fixed" aria-selected="true"><%= ctl_fixed_temperature %></button>
+                        <button type="button" data-v="ramp" aria-selected="false"><svg class="ic"><use href="#i-chart-line"/></svg><%= ctl_ramp_profile %><span class="xchip" id="pid-x" hidden><%= ctl_experimental %></span></button>
+                    </div>
+                </div>
+                <div class="warnbar" id="pid-warn" hidden><svg class="ic"><use href="#i-triangle-alert"/></svg><span><b><%= ctl_experimental_feature_dot %></b> <%= ctl_experimental_body %></span></div>
+                <div class="field">
+                    <span class="k" id="pid-fixed-label"><%= ctl_fixed_beer_setpoint %></span>
+                    <span class="inp" id="beer-fixed-wrap"><input type="text" inputmode="decimal" class="num" id="beer-t" autocomplete="off" placeholder="--"><span class="u"><%= ctl_deg %><span class="t_unit"><%= ctl_unit_c %></span></span></span>
+                    <span class="inp" id="fridge-fixed-wrap" hidden><input type="text" inputmode="decimal" class="num" id="fridge-t" autocomplete="off" placeholder="--"><span class="u"><%= ctl_deg %><span class="t_unit"><%= ctl_unit_c %></span></span></span>
+                    <p class="standby" id="pid-standby" hidden><%= ctl_standby_setpoint %></p>
+                </div>
+                <div id="pid-slot"></div>
+            </div>
+            <div id="ind-panel" hidden>
+                <div class="zones">
+                    <div class="zone">
+                        <div class="zh"><span class="badge cool"><svg class="ic"><use href="#i-snowflake"/></svg></span><b><%= ctl_cooler %></b>
+                            <span class="inp" id="cool-wrap"><input type="text" inputmode="decimal" class="num" id="independent-cool-t" autocomplete="off" placeholder="--"><span class="u"><%= ctl_deg %><span class="t_unit"><%= ctl_unit_c %></span></span></span>
+                            <input type="checkbox" id="fridge-temp" class="switch-input" checked>
+                            <label for="fridge-temp" class="switch-label"><%= ctl_enabled %></label>
+                        </div>
+                    </div>
+                    <div class="zone">
+                        <div class="zh"><span class="badge heat"><svg class="ic"><use href="#i-flame"/></svg></span><b><%= ctl_heater %></b>
+                            <span class="inp" id="heat-wrap"><input type="text" inputmode="decimal" class="num" id="independent-heat-t" autocomplete="off" placeholder="--"><span class="u"><%= ctl_deg %><span class="t_unit"><%= ctl_unit_c %></span></span></span>
+                            <input type="checkbox" id="beer-set" class="switch-input" checked>
+                            <label for="beer-set" class="switch-label"><%= ctl_enabled %></label>
+                        </div>
+                        <span class="k"><%= ctl_setpoint_source %></span>
+                        <div class="seg sm" data-g="hsrc">
+                            <button type="button" data-v="fixed" aria-selected="true"><%= ctl_fixed_temperature %></button>
+                            <button type="button" data-v="ramp" aria-selected="false"><%= ctl_ramp_profile %></button>
+                        </div>
+                        <p class="standby" id="heat-standby" hidden><%= ctl_standby_heat %></p>
+                        <button class="btn" type="button" id="easybtn"><svg class="ic"><use href="#i-chart-line"/></svg><%= ctl_save_easy_ramp %></button>
+                    </div>
+                </div>
+                <div id="ind-slot"></div>
+                <details class="ctrl-fold">
+                    <summary><svg class="ic"><use href="#i-chevron-down"/></svg><%= ctl_predictive_heater %></summary>
+                    <div class="in">
+                        <div class="opts">
+                            <label class="opt"><input type="radio" name="hystMode" id="independent-pid-off" value="0" checked><span><b><%= control_off %></b><small><%= ctl_simple_thermostat %></small></span></label>
+                            <label class="opt"><input type="radio" name="hystMode" id="independent-pid-on" value="1"><span><b><%= ctl_on %></b><small><%= ctl_slope_learner %></small></span></label>
+                        </div>
+                        <p><%= ctl_predictive_body %></p>
+                        <div class="pi-grid" id="ind-pi-panel" hidden>
+                            <label><span class="k"><%= ctl_pi_kp %></span>
+                                <input type="text" inputmode="decimal" class="num" id="ind-pi-kp" autocomplete="off" placeholder="20"></label>
+                            <label><span class="k"><%= ctl_pi_ki %></span>
+                                <input type="text" inputmode="decimal" class="num" id="ind-pi-ki" autocomplete="off" placeholder="8"></label>
+                            <label><span class="k"><%= ctl_pi_pulse %></span>
+                                <input type="text" inputmode="decimal" class="num" id="ind-pi-pulse" autocomplete="off" placeholder="1.0"></label>
+                        </div>
+                        <p class="hint" id="ind-pi-hint" hidden><%= ctl_pi_hint %></p>
+                    </div>
+                </details>
+            </div>
+            <div id="profile-s" class="editor" hidden>
+                <div class="pgrid">
+                    <div id="profile-edit">
+                        <div class="start">
+                            <span class="k"><%= ctl_start_date %></span>
+                            <input type="datetime-local" id="startdate" onchange="profileEditor.startDayChange();">
+                            <button id="setnow" class="btn sm" type="button" onclick="profileEditor.startnow();"><%= control_now %></button>
+                        </div>
+                        <div class="tools">
+                            <button id="addbutton" type="button" onclick="profileEditor.addRow();" class="btn"><svg class="ic"><use href="#i-plus"/></svg><%= control_add %></button>
+                            <button id="delbtn" class="btn" type="button" onclick="profileEditor.delRow();"><%= ctl_delete_last_item %></button>
+                            <span class="sp"></span>
+                            <button id="clearbtn" class="btn danger" type="button" onclick="profileEditor.clear()"><svg class="ic"><use href="#i-trash"/></svg><%= ctl_clear_all %></button>
+                        </div>
+                        <div class="tw">
+                        <table class="profileTable" id="profile_t">
+                            <thead>
+                                <tr>
+                                    <th><%= ctl_deg %><span class="t_unit"><%= ctl_unit_c %></span></th>
+                                    <th><%= control_condition %></th>
+                                    <th><%= control_days %></th>
+                                    <th><%= control_sg %></th>
+                                    <th><%= control_stable %></th>
+                                    <th><%= ctl_start_time %></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="stage-temp">19</td>
+                                    <td>
+                                        <div class="for-time"><%= control_ramp %></div>
+                                        <div class="condition-con">
+                                            <select class="condition md">
+                                                <option value="t"><%= control_time %></option>
+                                                <option value="g"><%= control_sg %></option>
+                                                <option value="s"><%= control_stable %></option>
+                                                <option value="a"><%= ctl_time_sg %></option>
+                                                <option value="o"><%= ctl_time_or_sg %></option>
+                                                <option value="u"><%= ctl_time_or_stable %></option>
+                                                <option value="v"><%= ctl_time_stable %></option>
+                                                <option value="b"><%= ctl_sg_or_stable %></option>
+                                                <option value="x"><%= ctl_sg_stable %></option>
+                                                <option value="w"><%= control_all %></option>
+                                                <option value="e"><%= control_either %></option>
+                                            </select>
+                                        </div>
+                                    </td>
+                                    <td class="stage-time">7</td>
+                                    <td class="stage-sg">1.01</td>
+                                    <td class="stage-stabletime"></td>
+                                    <td class="diaplay-time"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        </div>
+                        <div class="bar">
+                            <button id="savebtn" class="btn primary" type="button" onclick="saveprofile()"><%= control_save %></button>
+                            <button id="saveasbtn" class="btn" type="button" onclick="PL.saveas()"><%= ctl_save_as %></button>
+                            <span id="save-note" class="save-note"></span>
+                            <span class="sp"></span>
+                            <button id="loadbtn" class="btn" type="button" onclick="PL.toggle()"><svg class="ic"><use href="#i-folder-open"/></svg><%= control_load %></button>
+                        </div>
+                    </div>
+                    <div class="chartbox"><div id="tc_chart"></div></div>
+                </div>
+            </div>
+            <div class="cf">
+                <input type="checkbox" id="mode-run" class="switch-input" checked>
+                <label for="mode-run" class="switch-label"><%= ctl_control_enabled %></label>
+                <button id="modekeeper-apply" class="btn primary" type="button" onclick="modekeeper.apply()"><%= control_apply %></button>
+            </div>
+            <p class="note" id="apply-note"></p>
+
+        </div>
+
+        <details class="card ctrl-adv"><summary><svg class="ic"><use href="#i-chevron-down"/></svg><%= ctl_advanced_controls %></summary><div class="lgrid">
+        <!-- capper -->
+        <div class="card" id="capper-frame">
+
+            <div layout horizontal main-justified cross-center>
+                <div layout horizontal cross-center>
+                    <%= ctl_capping_control %>
+                </div>
+            </div>
+
+            <div class=navbar horizontal layout main-justified cross-center id="cap-header">
+                <div class=navitems>
+                    <a href=#tab-gravity-m class="navitem" id="tab-gravity-m">
+                        <%= control_gravity %>
+                    </a>
+                    <a href=#tab-time-m class="navitem" id="tab-time-m">
+                        <%= control_time %>
+                    </a>
+                    <a href=#tab-manual-m class="navitem" id="tab-manual-m">
+                        <%= control_manual %>
+                    </a>
+                    <button id="cap-apply" class="btn btn--raised" style=max-width:200px><%= control_apply %></button>
+                </div>
+            </div>
+
+            <div class="tab-containter" horizontal layout main-justified cross-center>
+                <div id="tab-gravity-s" main-justified cross-center>
+                    <div style="margin:16px" > <%= ctl_cap_when_gravity_below %>
+                            <input type=text inputmode="decimal" class="num" step="0.001" size=6  id="capgravityinput" style="max-width:100px;margin:16px"> </div>
+                </div>
+                <div id="tab-time-s" >
+                    <div style="margin:16px"> 
+                        <label for="captimeinput" style="min-width: 0;"> <%= ctl_cap_after %></label>
+                        <input type=datetime-local style="max-width:200px;margin:16px" id=captimeinput>
+                    </div>
+                </div>
+                <div id="tab-manual-s">
+                    <div style="margin:16px" >
+                        <input type="checkbox" id="capswitch" name="capswitch" class="switch-input" checked>
+                        <label for="capswitch" class="switch-label" style="min-width: 0;"><%= ctl_capping_active %></label>
+                    </div>
+                </div>
+            </div>
+            <div class="psi-set-group" layout horizontal main-justified cross-center inline-flex> <%= ctl_to %>
+                 <input type=text inputmode="decimal" class="num" step="1" size=6  id="cappressure" style="max-width:60px;margin:16px;display:inline"><%= ctl_psi %>
+                 <button class="btn" onclick="Capper.calpsi();">...</button>
+            </div>
+
+        </div>
+   
+        <!-- ptc -->
+        <div id="ptc-control" class="card" horizontal layout main-justified cross-center>
+            <%= ctl_glycol_temperature_control %>
+            <div layout horizontal cross-center>
+                <h6 class="inline-header">
+                    <%= ctl_target_temperature %>
+                </h6>
+                <input type="text" name="temp" size=4 class="num"> <%= ctl_deg_c %>
+            </div>
+
+            <div layout horizontal cross-center>
+                <h6 class="inline-header">
+                    <%= ctl_triggering_temperature %>
+                </h6>
+                <input type="text" name="stemp" size=4 class="num"> <%= ctl_deg_c %>
+            </div>
+            <div layout horizontal cross-center>
+                <h6 class="inline-header">
+                 <%= ctl_minimum_cooling_time %>
+                </h6>
+                <input type="text" name="mincool" size=4 class="num"> <%= ctl_seconds_short %>
+            </div>
+            <div layout horizontal cross-center>
+                <h6 class="inline-header">
+                    <%= ctl_minimum_idle_time %>
+                </h6>
+                <input type="text" name="minidle" size=4 class="num"> <%= ctl_seconds_short %>
+            </div>
+            <div class="card-footer">
+                <button class="btn btn--raised" style="max-width: 200px;" onclick="PTC.apply()"><%= control_apply %></button>
+            </div>
+        </div>
+
+
+        <!-- Humidity Control-->
+        <div id="humidity-control" class="card" horizontal layout main-justified cross-center>
+            <h6><%= ctl_humidity_control %></h6>
+            <div layout horizontal cross-center>
+                <h6 class="inline-header">
+                    <%= ctl_mode %>
+                </h6>
+                <select id="hc-mode">
+                    <option value="0"><%= control_off %></option>
+                    <option value="1"><%= ctl_control %></option>
+                </select>
+            </div>
+
+            <div layout horizontal cross-center>
+                <h6 class="inline-header">
+                    <%= ctl_target_rh %>
+                </h6>
+                <input type="text" id="hc-target" name="target-humidity" size=4 class="num"> %
+            </div>
+        
+            <div class="card-footer">
+                <button class="btn btn--raised" style="max-width: 200px;" onclick="HC_apply();"><%= control_apply %></button>
+            </div>
+        </div>
+
+    </div></details>
+    </div>
+
+    <!-- build:include partials/footer.html -->
+    <!-- /build -->
+
+    <!-- Notification -->
+    <div class=error></div>
+
+    <!-- Modals -->
+ 
+    <div id="dlg_carbonation" class="modal">
+        <div class="modal-content">
+            <%= ctl_co2_volumes %> <input id="carcal-vol" type=text inputmode="decimal" class="num" step="0.1" size=6 onchange="Capper.cal()" value=2.5  style="max-width:60px;margin:6px;display:inline">
+            <br>
+            <%= ctl_beer_temperature %> <input id="carcal-temp" type=text inputmode="decimal" class="num" step="1" size=6  onchange="Capper.cal()" style="max-width:60px;margin:6px;display:inline"> <%= ctl_deg %><span class="t_unit"><%= ctl_unit_c %></span>
+            <br>
+            <%= legend_pressure %> <span id="carcal-psi"></span> <%= ctl_psi %>
+        <hr style="margin:12px 0 12px 0">
+        <div class="dialog-buttons" style="text-align:center">
+            <button class="btn btn--raised" onclick="Capper.calCancel();"><%= dlg_cancel %></button>
+            <button class="btn btn--raised" onclick="Capper.calOk();"><%= dlg_ok %></button>
+        </div>
+        </div>
+    </div>
+    
+
+    <div id="dlg_loading" class="modal">
+        <div class="modal-content">
+            <p>
+                <%= ctl_connecting_controller %>
+            </p>
+        </div>
+    </div>
+
+    <div id="profile-list-pane" class="modal">
+        <div class="modal-content">
+            <h2 class="profile-load-heading">
+                <%= ctl_load_profile %>
+            </h2>
+            <hr style="margin:4px">
+            <ul class="profile-list">
+                <li layout horizontal main-justified>
+                    <a href="#" class="profile-name"></a>
+                    <button class="btn rmbutton" style="color:red"><%= ctl_del %></button>
+                </li>
+            </ul>
+            <button class="btn btn--raised" onclick="PL.toggle()"><%= dlg_cancel %></button>
+        </div>
+    </div>
+
+    <div id="dlg_beerprofilereminder" class="modal">
+        <div class="modal-content">
+            <%= ctl_enter_og %>
+                <input type="text" size="6" value="1.0">
+                <div class="dialog-buttons">
+                    <button class="oknog btn"><%= ctl_start_without_gravity %></button>
+                    <button class="ok btn btn--raised"><%= ctl_save_gravity_start %></button>
+                    <button class="cancel btn btn--raised"><%= dlg_cancel %></button>
+                </div>
+        </div>
+    </div>
+
+    <div id="dlg_fridge_exp" class="modal"><div class="modal-content"><h3><%= ctl_experimental_feature %></h3><p><%= ctl_experimental_body %></p><div class="dialog-buttons"><button class="btn" type="button" id="fridge-exp-cancel"><%= dlg_cancel %></button><button class="btn primary" type="button" id="fridge-exp-ok"><%= ctl_apply_anyway %></button></div></div></div>
+    <div id="dlg_easy" class="modal"><div class="modal-content"><h3><%= ctl_easy_ramp_title %></h3>
+      <div class="er">
+        <div class="line"><%= ctl_easy_from %> <b id="er-from">--</b> <%= ctl_easy_from_unit %> <input type="text" class="num" id="er-to" inputmode="decimal"> <%= ctl_easy_to_unit %> <input type="text" class="num" id="er-days" inputmode="decimal"> <%= ctl_easy_days %></div>
+        <div><span class="k"><%= ctl_quick_presets %></span><div class="chips"><button class="chip" type="button" id="er-pre1"><%= ctl_preset_1 %></button><button class="chip" type="button" id="er-pre2"><%= ctl_preset_2 %></button></div></div>
+        <div class="starts">
+          <span class="k"><%= ctl_start %></span>
+          <label class="st"><input type="radio" name="erstart" value="now" checked><%= ctl_now_applied %></label>
+          <label class="st"><input type="radio" name="erstart" value="date"><%= ctl_on_date_time %> <input type="datetime-local" id="er-date"></label>
+          <label class="st"><input type="radio" name="erstart" value="gravity"><%= ctl_when_gravity_reaches %> <input type="text" class="num" id="er-sg" value="1.014" inputmode="decimal"> <%= control_sg %></label>
+        </div>
+        <div class="prev"><b id="er-sum"></b><span class="note" id="er-sum2"></span><div id="er-chart" class="er-chart"></div></div>
+        <p class="note"><%= ctl_easy_note %></p>
+        <div class="err" id="er-err"></div>
+      </div>
+      <div class="dialog-buttons"><button class="btn" type="button" id="er-cancel"><%= dlg_cancel %></button><button class="btn primary" type="button" id="er-save"><%= ctl_save_ramp %></button></div>
+    </div></div>
+    <div id="dlg_replace" class="modal"><div class="modal-content"><h3><%= ctl_replace_title %></h3><p><%= ctl_replace_body %></p><div class="dialog-buttons"><button class="btn" type="button" id="rep-cancel"><%= dlg_cancel %></button><button class="btn primary" type="button" id="rep-ok"><%= ctl_replace %></button></div></div></div>
+    <div id="dlg_saveas" class="modal">
+        <div class="modal-content">
+            <span class="msg"><%= ctl_save_profile_as %></span>
+            <br><input type="text" size="32">
+            <br>
+            <%= ctl_name_charset %>
+                <button onclick="PL.cancelSave()" class="btn btn--raised"><%= dlg_cancel %></button>
+                <button onclick="PL.doSave()" class="btn"><%= dlg_ok %></button>
+        </div>
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,55 @@
+/** Colors **/
+
+@import 'theme';
+
+$primary-color-dark:   var(--accent-dark);
+$primary-color:        var(--accent);
+$primary-color-light:  var(--accent-soft);
+$primary-color-text:   var(--accent-on);
+$accent-color:         var(--accent-2);
+$primary-text-color:   var(--ink);
+$secondary-text-color: var(--muted);
+$divider-color:        var(--line);
+$paper:                var(--paper);
+$card:                 var(--card);
+
+$beer-temp-color:      rgb(41,170,41);
+$beer-set-color:       rgb(240, 100, 100);
+$fridge-temp-color:    rgb(89, 184, 255);
+$fridge-set-color:     rgb(255, 161, 76);
+$room-temp-color:      #AAAAAA;
+$aux-temp-color:       #f5e127;
+$gravity-color:        rgb(153,0,153);
+$filtersg-color:       #000abb;
+$pressure-color:       #0000EE;
+$pressure-set-color:     rgb(240, 100, 100);
+$carbonation-color:     #AAAAAA;
+$humidity-color:     #2222DD;
+$humidity-set-color:  #EE1111;
+$room-humidity-color: #AAAAAA;
+$gravity-change-1-color: #DD33DD;
+$gravity-change-2-color: #3333DD;
+$gravity-change-3-color: #33DD33;
+// Media Query Ranges
+$small-screen-up: 601px !default;
+$medium-screen-up: 993px !default;
+$large-screen-up: 1201px !default;
+$small-screen: 600px !default;
+$medium-screen: 992px !default;
+$large-screen: 1200px !default;
+
+$medium-and-up: "only screen and (min-width : #{$small-screen-up})" !default;
+$large-and-up: "only screen and (min-width : #{$medium-screen-up})" !default;
+$extra-large-and-up: "only screen and (min-width : #{$large-screen-up})" !default;
+$small-and-down: "only screen and (max-width : #{$small-screen})" !default;
+$medium-and-down: "only screen and (max-width : #{$medium-screen})" !default;
+$medium-only: "only screen and (min-width : #{$small-screen-up}) and (max-width : #{$medium-screen})" !default;
+
+// Typography
+$off-black: rgba(0, 0, 0, 0.87) !default;
+$h1-fontsize: 4.2rem !default;
+$h2-fontsize: 3.56rem !default;
+$h3-fontsize: 2.92rem !default;
+$h4-fontsize: 2.28rem !default;
+$h5-fontsize: 1.64rem !default;
+$h6-fontsize: 1rem !default;

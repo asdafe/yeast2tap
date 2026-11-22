@@ -1,0 +1,496 @@
+<!DOCTYPE html><html lang="it"><head><meta http-equiv=content-type content="text/html; charset=utf-8"><meta name=viewport content="width=device-width,initial-scale=1"><script>window.__numDotMsg="Use a dot for decimals (2.75), not a comma (2,75).",function(){var t=new XMLHttpRequest;t.open("GET","/theme",!0),t.onload=function(){if(!(t.status<200||300<=t.status)){var e="";try{e=JSON.parse(t.responseText).theme||""}catch(e){return}window.__yeastTheme=e,window.applyYeastTheme&&applyYeastTheme(e)}},t.send()}()</script><title> yeast2tap Settings </title><meta name=apple-mobile-web-app-title content=yeast2tap><meta name=apple-mobile-web-app-capable content=yes><script type=text/javascript src=/bwf.js ignore></script><script type=text/javascript src=/shared.js ignore></script><script type=text/javascript src=/num.js ignore></script><script>var Func_ChamberHumSensor=8,Func_RoomHumSensor=18,HW_PIN=1,HW_1W_SENSOR=2,HW_1W_2413=3,HW_EXT_SENSOR=5,HW_ENV_SENSOR=6,HW_BME280=7,Settings=[{lb:"cc",ws:"c",wk:"C",f:"json"},{lb:"gdc",url:"/gdc?data",wurl:"/gdc",f:"json"},{lb:"rlog",url:"/log?data=1",wurl:"/log",f:"x-www-form-urlencoded"},{lb:"pressure",url:"/psi",wurl:"/psi",f:"x-www-form-urlencoded"},{lb:"mqtt",url:"/mqtt",wurl:"/mqtt",f:"x-www-form-urlencoded"},{lb:"scale",url:"/scale",wurl:"/scale",f:"x-www-form-urlencoded"},{lb:"ptc",url:"/ptc",wurl:"/ptc",f:"x-www-form-urlencoded",pn:"c"},{lb:"rh",url:"/rh",wurl:"/rh",f:"x-www-form-urlencoded",rh:1},{lb:"profile",url:"/tschedule",wurl:"/tschedule",f:"x-www-form-urlencoded"},{lb:"cs",ws:"s",wk:"S",f:"json"},{lb:"syscfg",url:"/config?cfg=1",wurl:"/config?nb=1",f:"x-www-form-urlencoded"},{lb:"notes",url:"/notes",wurl:"/notes",f:"x-www-form-urlencoded"},{lb:"time",url:"/time",wurl:"/time",f:"x-www-form-urlencoded",tm:1},{lb:"cap",url:"/cap",wurl:"/cap",f:"x-www-form-urlencoded",cp:1}];function prompt(e){document.querySelectorAll(".hint").forEach(function(e){e.style.display="none"}),Q(e).style.display="block",Q("#processing").style.display="block"}function unprompt(){Q("#processing").style.display="none"}function clearMark(){Settings.forEach(function(e){Q("."+e.lb+"-status").innerHTML=""})}function mark(e,n){var t={loaded:"Loaded",notavailable:"Not Available",loadfailed:"Fail to Load",uploaded:"Restored",uploadfailed:"Restoration Failed",download:"Downloaded"},o=Q("."+e+"-status");o&&(o.innerHTML=void 0===t[n]?"Unknown":t[n])}var Backup={convertDev:function(e){for(var n=[],t=0;t<e.length;t++){var o=e[t],a={i:o.i,c:o.c,b:o.b,f:o.f,h:o.h,p:o.p};["a","x","j","s","d","n"].forEach(function(e){void 0!==o[e]&&(a[e]=o[e])}),n.push(a)}return n},wsGet:function(n,t){var o,a=!1,i=BWF.handlers[n.wk];function r(e){a||(a=!0,clearTimeout(o),void 0===i?delete BWF.handlers[n.wk]:BWF.on(n.wk,i),t(e))}0!=BWF.status()?t(!1):(BWF.on(n.wk,function(e){r(JSON.stringify(e))}),o=setTimeout(function(){r(!1)},3e3),BWF.send(n.ws))},wsPut:function(e,o,a){if(0==BWF.status()){var i=Object.keys(o),r=0;!function e(){if(r>=i.length)setTimeout(function(){a(!0)},500);else{for(var n={},t=0;r<i.length&&t<6;r++,t++)n[i[r]]=o[i[r]];BWF.send("j"+JSON.stringify(n)),setTimeout(e,150)}}()}else a(!1)},conBWF:function(){0!=BWF.status()&&BWF.init({error:function(e){alert("error communication between server")},handlers:{}})},restoreDev:function(e){var n=0,t=null,o=!1;function a(){o=!0,t=setTimeout(i,5e3),BWF.send("U"+JSON.stringify(e[n]))}function i(){if(o)return o=!1,clearTimeout(t),++n>=e.length?(BWF.on("U",void 0),mark("device","uploaded"),void Backup.restoreCfg()):void a()}BWF.on("U",i),a()},getDevCfg:function(){if(0!=BWF.status())return mark("device","notavailable"),void Backup.getAll();var e=!1,n=function(){e||(e=!0,BWF.on("d",void 0),Backup.getAll())};BWF.on("d",function(e){0<e.length?(window.data.device=Backup.convertDev(e),mark("device","download")):(window.data.device=[],mark("device","notavailable")),n()}),BWF.send("d{r:1}"),setTimeout(function(){e||(window.data.device=window.data.device||[],mark("device","notavailable"),n())},3e3)},processCfg:function(n,t,o,a){console.log("Processing "+n+" tag:"+Settings[n].lb),t(n,function(e){console.log("  Result:"+(e?"Success!":"failed!")),o(Settings[n].lb,e),n+1<Settings.length?Backup.processCfg(n+1,t,o,a):a()})},getAll:function(){prompt("#hint_get"),Backup.processCfg(0,function(e,n){var t=Settings[e];t.ws?Backup.wsGet(t,n):s_ajax({url:t.url,m:"GET",success:function(e){n(e)},fail:function(){n(!1)}})},function(e,n){!1!==n?(window.data[e]=JSON.parse(n),mark(e,"download")):mark(e,"loadfailed")},function(){window.data.date=Date.now(),Backup.save2local(),unprompt()})},restore:function(){clearMark(),prompt("#hint_put"),void 0!==window.data.device&&0<window.data.device.length?Backup.restoreDev(window.data.device):Backup.restoreCfg()},restoreCfg:function(){Backup.processCfg(0,function(e,n){var t=Settings[e],o=window.data[t.lb];if(void 0!==o)if(t.ws)Backup.wsPut(t,o,n);else{var a=JSON.stringify(o);a=t.rh?"m="+o.m+"&t="+o.t:t.tm?"off="+o.o:t.cp?"at"in o?"at="+o.at:"sg"in o?"sg="+o.sg:"cap="+(2==o.m?1:0):"json"==t.f?a:(t.pn||"data")+"="+encodeURIComponent(a),s_ajax({url:t.wurl,m:"POST",data:a,mime:"application/"+t.f,success:function(e){n(e)},fail:function(){n(!1)}})}else n(-1)},function(e,n){mark(e,-1===n?"notavailable":!1!==n?"uploaded":"uploadfailed")},function(){unprompt()})},dataLoaded:function(){void 0===window.data.device||0==window.data.device.length?mark("device","notavailable"):mark("device","loaded"),Settings.forEach(function(e){mark(e.lb,void 0!==window.data[e.lb]?"loaded":"notavailable")});var e=new Date(window.data.date);Q("#backuptime").innerHTML=e.toLocaleDateString()+" "+e.toLocaleTimeString()},save2local:function(){var e,n=document.createElement("a");void 0===n.download?alert("Browser non supporta scaricamento file."):(void 0!==window.data.syscfg&&["fid","frsize","fs","fsize","date","mac"].forEach(function(e){void 0!==window.data.syscfg[e]&&delete window.data.syscfg[e]}),e=JSON.stringify(window.data),e=new Blob([e],{type:"application/json;"}),e=URL.createObjectURL(e),n.setAttribute("href",e),n.setAttribute("download","bpl.settings.json"),n.style.visibility="hidden",document.body.appendChild(n),n.click(),document.body.removeChild(n))},save:function(){window.data={},clearMark(),Backup.getDevCfg()},init:function(){Backup.conBWF(),Q("#backupfile").onchange=function(e){e=e.target.files[0];var n=new FileReader;n.onload=function(e){clearMark();try{var n=JSON.parse(e.target.result);window.data=n,Backup.dataLoaded()}catch(e){alert("error file format:"+e)}},e.onerror=function(e){alert("error open file:"+e)},n.readAsText(e)}}}</script><script>function formatIP(ip) {
+    if (ip == "0.0.0.0") return "";
+    return ip;
+}
+
+// Reveal/hide the password fields. The button swaps its own icon and pressed
+// state so the field itself stays a plain input the rest of the page reads.
+function togglePwd(btn) {
+    var input = btn.parentNode.querySelector("input");
+    if (!input) return;
+    var show = input.type === "password";
+    input.type = show ? "text" : "password";
+    btn.setAttribute("aria-pressed", show ? "true" : "false");
+    var use = btn.querySelector("use");
+    if (use) use.setAttribute("href", show ? "#i-cfg-eye-off" : "#i-cfg-eye");
+}
+
+// A save that does not restart the controller used to finish silently.
+function setSaveNote(text, ok) {
+    var notes = document.querySelectorAll(".cfg-save-note");
+    for (var i = 0; i < notes.length; i++) {
+        notes[i].textContent = text || "";
+        notes[i].className = "cfg-save-note" + (text && !ok ? " is-bad" : "");
+    }
+}
+
+/* ---------- AP password ------------------------------------------------ */
+
+// The access point key is its own setting (Settings::apPassword), stored apart
+// from the web login password, so this box neither mirrors nor overwrites it.
+function syncApPassword() {
+    var mirror = Q("#ap-pass");
+    var row = Q("#ap-pass-row");
+    var warn = Q("#ap-pass-warn");
+    var eap = Q("#eap");
+    if (!mirror || !row || !eap) return;
+
+    row.hidden = !eap.checked;
+    // WiFiSetup::createNetwork() falls back to an OPEN access point when the key
+    // is shorter than 8 characters, so say that instead of failing silently.
+    if (warn) warn.hidden = !(eap.checked && mirror.value.length > 0 && mirror.value.length < 8);
+}
+
+function initApPassword() {
+    var mirror = Q("#ap-pass");
+    var eap = Q("#eap");
+    if (!mirror || !eap) return;
+
+    mirror.addEventListener("input", syncApPassword);
+    eap.addEventListener("change", syncApPassword);
+    syncApPassword();
+}
+
+
+function loadSetting() {
+    s_ajax({
+        url: "config?cfg=1",
+        m: "GET",
+        success: function(data) {
+            var j = JSON.parse(data);
+            window.oridata = j;
+            // Secrets are missing from an unauthenticated reply. Remember which,
+            // so a later save cannot blank a stored value with an empty field.
+            window.redacted = {};
+            ["pass", "duckdnsToken"].forEach(function(name) {
+                if (!(name in j)) window.redacted[name] = 1;
+            });
+            Object.keys(j).map(function(key) {
+                var div = Q("input[name=" + key + "]");
+                if (div) {
+                    if (div.classList.contains("iptype")) {
+                        div.value = formatIP(j[key]);
+                    } else if (div.type == "checkbox") div.checked = (j[key] != 0);
+                    else div.value = j[key];
+                } else {
+                    // wifi mode
+                    div = Q("select[name=" + key + "]");
+                    if (div) {
+                        div.value = j[key];
+                    }
+                }
+            });
+            // system info
+            var mac="";
+            for(var i=0;i<j.mac.length;i++){
+                mac += ((mac=="")?  "":":") + j.mac[i].toString(16);
+            }
+            Q("#mac-address").innerText=mac;
+            Q("#flash-id").innerText = "0x" + j.fid.toString(16);
+            Q("#real-flash-size").innerText=j.frsize;
+            Q("#specified-flash-size").innerText=j.fsize;
+            Q("#fs-size").innerText=j.fs;
+            Q("#fw-size").innerText = (j.fwsize == null) ? "--" : j.fwsize;
+            Q("#app-slot").innerText = (j.appslot == null) ? "--" : j.appslot;
+            Q("#app-free").innerText = (j.fwsize == null || j.appslot == null) ? "--" : (j.appslot - j.fwsize);
+            Q("#ota-slot").innerText = (j.otaslot == null) ? "--" : j.otaslot;
+            Q("#app-name").innerText = j.appname ? j.appname : "--";
+            // Compile-time stamp, "<Mon dd yyyy> <hh:mm:ss>", so a running firmware
+            // can be matched to the build it came from. Read only by design.
+            Q("#build-time").innerText = j.date ? j.date : "--";
+            // The AP box mirrors the login password, so refresh it once the
+            // stored value has been written into the form.
+            syncApPassword();
+        },
+        fail: function(d) {
+            alert("error getting data:" + d);
+        }
+    });
+}
+
+function hidesysinfo(){
+    Q("#sysinfo").style.display = "none";
+}
+function showsysinfo(){
+    Q("#sysinfo").style.display = "block";
+}
+function waitrestart() {
+    Q("#waitprompt").style.display = "block";
+    Q("#inputform").style.display = "none";
+    setTimeout(function() {
+        window.location.reload();
+    }, 15000);
+}
+
+function save() {
+    var ins = document.querySelectorAll("#sysconfig input");
+    var json = {};
+    var reboot = false;
+    // A failed GET leaves oridata undefined; without this guard the comparison
+    // below throws and the save is lost without a message.
+    var ori = window.oridata || {};
+    for (var i = 0; i < ins.length; i++) {
+        var input = ins[i];
+        if (input.type == "submit" || !input.name || input.name == "") continue;
+        // The pressure switch posts on change and is not part of the config
+        // payload; including it would look like a change and force a restart.
+        if (input.hasAttribute("data-nosave")) continue;
+        var val = (input.type == "checkbox") ? (input.checked ? 1 : 0) : input.value.trim();
+        // Numeric settings are validated here and sent as real JSON numbers; a
+        // comma stops the whole save instead of being dropped or truncated.
+        if (val !== "" && input.classList.contains("num")) {
+            var num = Num.parse(val);
+            if (num === null) {
+                Num.mark(input, true);
+                alert((input.name || "Valore") + ": " + Num.message);
+                return;
+            }
+            Num.mark(input, false);
+            val = num;
+        }
+        // A secret the server withheld stays untouched unless the user actually
+        // types a new one. Without this, saving from an unauthenticated view
+        // would erase the stored password.
+        if ((window.redacted || {})[input.name] && val === "") continue;
+        json[input.name] = val;
+        if (ori[input.name] != val && !input.classList.contains("nb")) reboot = true;
+    }
+    // A select whose stored value has no matching option reports an empty
+    // string. Sending that would post an invalid wifiMode and make the
+    // controller fall back to every default on the next boot, so keep the
+    // stored number instead.
+    var wifiSel = Q("select[name=wifi]");
+    var disSel = Q("select[name=dis]");
+    json["wifi"] = wifiSel.value !== "" ? wifiSel.value : (ori["wifi"] || 3);
+    json["dis"] = disSel.value !== "" ? disSel.value : (ori["dis"] || 0);
+    //console.log(JSON.stringify(json));
+    setSaveNote("", true);
+    var url = "config" + (reboot ? "" : "?nb");
+    s_ajax({
+        url: url,
+        data: "data=" + encodeURIComponent(JSON.stringify(json)),
+        m: "POST",
+        success: function(data) {
+            if (reboot) waitrestart();
+            else setSaveNote("Salvato", true);
+        },
+        fail: function(d) {
+            setSaveNote("", false);
+            alert("error saving data:" + d);
+        }
+    });
+}
+
+function setPressureHardware(turnOn) {
+    s_ajax({
+        url: "psi",
+        m: "GET",
+        success: function(json) {
+            var d = JSON.parse(json);
+            if (turnOn && d.mode != 0) return;
+            if (!turnOn && d.mode == 0) return;
+            s_ajax({
+                url: "psi",
+                m: "POST",
+                mime: "application/x-www-form-urlencoded",
+                data: "data=" + encodeURIComponent(JSON.stringify({
+                    mode: turnOn ? 1 : 0,
+                    a: d.a,
+                    b: d.b,
+                    adc: d.adc,
+                    gn: d.gn
+                })),
+                success: function() {},
+                fail: function() {
+                    alert(turnOn ? "Could not enable the pressure transducer." : "Could not disable the pressure transducer.");
+                }
+            });
+        }
+    });
+}
+
+function load() {
+    if (Q("#verinfo")) {
+        Q("#verinfo").innerHTML = "v" + JSVERSION;
+        getActiveNavItem();
+    }
+    loadSetting();
+    Net.init();
+    initApPassword();
+
+    // Both Save buttons (top of the page and the bottom save bar) submit the
+    // same form. The form itself has onsubmit="return false", so every submit
+    // button needs the handler, not just #submitsave.
+    var saveButtons = document.querySelectorAll("#sysconfig button[type=submit]");
+    for (var si = 0; si < saveButtons.length; si++) {
+        saveButtons[si].onclick = function(e) {
+            e.preventDefault();
+            save();
+            return false;
+        };
+    }
+    var pressureOff = Q("#pressure-nav-off");
+    var pressureOn = Q("#pressure-nav-on");
+    if (pressureOff && pressureOn) {
+        var showPressure = pressureNavOn();
+        pressureOff.checked = !showPressure;
+        pressureOn.checked = showPressure;
+        var savePressureNav = function () {
+            setPressureNav(pressureOn.checked);
+            setPressureHardware(pressureOn.checked);
+        };
+        pressureOff.onchange = savePressureNav;
+        pressureOn.onchange = savePressureNav;
+    }
+}
+
+
+function validIP(t) {
+    var digits = t.split(".");
+    var value = 0;
+    if (digits.length != 4) return false;
+    for (var i = 0; i < 4; i++) {
+        var di = parseInt(digits[i]);
+        value = (value << 8) + di;
+        if (di > 255) {
+            return false;
+        }
+    }
+    return value;
+}
+
+var Net = {
+    select: function(l) {
+        document.getElementById('ssid').value = l.innerText || l.textContent;
+        document.getElementById('nwpass').focus();
+        return false;
+    },
+    init: function() {
+        this.litem = Q(".nwlist");
+        this.litem.parentNode.removeChild(this.litem);
+        this.setupEvent();
+        this.hide();
+    },
+    nwevent: function(data) {
+        var me = this;
+        //console.log("ws:" + data);
+        if (typeof data["list"] != "undefined") {
+            me.list(data.list);
+        } else if (typeof data["ssid"] != "undefined") {
+            if (data.ssid != "") {
+                Q("#connnected-ssid").innerHTML = data.ssid;
+            }
+            if (typeof data["ip"] != "undefined")
+                if (data.ip != "") {
+                    Q("#sta-ip").innerHTML = data.ip;
+
+                }
+        }
+    },
+    rssi: function(x) {
+        return (x > 0) ? "?" : Math.min(Math.max(2 * (x + 100), 0), 100);
+    },
+    list: function(nwlist) {
+        var nws = Q("#networks");
+        nws.innerHTML = "";
+        for (var i = 0; i < nwlist.length; i++) {
+            var nl = this.litem.cloneNode(true);
+            nl.getElementsByTagName("a")[0].innerHTML = nwlist[i].ssid;
+            var signal = nl.getElementsByTagName("span")[0];
+            signal.innerHTML = "" + this.rssi(nwlist[i].rssi) + "%";
+            if (nwlist[i].enc) signal.className = signal.className + " l";
+            nws.appendChild(nl);
+        }
+    },
+    setupEvent: function() {
+        var b = this;
+
+        BWF.init({
+            handlers: {
+                W: function(ev) {
+                    b.nwevent(ev);
+                }
+            }
+        });
+    },
+    scan: function() {
+        var lists = Q("#networks");
+        lists.innerHTML = "Scanning...";
+
+        s_ajax({
+            m: "GET",
+            url: "/wifiscan",
+            success: function() {}
+        });
+        return false;
+    },
+    save: function() {
+        var data = "nw=" + encodeURIComponent(Q("#ssid").value);
+        if (Q("#nwpass").value != "") data = data + "&pass=" + encodeURIComponent(Q("#nwpass").value);
+        var ip = validIP(Q("#staticip").value);
+        var gw = validIP(Q("#gateway").value);
+        var nm = validIP(Q("#netmask").value);
+        var dns = validIP(Q("#dns").value);
+        if (ip && gw && nm) {
+            data = data + "&ip=" + Q("#staticip").value.trim() +
+                "&gw=" + Q("#gateway").value.trim() +
+                "&nm=" + Q("#netmask").value.trim() +
+                "&dns=" + Q("#dns").value.trim();
+        }
+        s_ajax({
+            m: "POST",
+            url: "/wificon",
+            data: data,
+            success: function() {}
+        });
+        this.hide();
+        return false;
+    },
+    show: function() {
+        Q("#networkselection").style.display = "block";
+    },
+    hide: function() {
+        Q("#networkselection").style.display = "none";
+    }
+};
+
+function savewifi(){
+    Net.save();
+    div = Q("select[name=wifi]");
+    if(div.value ==2){
+        div.value = 3;
+        if(typeof window.oridata != "undefined"){
+            window.oridata.wifi=3;
+        }
+    }
+}
+function initAdvanced(){
+    var inputs = document.querySelectorAll('#advanced input,select'), i;
+
+    for (i = 0; i < inputs.length; ++i) {
+        inputs[i].onchange = function(){
+            window.ccModified[this.id] = normalizeNumberInput(this);
+            checkModify();
+        }
+    } 
+
+    Q("#warning").onchange=function(){
+        checkModify();
+    }
+}
+
+// Advanced settings are numbers in the dot convention. A comma is refused, not
+// rewritten: silently turning "0,25" into 0.25 would hide a typo made on a
+// localised keyboard, and turning it into 25 would be worse.
+function normalizeNumberInput(field) {
+    if (field.value === "") return "";
+    var value = Num.parse(field.value);
+    if (value === null) {
+        Num.mark(field, true);
+        setAdvNote("Use a dot for decimals (0.25), not a comma.", false);
+        return String(field.value);
+    }
+    Num.mark(field, false);
+    return value;
+}
+
+
+function checkModify(){
+    var dirty=false;
+    Object.keys(window.ccModified).forEach(key => {
+        if(window.ccModified[key] != window.ccConstants[key])
+            //console.log("modified:" + key +" value:" + window.ccModified[key]);
+        dirty = true;
+    });
+
+
+    Q("#adv-update").disabled= ! Q("#warning").checked || !dirty;
+}
+
+function sameConst(a, b) {
+    if (String(a) === String(b)) return true;
+    var na = Number(a), nb = Number(b);
+    if (!(na === na) || !(nb === nb)) return false;
+    // Temperature differences are stored in 1/512 steps, so the echoed value is
+    // the nearest of those steps rather than the exact decimal that was typed.
+    // Compare in device steps: -0.05 and -0.05078125 are the same stored value,
+    // while two different input steps stay different.
+    return Math.round(na * 512) === Math.round(nb * 512);
+}
+
+function setAdvNote(text, ok) {
+    var el = Q("#adv-result");
+    if (!el) return;
+    el.textContent = text;
+    el.className = "adv-result " + (ok ? "is-ok" : "is-bad");
+}
+
+function cResponse(cc){
+    if (window.advPending) {
+        var pending = window.advPending;
+        window.advPending = null;
+        if (window.advTimer) { clearTimeout(window.advTimer); window.advTimer = null; }
+        var failed = [];
+        Object.keys(pending).forEach(function(key) {
+            if (!sameConst(cc[key], pending[key])) failed.push(key);
+        });
+        setAdvNote(failed.length ? "Failed: " + failed.join(", ") + " was not stored" : "Salvato", !failed.length);
+    }
+    // Keep the value the user typed when the device echoes the same number. The
+    // device stores temperature differences in 1/512 steps, so echoing that back
+    // would turn -0.05 into -0.051 for no reason.
+    var typed = window.ccModified;
+    window.ccModified={};
+    window.ccConstants=cc;
+    Q("#adv-update").disabled=true;
+    Object.keys(cc).forEach(key => {
+        var field = Q("#" + key);
+        if (!field) return;
+        if (typed[key] !== undefined && sameConst(cc[key], typed[key])) return;
+        field.value = cc[key];
+    });
+}
+var testConfig={"tempFormat":"C","tempSetMin": 1.0,"tempSetMax": 30.0,"pidMax": 10.000,"Kp": 5.000,"Ki": 0.250,"Kd":-1.500,"iMaxErr": 0.500,"idleRangeH":1,"idleRangeL":-1,"heatTargetH": 0.299,"heatTargetL":-0.199,"coolTargetH": 0.199,"coolTargetL":-0.299,"maxHeatTimeForEst":600,"maxCoolTimeForEst":1200,"minCoolTime":180,"minCoolIdleTime":300,"minHeatTime":180,"maxHeatTime":0,"minHeatIdleTime":300,"deadTime":600,"staleSensorSec":20,"oneWireRetryCount":2,"fridgeFastFilt":1,"fridgeSlowFilt":4,"fridgeSlopeFilt":3,"beerFastFilt":3,"beerSlowFilt":4,"beerSlopeFilt":4,"lah":0,"hs":0};
+
+function showAdvanced(){
+    Q("#advanced").style.display = "block";
+    if(typeof BWF.handlers['C'] == "undefined"){
+        BWF.on('C',cResponse);
+        initAdvanced();
+    }
+    window.ccModified={};
+    Q("#adv-update").disabled=true;
+    //Test code
+    //BWF.handlers.C(testConfig);
+    BWF.send("c");
+}
+
+function hideAdvanced(){
+    Q("#advanced").style.display = "none";
+}
+
+
+function setAdvancedOptions(){
+    var cmd={};
+    Object.keys(window.ccModified).forEach(key => {
+        if(window.ccModified[key] != window.ccConstants[key])
+            cmd[key] = window.ccModified[key];
+    });
+    if (!Object.keys(cmd).length) return;
+    for (var key in cmd) {
+        // The value may still be the raw text of a rejected field, so validate
+        // again here rather than trusting Number(), which accepts "0x10".
+        var num = Num.parse(cmd[key]);
+        if (num === null) { setAdvNote("Use a dot for decimals: " + key + " is not a number", false); return; }
+        cmd[key] = num;
+    }
+    if (typeof BWF == "undefined" || BWF.status() != 0) { setAdvNote("Failed: not connected to the controller", false); return; }
+    window.advPending = cmd;
+    if (window.advTimer) clearTimeout(window.advTimer);
+    window.advTimer = setTimeout(function() {
+        if (!window.advPending) return;
+        window.advPending = null;
+        setAdvNote("Failed: the controller did not answer in time", false);
+    }, 8000);
+    BWF.send("j" + JSON.stringify(cmd));
+}</script><style>:root{--paper:#f3eee6;--card:#fffdf8;--tile:#f9f5ef;--line:#e4d5c3;--ink:#2c241c;--muted:#7a6858;--accent:#9a431f;--accent-on:#fffdf8;--accent-soft:#f3e1d4;--accent-dark:#6e2e18;--accent-2:#c9842a;--cool:rgb(89, 184, 255);--ok:#3a9a47;--danger:#b42318}[data-theme=sage]{--paper:#e9eee6;--card:#fbfdf9;--tile:#f3f6f0;--line:#d3ddcd;--ink:#1f2a21;--muted:#66746a;--accent:#3f6b2e;--accent-on:#fbfdf9;--accent-soft:#e3eddc;--accent-dark:#25431a;--accent-2:#7f8f3a}[data-theme=slate]{--paper:#e8ecf0;--card:#fbfcfd;--tile:#f3f6f8;--line:#d3dbe3;--ink:#1b2630;--muted:#64717d;--accent:#285f9f;--accent-on:#fbfcfd;--accent-soft:#dde8f4;--accent-dark:#173a63;--accent-2:#4f86c0}[data-theme=plum]{--paper:#efeaf0;--card:#fdfbfe;--tile:#f6f2f8;--line:#ddd3e2;--ink:#26202b;--muted:#70657a;--accent:#6b3a82;--accent-on:#fdfbfe;--accent-soft:#eadff0;--accent-dark:#432352;--accent-2:#9a5aa8}[data-theme=brew]{--paper:#f7f3ea;--card:#fffcf6;--tile:#f3ede0;--line:#e6dcc9;--ink:#302720;--muted:#7a6a58;--accent:#a84e25;--accent-on:#fffcf6;--accent-soft:#f4e1d3;--accent-dark:#6f3317;--accent-2:#d6a84f}[data-theme=lab]{--paper:#f0f4fa;--card:#ffffff;--tile:#f3f6fb;--line:#d9e2ee;--ink:#20324a;--muted:#5f7088;--accent:#0b7d79;--accent-on:#ffffff;--accent-soft:#d8f0ef;--accent-dark:#0a4f4d;--accent-2:#5aa9e6}[data-theme=hops]{--paper:#f5f0e6;--card:#fcfaf4;--tile:#efe9dc;--line:#ddd5c2;--ink:#343a36;--muted:#667069;--accent:#254a3c;--accent-on:#f5f0e6;--accent-soft:#dbeadf;--accent-dark:#163026;--accent-2:#b85c38}[data-theme=amber]{--paper:#faf7f0;--card:#ffffff;--tile:#f5f1e7;--line:#e8e1d2;--ink:#252a30;--muted:#666d75;--accent:#e6a23c;--accent-on:#252a30;--accent-soft:#fbecd0;--accent-dark:#8a5a0f;--accent-2:#8a6ccf}*{-webkit-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0}body,html{height:100%}a{text-decoration:none}html{line-height:1.5;font-family:"Segoe UI",system-ui,sans-serif;font-weight:400;color:var(--ink)}@media only screen and (min-width:0){html{font-size:14px}}@media only screen and (min-width:992px){html{font-size:14.5px}}@media only screen and (min-width:1200px){html{font-size:15px}}body{background:var(--paper)}h1,h2,h3,h4,h5,h6{font-weight:400;line-height:1.1}h1 a,h2 a,h3 a,h4 a,h5 a,h6 a{font-weight:inherit}h1{font-size:4.2rem;line-height:110%;margin:2.1rem 0 1.68rem 0}h2{font-size:3.56rem;line-height:110%;margin:1.78rem 0 1.424rem 0}h3{font-size:2.92rem;line-height:110%;margin:1.46rem 0 1.168rem 0}h4{font-size:2.28rem;line-height:110%;margin:1.14rem 0 .912rem 0}h5{font-size:1.64rem;line-height:110%;margin:.82rem 0 .656rem 0}h6{font-size:1rem;line-height:110%;margin:.5rem 0 .4rem 0}em{font-style:italic}strong{font-weight:500}small{font-size:75%}.light{font-weight:300}.thin{font-weight:200}html [layout],html [layout][horizontal],html [layout][vertical]{display:-webkit-box;display:-ms-flexbox;display:flex}html [layout][horizontal]{-webkit-box-orient:horizontal;-webkit-box-direction:normal;-ms-flex-direction:row;flex-direction:row}html [layout][vertical]{-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column}html [flex]{-webkit-box-flex:1;-ms-flex:1;flex:1;-ms-flex-preferred-size:.000000001px;flex-basis:.000000001px}html [layout][center-center],html [layout][cross-center]{-webkit-box-align:center;-ms-flex-align:center;align-items:center}html [layout][cross-end]{-webkit-box-align:end;-ms-flex-align:end;align-items:flex-end}html [layout][center-center],html [layout][main-center]{-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center}html [layout][main-justified]{-webkit-box-pack:justify;-ms-flex-pack:justify;justify-content:space-between}html [layout][main-distributed]{-ms-flex-pack:distribute;justify-content:space-around}html [hidden]{display:none!important}html [relative]{position:relative}.header{height:64px;background:var(--card);-webkit-box-shadow:none;box-shadow:none;border-bottom:1px solid var(--line);padding:0 16px;z-index:2}.header_title{font-size:26px;line-height:64px;color:var(--accent);font-weight:700;letter-spacing:-.03em;margin:0;padding:0}.header_title a{color:inherit;text-decoration:none}.header_version-display{font-size:13px;color:var(--muted);font-weight:650}@media (max-width:700px){[navigation] [menuToggle]{display:block;position:relative;z-index:1;top:3px;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}}[navigation] input{display:none}@media (max-width:700px){[navigation] input{display:block;width:40px;height:32px;position:absolute;top:-7px;left:-5px;cursor:pointer;opacity:0;z-index:2;-webkit-touch-callout:none}[navigation] input:checked~ul{-webkit-transform:scale(1,1);transform:scale(1,1);opacity:1}[navigation] input:checked~span{opacity:1;-webkit-transform:rotate(45deg) translate(-2px,-1px);transform:rotate(45deg) translate(-2px,-1px);background:#232323}[navigation] input:checked~span:nth-last-child(3){opacity:0;-webkit-transform:rotate(0) scale(.2,.2);transform:rotate(0) scale(.2,.2)}[navigation] input:checked~span:nth-last-child(2){opacity:1;-webkit-transform:rotate(-45deg) translate(0,-1px);transform:rotate(-45deg) translate(0,-1px)}}[navigation] span{display:none}@media (max-width:700px){[navigation] span{display:block;width:33px;height:4px;margin-bottom:5px;position:relative;background:var(--accent);border-radius:3px;z-index:1;-webkit-transform-origin:4px 0;transform-origin:4px 0;-webkit-transition:background .5s cubic-bezier(.77,.2,.05,1),opacity .55s ease,-webkit-transform .5s cubic-bezier(.77,.2,.05,1);transition:background .5s cubic-bezier(.77,.2,.05,1),opacity .55s ease,-webkit-transform .5s cubic-bezier(.77,.2,.05,1);transition:transform .5s cubic-bezier(.77,.2,.05,1),background .5s cubic-bezier(.77,.2,.05,1),opacity .55s ease;transition:transform .5s cubic-bezier(.77,.2,.05,1),background .5s cubic-bezier(.77,.2,.05,1),opacity .55s ease,-webkit-transform .5s cubic-bezier(.77,.2,.05,1)}[navigation] span:first-child{-webkit-transform-origin:0 0;transform-origin:0 0}[navigation] span:nth-last-child(2){-webkit-transform-origin:0 100%;transform-origin:0 100%}}[navigation] .options{list-style-type:none;height:100%}[navigation] .options>li{display:inline-block;height:100%}[navigation] .options a{color:var(--ink);text-transform:none;font-weight:650;height:100%;padding:8px;display:inline-block;line-height:48px;border-bottom:3px solid transparent}[navigation] .options a.active{border-bottom:3px solid var(--accent);color:var(--accent)}[navigation] .options a:hover{border-bottom:3px solid var(--accent-2)}@media (max-width:700px){[navigation] .options{padding-top:64px;position:fixed;display:block;width:100vw;height:100vh;right:0;top:0;background:#ededed;list-style-type:none;-webkit-font-smoothing:antialiased;-webkit-transform-origin:0 0;transform-origin:0 0;-webkit-transform:translate(100%,0);transform:translate(100%,0);-webkit-transition:-webkit-transform .5s cubic-bezier(.77,.2,.05,1);transition:-webkit-transform .5s cubic-bezier(.77,.2,.05,1);transition:transform .5s cubic-bezier(.77,.2,.05,1);transition:transform .5s cubic-bezier(.77,.2,.05,1),-webkit-transform .5s cubic-bezier(.77,.2,.05,1)}[navigation] .options>li{display:block;height:auto;text-align:center}[navigation] .options a{color:#222;height:auto;width:100%;display:block}[navigation] .options a.active{color:var(--accent-2);border:none}[navigation] .options a:hover{background:#ccc;border:none}}.footer{height:44px;background:0 0;color:var(--muted);padding:0 16px}.footer a{color:var(--accent);font-weight:650}[viewport]{min-height:calc(100% - 104px)}@media (max-width:900px){[viewport]{-webkit-box-orient:vertical!important;-webkit-box-direction:normal!important;-ms-flex-direction:column!important;flex-direction:column!important;min-height:0}}[main]{padding:16px;overflow-y:auto}@media (max-width:900px){[main]{overflow:initial}}@media (max-width:599px){[main]>[layout] .chart-legend{width:100%}}@media (max-width:599px){[main]>[layout]{-webkit-box-orient:vertical!important;-webkit-box-direction:normal!important;-ms-flex-direction:column!important;flex-direction:column!important}}.error{position:fixed;left:20px;bottom:24px;background-color:var(--ink);border-radius:14px;padding:12px 24px 17px 24px;vertical-align:middle;color:#fff;-webkit-box-shadow:0 7px 18px rgba(0,0,0,.2);box-shadow:0 7px 18px rgba(0,0,0,.2);z-index:30}.error:empty{display:none}body:has(.header-rail) .error{left:240px}@media (max-width:700px){body:has(.header-rail) .error{left:12px;right:12px;bottom:78px}}input[type=datetime-local],input[type=number],input[type=password],input[type=text]{width:100%;max-width:280px;margin:8px 0;display:block;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--card);color:var(--ink)}input[type=datetime-local]:focus,input[type=number]:focus,input[type=password]:focus,input[type=text]:focus{-webkit-box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent);outline:0;border-color:var(--accent)}input[type=datetime-local]:invalid,input[type=number]:invalid,input[type=password]:invalid,input[type=text]:invalid{border-color:#b42318}.hide{display:none!important}html .header.header-rail[layout][horizontal]{position:fixed;z-index:20;left:0;top:0;bottom:0;width:220px;height:auto;margin:0;padding:22px 14px 16px;background:var(--card);border-right:1px solid var(--line);border-bottom:0;-webkit-box-shadow:none;box-shadow:none;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;-webkit-box-align:stretch;-ms-flex-align:stretch;align-items:stretch;-webkit-box-pack:start;-ms-flex-pack:start;justify-content:flex-start;gap:8px}html .header.header-rail .header_title{font-size:22px;line-height:1.15;padding:0 8px}html .header.header-rail .header_version-display{display:block;margin-top:2px}html .header.header-rail [navigation]{width:100%;min-height:0;-webkit-box-flex:1;-ms-flex:1;flex:1;overflow:auto}html .header.header-rail [menuToggle]>input,html .header.header-rail [menuToggle]>span{display:none}html .header.header-rail .options{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;height:auto;margin:0;padding:8px 0 0;gap:4px;list-style:none;-webkit-transform:none;transform:none;position:static;width:auto;background:0 0}html .header.header-rail .options>li{display:block;height:auto}html .header.header-rail .options a{color:var(--ink);text-transform:none;letter-spacing:0;font-weight:650;line-height:1.25;height:auto;width:auto;padding:10px 12px;border:0;border-radius:12px;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:10px;white-space:normal}html .header.header-rail .options a.active{background:var(--accent);color:var(--accent-on);border:0}html .header.header-rail .options a:hover{background:var(--accent-soft);color:var(--ink);border:0}html .header.header-rail .options a.active:hover{background:var(--accent-dark);color:var(--accent-on)}html .header.header-rail .options>li.nav-pressure{display:none}body.show-pressure .header-rail .options>li.nav-pressure{display:block}body:has(.header-rail) [viewport]{margin-left:220px;min-height:calc(100% - 44px)}body:has(.header-rail) .footer{margin-left:220px}@media (max-width:700px){html .header.header-rail[layout][horizontal]{top:auto;bottom:0;left:0;right:0;width:100%;height:64px;-webkit-box-orient:horizontal;-webkit-box-direction:normal;-ms-flex-direction:row;flex-direction:row;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:start;-ms-flex-pack:start;justify-content:flex-start;padding:0 8px;border-right:0;border-top:1px solid var(--line);gap:8px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}html .header.header-rail[layout][horizontal]::-webkit-scrollbar{display:none}html .header.header-rail .header_title{position:fixed;top:0;left:0;right:0;height:46px;line-height:46px;padding:0 16px;background:var(--card);border-bottom:1px solid var(--line);font-size:20px;z-index:19}html .header.header-rail .header_version-display{display:inline;margin-left:6px}html .header.header-rail [navigation]{-webkit-box-flex:0;-ms-flex:0 0 auto;flex:0 0 auto;width:auto;min-width:0;overflow:visible}html .header.header-rail [menuToggle]{top:0;width:auto}html .header.header-rail .options{-webkit-box-orient:horizontal;-webkit-box-direction:normal;-ms-flex-direction:row;flex-direction:row;-webkit-box-align:center;-ms-flex-align:center;align-items:center;overflow:visible;width:-webkit-max-content;width:-moz-max-content;width:max-content;height:64px;padding:0;gap:4px}html .header.header-rail .options>li{-webkit-box-flex:0;-ms-flex:0 0 auto;flex:0 0 auto}html .header.header-rail .options a{white-space:nowrap;line-height:36px;padding:0 12px}html .header.header-rail .rail-themes{-ms-flex-item-align:center;align-self:center;margin-top:0;padding:0 8px 0 4px;border-top:0;border-left:0;-webkit-box-flex:0;-ms-flex:0 0 auto;flex:0 0 auto}html .header.header-rail .rail-themes .theme-picker{-ms-flex-wrap:nowrap;flex-wrap:nowrap}body:has(.header-rail) [viewport]{margin-left:0;margin-top:46px;margin-bottom:64px;min-height:0}body:has(.header-rail) .footer{margin-left:0;margin-bottom:64px}}.ic{width:18px;height:18px;-webkit-box-flex:0;-ms-flex:none;flex:none;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.badge{width:32px;height:32px;border-radius:10px;background:var(--accent-soft);color:var(--accent-dark);display:-webkit-inline-box;display:-ms-inline-flexbox;display:inline-flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;-webkit-box-flex:0;-ms-flex:none;flex:none}.navitem:has(>.badge),h4:has(>.badge),h5:has(>.badge){display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:10px}html .header.header-rail .header_title a{color:var(--accent-dark)}.rail-themes{margin-top:auto;padding-top:12px;border-top:1px solid var(--line)}.theme-picker{display:-webkit-box;display:-ms-flexbox;display:flex;-ms-flex-wrap:wrap;flex-wrap:wrap;gap:8px}.theme-swatch{width:22px;height:22px;padding:0;border:0;border-radius:50%;background:0 0;cursor:pointer;font-size:0;line-height:0}.theme-swatch.is-selected{outline:2px solid var(--ink);outline-offset:2px}.theme-dot{width:22px;height:22px;border-radius:50%;display:block;-webkit-box-shadow:inset 0 0 0 1px rgba(0,0,0,.15);box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}.btn{display:inline-block;position:relative;cursor:pointer;height:35px;line-height:35px;padding:0 1.5rem;font-size:15px;font-weight:650;letter-spacing:0;text-align:center;text-transform:none;border-radius:999px;vertical-align:middle;white-space:nowrap;outline:0;border:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-webkit-transition:all .3s ease-out;transition:all .3s ease-out;background-color:transparent;margin-right:8px}.btn[disabled]{color:var(--line)}.btn[disabled]:hover{background-color:transparent;cursor:not-allowed}.btn--raised{background-color:var(--accent);color:var(--accent-on);-webkit-box-shadow:none;box-shadow:none}.btn--raised:hover{background-color:hsl(from var(--accent) h s calc(l - 10%))}.btn--primary{color:var(--accent)}.btn:hover{background-color:hsla(0,0%,60%,.2);cursor:pointer}.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:18px;-webkit-box-shadow:none;box-shadow:none;padding:16px;position:relative;margin-bottom:16px}.card:hover{-webkit-box-shadow:none;box-shadow:none}.card-footer{padding:16px 0 0;margin:8px 0 0;border-top:1px solid #ccc;text-align:right}.inline-header{width:140px;min-width:140px;font-weight:700;padding-right:8px}.small-heading{font-size:20px;padding:16px 0 8px}.modal{display:none;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;position:fixed;top:0;left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;z-index:1000;-webkit-transition:all .5s cubic-bezier(.23,1,.32,1);transition:all .5s cubic-bezier(.23,1,.32,1);-webkit-transition-delay:0s;transition-delay:0s;background:rgba(0,0,0,.3)}.modal-content{position:relative;padding:2.4rem;background:var(--card);background-clip:padding-box;-webkit-box-shadow:0 12px 15px 0 rgba(0,0,0,.25);box-shadow:0 12px 15px 0 rgba(0,0,0,.25);-webkit-transition:all .25s cubic-bezier(.23,1,.32,1);transition:all .25s cubic-bezier(.23,1,.32,1);max-width:600px;padding:2rem;margin-left:auto;margin-right:auto}.modal-content h2.message{font-size:18px;font-weight:700;text-transform:uppercase}.switch-input{display:none}.switch-label{position:relative;display:inline-block;min-width:148px;cursor:pointer;font-weight:500;text-align:left;margin:0;padding:4px 0 4px 44px}.switch-label:after,.switch-label:before{content:"";position:absolute;margin:0;outline:0;top:50%;-webkit-transform:translate(0,-50%);transform:translate(0,-50%);-webkit-transition:all .3s ease;transition:all .3s ease}.switch-label:before{left:1px;width:34px;height:14px;background-color:#ddd;border-radius:8px}.switch-label:after{left:0;width:20px;height:20px;background-color:#fafafa;border-radius:50%;-webkit-box-shadow:0 3px 1px -2px rgba(0,0,0,.14),0 2px 2px 0 rgba(0,0,0,.098),0 1px 5px 0 rgba(0,0,0,.084);box-shadow:0 3px 1px -2px rgba(0,0,0,.14),0 2px 2px 0 rgba(0,0,0,.098),0 1px 5px 0 rgba(0,0,0,.084)}.switch-input:checked+.switch-label:after{background-color:var(--accent);-webkit-transform:translate(80%,-50%);transform:translate(80%,-50%)}.switch-input:checked+label[for=beer-temp].switch-label:after{background-color:#29aa29}.switch-input:checked+label[for=beer-set].switch-label:after{background-color:#f06464}.switch-input:checked+label[for=fridge-temp].switch-label:after{background-color:#59b8ff}.switch-input:checked+label[for=fridge-set].switch-label:after{background-color:#ffa14c}.switch-input:checked+label[for=room-temp].switch-label:after{background-color:#aaa}.switch-input:checked+label[for=gravity].switch-label:after{background-color:#909}.switch-input:checked+label[for=aux-temp].switch-label:after{background-color:#f5e127}.switch-input:checked+label[for=filtersg].switch-label:after{background-color:#000abb}.switch-input:checked+label[for=pressure].switch-label:after{background-color:#00e}.switch-input:checked+label[for=pressure-set].switch-label:after{background-color:#f06464}.switch-input:checked+label[for=carbonation].switch-label:after{background-color:#aaa}.switch-input:checked+label[for=humidity].switch-label:after{background-color:#22d}.switch-input:checked+label[for=humidity-set].switch-label:after{background-color:#e11}.switch-input:checked+label[for=room-humidity].switch-label:after{background-color:#aaa}.switch-input:checked+label[for=sgchange1].switch-label:after{background-color:#d3d}.switch-input:checked+label[for=sgchange2].switch-label:after{background-color:#33d}.switch-input:checked+label[for=sgchange3].switch-label:after{background-color:#3d3}.cfg-page{display:grid;gap:16px;padding:20px;-ms-flex-line-pack:start;align-content:start;min-width:0}.cfg-page h1,.cfg-page h2,.cfg-page h3,.cfg-page h4,.cfg-page h5,.cfg-page h6{margin:0;font-weight:700;line-height:1.2}.cfg-page .card,.modal .card{border-radius:16px;padding:14px 16px;-webkit-box-shadow:none;box-shadow:none;margin-bottom:0}.cfg-page .btn,.modal .btn{display:-webkit-inline-box;display:-ms-inline-flexbox;display:inline-flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;gap:8px;height:auto;line-height:1.2;padding:8px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:13px;font-weight:650;margin-right:0;text-decoration:none}.cfg-page .btn:hover,.modal .btn:hover{border-color:var(--accent);background:var(--tile)}.cfg-page .btn .ic,.modal .btn .ic{width:16px;height:16px}.cfg-page .btn.btn--raised,.modal .btn.btn--raised{background:var(--accent);border-color:var(--accent);color:var(--accent-on)}.cfg-page .btn.btn--raised:hover,.modal .btn.btn--raised:hover{background:var(--accent-dark);border-color:var(--accent-dark)}.cfg-page .btn.sm,.modal .btn.sm{padding:5px 11px;font-size:12px;border-radius:9px}.cfg-page .btn.sm .ic,.modal .btn.sm .ic{width:14px;height:14px}.cfg-head{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:12px;-ms-flex-wrap:wrap;flex-wrap:wrap}.cfg-head-title{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:12px;-webkit-box-flex:1;-ms-flex:1 1 240px;flex:1 1 240px;min-width:0}.cfg-head-title h1{font-size:20px}.cfg-head-tools{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:8px;-ms-flex-wrap:wrap;flex-wrap:wrap}.cfg-sub{font-size:12px;font-weight:500;color:var(--muted)}.cfg-hint{font-size:11.5px;font-weight:500;color:var(--muted)}.cfg-card-head{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:11px;-ms-flex-wrap:wrap;flex-wrap:wrap}.cfg-card-head .ttl{-webkit-box-flex:1;-ms-flex:1 1 180px;flex:1 1 180px;min-width:0;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;gap:2px}.cfg-card-head h2{font-size:16px}.cfg-body{margin-top:14px}.cfg-grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;-webkit-box-align:start;-ms-flex-align:start;align-items:start;margin-top:16px}.cfg-stack{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;gap:16px;min-width:0}.cfg-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.cfg-field{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;gap:5px;min-width:0}.cfg-field>span:first-child{font-size:12px;font-weight:600;color:var(--muted)}.cfg-field.wide{grid-column:1/-1}.cfg-page input[type=password],.cfg-page input[type=text],.cfg-page select,.modal input[type=password],.modal input[type=text],.modal select{width:100%;min-height:36px;padding:7px 10px;font:inherit;font-size:13px;color:var(--ink);background:var(--tile);border:1px solid var(--line);border-radius:10px}.cfg-page input:focus,.cfg-page select:focus,.modal input:focus,.modal select:focus{outline:0;border-color:var(--accent);-webkit-box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent)}.cfg-page input[readonly],.modal input[readonly]{color:var(--muted)}.modal input[type=file]{width:100%;font:inherit;font-size:12.5px;color:var(--muted);padding:7px 10px;background:var(--tile);border:1px dashed var(--line);border-radius:10px;cursor:pointer}.modal input[type=file]::file-selector-button{font:inherit;font-size:12.5px;font-weight:650;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:4px 10px;margin-right:10px;cursor:pointer}.cfg-unit{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:6px}.cfg-unit input{-webkit-box-flex:1;-ms-flex:1;flex:1;min-width:0}.cfg-unit>span{-webkit-box-flex:0;-ms-flex:none;flex:none;font-size:12px;font-weight:600;color:var(--muted)}.cfg-pwd{position:relative;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:6px}.cfg-pwd input{-webkit-box-flex:1;-ms-flex:1;flex:1;min-width:0;padding-right:40px}.cfg-pwd .pwd-toggle{position:absolute;right:4px;top:50%;-webkit-transform:translateY(-50%);transform:translateY(-50%);display:-webkit-inline-box;display:-ms-inline-flexbox;display:inline-flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;width:30px;height:30px;padding:0;border:0;border-radius:8px;background:0 0;color:var(--muted);cursor:pointer}.cfg-pwd .pwd-toggle:hover{background:var(--card);color:var(--accent)}.cfg-pwd .pwd-toggle .ic{width:16px;height:16px}.cfg-pwd .pwd-toggle[aria-pressed=true]{color:var(--accent)}.cfg-sw{position:relative;display:-webkit-inline-box;display:-ms-inline-flexbox;display:inline-flex;-webkit-box-flex:0;-ms-flex:none;flex:none}.cfg-sw input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer;z-index:1}.cfg-sw .track{width:38px;height:22px;border-radius:999px;background:var(--line);display:block;-webkit-transition:background .15s ease;transition:background .15s ease}.cfg-sw .track::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--card);-webkit-box-shadow:0 1px 2px rgba(0,0,0,.2);box-shadow:0 1px 2px rgba(0,0,0,.2);-webkit-transition:-webkit-transform .15s ease;transition:-webkit-transform .15s ease;transition:transform .15s ease;transition:transform .15s ease,-webkit-transform .15s ease}.cfg-sw input:checked+.track{background:var(--accent)}.cfg-sw input:checked+.track::after{-webkit-transform:translateX(16px);transform:translateX(16px)}.cfg-sw input:focus-visible+.track{-webkit-box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 20%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 20%,transparent)}.cfg-toggle-row{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:12px;margin-top:12px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card)}.cfg-toggle-row .txt{-webkit-box-flex:1;-ms-flex:1;flex:1;min-width:0}.cfg-toggle-row b{display:block;font-size:13px;font-weight:650}.cfg-toggle-row small{display:block;font-size:12px;color:var(--muted)}.cfg-ap-pass{margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--tile)}.cfg-ap-pass .cfg-field>span:first-child{font-size:12px;font-weight:600;color:var(--muted)}.cfg-ap-pass .g-hint{font-size:11.5px;color:var(--muted)}.cfg-ap-warn{margin-top:4px;font-size:12px;font-weight:650;color:var(--danger)}.cfg-ap-warn:empty{display:none}.cfg-page .seg,.cfg-seg{display:-webkit-box;display:-ms-flexbox;display:flex;gap:4px;padding:4px;background:var(--tile);border-radius:12px;width:100%;min-width:0}.cfg-page .seg label,.cfg-seg label{-webkit-box-flex:1;-ms-flex:1 1 0px;flex:1 1 0;min-width:0;padding:6px 12px;border-radius:9px;color:var(--muted);font-size:13px;font-weight:650;cursor:pointer;white-space:nowrap;text-align:center}.cfg-page .seg input,.cfg-seg input{position:absolute;opacity:0;pointer-events:none}.cfg-page .seg input:checked+label,.cfg-seg input:checked+label{background:var(--card);color:var(--accent-dark);-webkit-box-shadow:inset 0 0 0 1px var(--line);box-shadow:inset 0 0 0 1px var(--line)}#connnected-ssid{-webkit-box-pack:start;-ms-flex-pack:start;justify-content:flex-start;min-height:36px;font-weight:600;overflow:hidden;text-overflow:ellipsis}.cfg-value{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;min-height:36px;padding:7px 10px;font-size:13px;font-variant-numeric:tabular-nums;color:var(--muted);background:var(--tile);border:1px solid var(--line);border-radius:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cfg-save-bar{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:12px;-ms-flex-wrap:wrap;flex-wrap:wrap}.cfg-save-hint{-webkit-box-flex:1;-ms-flex:1 1 200px;flex:1 1 200px;font-size:12px;color:var(--muted)}.cfg-save-note{font-size:12px;font-weight:650;color:var(--ok)}.cfg-save-note.is-bad{color:var(--danger)}.modal{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.32);-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;padding:16px;overflow-y:auto}.modal-content{position:relative;background:var(--card);border-radius:16px;padding:20px;width:min(520px,100%);margin:auto;-webkit-box-shadow:0 12px 32px rgba(0,0,0,.25);box-shadow:0 12px 32px rgba(0,0,0,.25);max-height:calc(100vh - 32px);overflow-y:auto}.modal-content.wide{width:min(760px,100%)}.cfg-modal-head{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:10px;margin-bottom:14px}.cfg-modal-head h2{font-size:16px;-webkit-box-flex:1;-ms-flex:1;flex:1;min-width:0}.cfg-modal-head .badge{width:28px;height:28px;border-radius:9px}.cfg-modal-head .badge .ic{width:15px;height:15px}.cfg-modal-close{-webkit-box-flex:0;-ms-flex:none;flex:none;display:-webkit-inline-box;display:-ms-inline-flexbox;display:inline-flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;width:30px;height:30px;padding:0;border:0;border-radius:8px;background:0 0;color:var(--muted);cursor:pointer}.cfg-modal-close:hover{background:var(--tile);color:var(--ink)}.cfg-modal-close .ic{width:16px;height:16px}.cfg-modal-foot{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:end;-ms-flex-pack:end;justify-content:flex-end;gap:8px;-ms-flex-wrap:wrap;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}.cfg-modal-foot .adv-result{margin-right:auto}.cfg-defs{display:grid;gap:2px}.cfg-defs .def{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:baseline;-ms-flex-align:baseline;align-items:baseline;-webkit-box-pack:justify;-ms-flex-pack:justify;justify-content:space-between;gap:12px;padding:7px 10px;border-radius:9px}.cfg-defs .def:nth-child(odd){background:var(--tile)}.cfg-defs .def span:first-child{font-size:12.5px;font-weight:600;color:var(--muted)}.cfg-defs .def span:last-child{font-size:13px;font-weight:650;font-variant-numeric:tabular-nums;text-align:right}.cfg-defs .def.code span:last-child{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px}.cfg-status{font-size:11.5px;font-weight:700;border-radius:999px;padding:2px 9px;background:var(--tile);border:1px solid var(--line);color:var(--muted);white-space:nowrap}.cfg-status:empty{display:none}#networks{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto}.nwlist{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--card);text-decoration:none;font-size:13px}.nwlist:hover{border-color:var(--accent);background:var(--tile)}.nwlist .ssid{-webkit-box-flex:1;-ms-flex:1;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650;color:var(--ink)}.nwlist .scannednetwork{-webkit-box-flex:0;-ms-flex:none;flex:none;font-size:11.5px;font-weight:650;color:var(--muted)}.nwlist .scannednetwork.l{padding-left:14px;background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAALVBMVEX///8EBwfBwsLw8PAzNjaCg4NTVVUjJiZDRUUUFxdiZGSho6OSk5Pg4eFydHTCjaf3AAAAZElEQVQ4je2NSw7AIAhEBamKn97/uMXEGBvozkWb9C2Zx4xzWykBhFAeYp9gkLyZE0zIMno9n4g19hmdY39scwqVkOXaxph0ZCXQcqxSpgQpONa59wkRDOL93eAXvimwlbPbwwVAegLS1HGfZAAAAABJRU5ErkJggg==) no-repeat left center;background-size:1em}#networkselection{text-align:left}.cfg-net-tools{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:10px;-ms-flex-wrap:wrap;flex-wrap:wrap;margin:10px 0 6px}.cfg-static-label{margin:12px 0 6px}.cfg-wait{margin:0;font-size:13px}.cfg-restore{margin-top:16px}.cfg-adv-sec{margin-top:14px}.cfg-adv-sec:first-of-type{margin-top:0}.cfg-adv-sec h3{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:8px;font-size:13px;font-weight:700;margin-bottom:8px}.cfg-adv-sec h3::after{content:"";-webkit-box-flex:1;-ms-flex:1;flex:1;height:1px;background:var(--line)}.cfg-adv-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.adv-field{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;gap:4px;min-width:0}.adv-field>span:first-child{font-size:11.5px;font-weight:600;color:var(--muted);font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.adv-field .cfg-unit>span{font-family:inherit}.cfg-warnbox{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:start;-ms-flex-align:start;align-items:flex-start;gap:10px;margin-top:16px;padding:11px 12px;border-radius:12px;background:color-mix(in srgb,var(--accent-2) 14%,var(--card));border:1px solid color-mix(in srgb,var(--accent-2) 42%,var(--line));font-size:12.5px}.cfg-warnbox .ic{width:16px;height:16px;margin-top:1px;color:var(--accent-dark)}.cfg-warnbox label{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:start;-ms-flex-align:start;align-items:flex-start;gap:8px;cursor:pointer}.cfg-warnbox input{margin-top:2px}.adv-result{font-size:12.5px;font-weight:650}.adv-result.is-ok{color:var(--ok)}.adv-result.is-bad{color:var(--danger)}.num-bad{border-color:var(--danger)!important}#waitprompt{display:none}@media (max-width:1080px){.cfg-grid2{grid-template-columns:minmax(0,1fr)}}@media (max-width:700px){.cfg-page{padding:14px}.cfg-head{-webkit-box-align:start;-ms-flex-align:start;align-items:flex-start}.cfg-head-tools{width:100%}.cfg-head-tools .btn{-webkit-box-flex:1;-ms-flex:1 1 auto;flex:1 1 auto}.cfg-adv-grid,.cfg-fields{grid-template-columns:minmax(0,1fr)}.cfg-field.wide{grid-column:auto}.cfg-defs .def{-ms-flex-wrap:wrap;flex-wrap:wrap}.cfg-defs .def span:last-child{text-align:left}.cfg-save-bar .btn{width:100%}.modal{padding:10px}}</style></head><body onload=load()><svg width=0 height=0 style=position:absolute aria-hidden=true focusable=false><symbol id=i-layout-dashboard viewBox="0 0 24 24"><rect width=7 height=9 x=3 y=3 rx=1 /><rect width=7 height=5 x=14 y=3 rx=1 /><rect width=7 height=9 x=14 y=12 rx=1 /><rect width=7 height=5 x=3 y=16 rx=1 /></symbol><symbol id=i-sliders-vertical viewBox="0 0 24 24"><path d="M10 8h4"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M17 16h4"/><path d="M19 12V3"/><path d="M19 21v-5"/><path d="M3 14h4"/><path d="M5 10V3"/><path d="M5 21v-7"/></symbol><symbol id=i-file-text viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol><symbol id=i-cpu viewBox="0 0 24 24"><path d="M12 20v2"/><path d="M12 2v2"/><path d="M17 20v2"/><path d="M17 2v2"/><path d="M2 12h2"/><path d="M2 17h2"/><path d="M2 7h2"/><path d="M20 12h2"/><path d="M20 17h2"/><path d="M20 7h2"/><path d="M7 20v2"/><path d="M7 2v2"/><rect x=4 y=4 width=16 height=16 rx=2 /><rect x=8 y=8 width=8 height=8 rx=1 /></symbol><symbol id=i-scale viewBox="0 0 24 24"><path d="M12 3v18"/><path d="m19 8 3 8a5 5 0 0 1-6 0zV7"/><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1"/><path d="m5 8 3 8a5 5 0 0 1-6 0zV7"/><path d="M7 21h10"/></symbol><symbol id=i-settings viewBox="0 0 24 24"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx=12 cy=12 r=3 /></symbol><symbol id=i-flask-conical viewBox="0 0 24 24"><path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"/><path d="M6.453 15h11.094"/><path d="M8.5 2h7"/></symbol><symbol id=i-gauge viewBox="0 0 24 24"><path d="M3.34 19a10 10 0 1 1 17.32 0"/><path d="m12 14 4-4"/><path d="M9.5 21.2h5"/></symbol></svg> <svg width=0 height=0 style=position:absolute aria-hidden=true focusable=false><symbol id=i-cfg-monitor viewBox="0 0 24 24"><rect x=2 y=3 width=20 height=14 rx=2 /><path d="M8 21h8"/><path d="M12 17v4"/></symbol><symbol id=i-cfg-wifi viewBox="0 0 24 24"><path d="M12 20h.01"/><path d="M2 8.82a15 15 0 0 1 20 0"/><path d="M5 12.86a10 10 0 0 1 14 0"/><path d="M8.5 16.43a5 5 0 0 1 7 0"/></symbol><symbol id=i-cfg-lock viewBox="0 0 24 24"><rect x=3 y=11 width=18 height=11 rx=2 /><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol><symbol id=i-cfg-globe viewBox="0 0 24 24"><circle cx=12 cy=12 r=10 /><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol><symbol id=i-cfg-tag viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx=7.5 cy=7.5 r=.5 fill=currentColor /></symbol><symbol id=i-cfg-eye viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx=12 cy=12 r=3 /></symbol><symbol id=i-cfg-eye-off viewBox="0 0 24 24"><path d="M10.7 5.1A10.9 10.9 0 0 1 12 5c6.4 0 10 7 10 7a18 18 0 0 1-2.2 3.1"/><path d="M6.6 6.6A18 18 0 0 0 2 12s3.6 7 10 7a10.9 10.9 0 0 0 5.4-1.4"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="m2 2 20 20"/></symbol><symbol id=i-cfg-sliders viewBox="0 0 24 24"><path d="M10 8h4"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M17 16h4"/><path d="M19 12V3"/><path d="M19 21v-5"/><path d="M3 14h4"/><path d="M5 10V3"/><path d="M5 21v-7"/></symbol><symbol id=i-cfg-refresh viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol><symbol id=i-cfg-info viewBox="0 0 24 24"><circle cx=12 cy=12 r=10 /><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol><symbol id=i-cfg-save viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></symbol><symbol id=i-cfg-x viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol><symbol id=i-cfg-download viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol><symbol id=i-cfg-upload viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></symbol><symbol id=i-cfg-warn viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol></svg><header layout horizontal main-justified cross-center relative class="header header-rail"><h1 class=header_title><a id=hostname href=/index.htm>yeast2tap</a> <span id=verinfo class=header_version-display></span></h1><div navigation><div menutoggle><input type=checkbox> <span></span> <span></span> <span></span><ul class=options><li><a href=/index.htm><svg class=ic><use href=#i-layout-dashboard /></svg>Dashboard</a></li><li><a href=/control.htm><svg class=ic><use href=#i-sliders-vertical /></svg>Control Mode</a></li><li><a href=/logging.htm><svg class=ic><use href=#i-file-text /></svg>Logs</a></li><li><a href=/setup.htm><svg class=ic><use href=#i-cpu /></svg>Device Setup</a></li><li><a href=/scale.htm><svg class=ic><use href=#i-scale /></svg>Scale</a></li><li><a href=/config.htm><svg class=ic><use href=#i-settings /></svg>Settings</a></li><li><a href=/gravity.htm><svg class=ic><use href=#i-flask-conical /></svg>Hydrometer Setup</a></li><li class=nav-pressure><a href=/pressure.htm><svg class=ic><use href=#i-gauge /></svg>Pressure</a></li></ul></div></div><div class=rail-themes><div class=theme-picker role=radiogroup aria-label="Theme"><button type=button class=theme-swatch data-theme-choice="" onclick='applyYeastTheme("",!0)' title="Yeast2Tap"><span class=theme-dot style=background:#9a431f></span></button> <button type=button class=theme-swatch data-theme-choice=brew onclick='applyYeastTheme("brew",!0)' title="Brew Classic"><span class=theme-dot style=background:#a84e25></span></button> <button type=button class=theme-swatch data-theme-choice=lab onclick='applyYeastTheme("lab",!0)' title="Clean Lab"><span class=theme-dot style=background:#0b7d79></span></button> <button type=button class=theme-swatch data-theme-choice=hops onclick='applyYeastTheme("hops",!0)' title="Hops &amp; Copper"><span class=theme-dot style=background:#254a3c></span></button> <button type=button class=theme-swatch data-theme-choice=amber onclick='applyYeastTheme("amber",!0)' title="Modern Amber"><span class=theme-dot style=background:#e6a23c></span></button> <button type=button class=theme-swatch data-theme-choice=sage onclick='applyYeastTheme("sage",!0)' title="Sage"><span class=theme-dot style=background:#3f6b2e></span></button> <button type=button class=theme-swatch data-theme-choice=slate onclick='applyYeastTheme("slate",!0)' title="Slate"><span class=theme-dot style=background:#285f9f></span></button> <button type=button class=theme-swatch data-theme-choice=plum onclick='applyYeastTheme("plum",!0)' title="Plum"><span class=theme-dot style=background:#6b3a82></span></button></div></div></header><script>window.applyPressureNav&&applyPressureNav(),void 0!==window.__yeastTheme&&window.applyYeastTheme&&applyYeastTheme(window.__yeastTheme)</script><div viewport id=inputform class=cfg-page><form id=sysconfig action=/setconfig method=post onsubmit=return!1><section class="card cfg-head"><div class=cfg-head-title><span class=badge aria-hidden=true><svg class=ic><use href=#i-settings /></svg></span><div><h1>yeast2tap Settings</h1><div class=cfg-sub>Display, identità, accesso, rete e servizi</div></div></div><div class=cfg-head-tools><button class=btn type=button onclick="return showsysinfo(),!1"><svg class=ic><use href=#i-cfg-info /></svg>Sysinfo </button> <button class=btn type=button onclick='return Backup.init(),!(Q("#backup-diag").style.display="block")'><svg class=ic><use href=#i-cfg-download /></svg>Backup/Ripristino </button> <button class=btn type=button onclick="return showAdvanced(),!1"><svg class=ic><use href=#i-cfg-sliders /></svg>Avanzate </button> <button class="btn btn--raised" type=submit id=submitsave name=submit><svg class=ic><use href=#i-cfg-save /></svg>Salva modifiche </button></div></section><div class=cfg-grid2><div class=cfg-stack><section class=card><header class=cfg-card-head><span class=badge aria-hidden=true><svg class=ic><use href=#i-cfg-monitor /></svg></span><div class=ttl><h2>Display e hardware</h2><span class=cfg-sub>Comportamento dello schermo locale</span></div></header><div class=cfg-body><div class=cfg-fields><label class=cfg-field><span>LCD auto off</span><span class=cfg-unit><input name=aoff type=text maxlength=5 class="nb num"><span>secondi</span></span></label> <label class=cfg-field><span>LCD Display</span><select id=display name=dis class=nb><option value=0>Rotate</option><option value=1>BrewPi</option><option value=2>Additional</option><option value=3>Y2T Animation</option></select></label></div><div class=cfg-toggle-row><div class=txt><b>Glycol Chilling</b><small>Consente al controller di pilotare una pompa del glicole</small></div><span class=cfg-sw><input type=checkbox id=glycol name=glycol aria-label="Glycol Chilling"><span class=track></span></span></div></div></section><section class=card><header class=cfg-card-head><span class=badge aria-hidden=true><svg class=ic><use href=#i-cfg-tag /></svg></span><div class=ttl><h2>Identità</h2><span class=cfg-sub>Informazioni trasmesse via WiFi</span></div></header><div class=cfg-body><div class=cfg-fields><label class=cfg-field><span>Titolo</span><input name=title type=text maxlength=24></label> <label class=cfg-field><span>Host/Rete Nome</span><input name=name type=text maxlength=16></label> <label class=cfg-field><span>HTTP Porta</span><input name=port type=text maxlength=5 class="nb num"></label></div></div></section><section class=card><header class=cfg-card-head><span class=badge aria-hidden=true><svg class=ic><use href=#i-cfg-lock /></svg></span><div class=ttl><h2>Accesso</h2><span class=cfg-sub>Credenziali usate per ogni scrittura</span></div></header><div class=cfg-body><div class=cfg-fields><label class=cfg-field><span>User Name</span><input name=user type=text maxlength=16 autocomplete=username></label> <label class=cfg-field><span>Password</span><span class=cfg-pwd><input name=pass type=password maxlength=16 autocomplete=current-password> <button class=pwd-toggle type=button onclick=togglePwd(this) title="Mostra password" aria-label="Mostra password" aria-pressed=false><svg class=ic><use href=#i-cfg-eye /></svg></button></span></label></div><div class=cfg-toggle-row><div class=txt><b>Chiedi sempre la password</b><small>Chiede le credenziali anche nelle pagine di sola lettura</small></div><span class=cfg-sw><input type=checkbox id=protect name=protect aria-label="Chiedi sempre la password"><span class=track></span></span></div></div></section></div><div class=cfg-stack><section class=card><header class=cfg-card-head><span class=badge aria-hidden=true><svg class=ic><use href=#i-cfg-wifi /></svg></span><div class=ttl><h2>Rete</h2><span class=cfg-sub>Modalità Wi-Fi e credenziali</span></div></header><div class=cfg-body><div class=cfg-fields><label class=cfg-field><span>Modalità rete</span><select name=wifi><option value=1>Station</option><option value=2>AP</option><option value=3>Station + AP</option></select></label><div class=cfg-field><span>Rete</span><button id=connnected-ssid class="btn cfg-ssid" type=button onclick="return Net.show(),!1">...</button></div><div class=cfg-field><span>IP</span><span class=cfg-value id=sta-ip></span></div></div><div class=cfg-toggle-row><div class=txt><b>Enable AP Password</b><small>Protegge il punto di accesso di riserva</small></div><span class=cfg-sw><input type=checkbox id=eap name=eap aria-label="Enable AP Password"><span class=track></span></span></div><div class=cfg-ap-pass id=ap-pass-row hidden><label class="cfg-field wide"><span>Password dell'access point</span><span class=cfg-pwd><input type=password name=appass id=ap-pass maxlength=32 autocomplete=new-password> <button class=pwd-toggle type=button onclick=togglePwd(this) title="Mostra password" aria-label="Mostra password" aria-pressed=false><svg class=ic><use href=#i-cfg-eye /></svg></button> </span><span class=g-hint>Usata solo dall'access point; è indipendente dalla password web qui sotto.</span><span class=cfg-ap-warn id=ap-pass-warn hidden>Meno di 8 caratteri: l'access point verrà creato SENZA password.</span></label></div></div></section><section class=card><header class=cfg-card-head><span class=badge aria-hidden=true><svg class=ic><use href=#i-cfg-globe /></svg></span><div class=ttl><h2>DuckDNS</h2><span class=cfg-sub>Mantiene un nome pubblico puntato a questo controller</span></div><span class=cfg-sw><input type=checkbox id=duckdnsEnabled name=duckdnsEnabled aria-label="DuckDNS"><span class=track></span></span></header><div class=cfg-body><div class=cfg-fields><label class="cfg-field wide"><span>Indirizzo</span><input name=duckdnsDomain type=text maxlength=63 placeholder="name.duckdns.org"></label> <label class=cfg-field><span>Token</span><span class=cfg-pwd><input name=duckdnsToken type=password maxlength=63> <button class=pwd-toggle type=button onclick=togglePwd(this) title="Mostra password" aria-label="Mostra password" aria-pressed=false><svg class=ic><use href=#i-cfg-eye /></svg></button></span></label> <label class=cfg-field><span>Aggiorna ogni</span><span class=cfg-unit><input name=duckdnsInterval type=text inputmode=decimal class=num min=1 max=1440 maxlength=5><span>minuti</span></span></label></div></div></section><section class=card id=pressure-nav-card><header class=cfg-card-head><span class=badge aria-hidden=true><svg class=ic><use href=#i-gauge /></svg></span><div class=ttl><h2>Pagina pressione</h2><span class=cfg-sub>Mostra la pagina e alimenta il trasduttore</span></div></header><div class=cfg-body><div class=seg role=radiogroup aria-label="Pagina pressione"><input type=radio name=pressureNav id=pressure-nav-off value=0 checked data-nosave> <label for=pressure-nav-off>Spento</label> <input type=radio name=pressureNav id=pressure-nav-on value=1 data-nosave> <label for=pressure-nav-on>On</label></div></div></section><section class=card><div class=cfg-save-bar><span class=cfg-save-note aria-live=polite></span> <span class=cfg-save-hint>Cambiare identità, porta o rete riavvia il controller.</span><button class="btn btn--raised" type=submit><svg class=ic><use href=#i-cfg-save /></svg>Salva modifiche </button></div></section></div></div></form></div><div id=networkselection class=modal><div class=modal-content><div class=cfg-modal-head><span class=badge aria-hidden=true><svg class=ic><use href=#i-cfg-wifi /></svg></span><h2>Selezione rete</h2><button class=cfg-modal-close type=button onclick="return Net.hide(),!1" aria-label="Cancella"><svg class=ic><use href=#i-cfg-x /></svg></button></div><div id=networks></div><div class=nwlist><a href=# onclick=Net.select(this) class=ssid>N</a>&nbsp;<span class=scannednetwork></span></div><div class=cfg-net-tools><button class="btn sm" type=button onclick="return Net.scan()"><svg class=ic><use href=#i-cfg-refresh /></svg>Scan</button> <span class=cfg-hint>Scegli una rete e inserisci la password</span></div><form method=get action=# onsubmit=return!1><div class=cfg-fields><label class=cfg-field><span>SSID</span><input id=ssid name=ssid maxlength=32 placeholder="SSID"></label> <label class=cfg-field><span>Password</span><input id=nwpass name=nwpass length=64 type=password placeholder="Password"></label></div><p class="cfg-hint cfg-static-label">IP statico (vuoto per DHCP)</p><div class=cfg-fields><label class=cfg-field><span>IP fisso</span><input id=staticip name=ip class="nb iptype" inputmode=decimal></label> <label class=cfg-field><span>Gateway</span><input id=gateway name=gw class="nb iptype" inputmode=decimal></label> <label class=cfg-field><span>Netmask</span><input id=netmask name=mask class="nb iptype" inputmode=decimal></label> <label class=cfg-field><span>DNS</span><input id=dns name=dns class="nb iptype" inputmode=decimal></label></div><div class=cfg-modal-foot><button class=btn type=button onclick="return Net.hide(),!1">Cancella</button> <button class="btn btn--raised" type=button onclick="return savewifi()">Salva modifiche</button></div></form></div></div><footer layout horizontal main-justified cross-center class=footer><span>yeast2tap</span></footer><div id=waitprompt class=modal><div class=modal-content><div class=cfg-modal-head><span class=badge aria-hidden=true><svg class=ic><use href=#i-cfg-refresh /></svg></span><h2>Riavvio</h2></div><p class=cfg-wait>Configuration saved. Wait for restart... (note: if the hostname is changed, the page won't be reloaded.)</p></div></div><div id=sysinfo class=modal><div class=modal-content><div class=cfg-modal-head><span class=badge aria-hidden=true><svg class=ic><use href=#i-cfg-info /></svg></span><h2>Sysinfo</h2><button class=cfg-modal-close type=button onclick="return hidesysinfo(),!1" aria-label="Cancella"><svg class=ic><use href=#i-cfg-x /></svg></button></div><div class=cfg-defs><div class="def code"><span>MAC Address</span><span id=mac-address></span></div><div class="def code"><span>Flash Chip ID</span><span id=flash-id></span></div><div class=def><span>Real Flash Size</span><span id=real-flash-size></span></div><div class=def><span>Specified Flash Size</span><span id=specified-flash-size></span></div><div class=def><span>File System Size</span><span id=fs-size></span></div><div class=def><span>Firmware size</span><span id=fw-size>--</span></div><div class=def><span>App slot size</span><span id=app-slot>--</span></div><div class=def><span>Free in app slot</span><span id=app-free>--</span></div><div class=def><span>Update slot size</span><span id=ota-slot>--</span></div><div class=def><span>Running partition</span><span id=app-name>--</span></div><div class=def><span>Build time</span><span id=build-time>--</span></div></div><div class=cfg-modal-foot><button class="btn btn--raised" type=button onclick="return hidesysinfo(),!1">Done</button></div></div></div><div id=backup-diag class=modal><div class=modal-content><div class=cfg-modal-head><span class=badge aria-hidden=true><svg class=ic><use href=#i-cfg-download /></svg></span><h2>Setting Backup/Restore</h2><button class=cfg-modal-close type=button onclick='return!(Q("#backup-diag").style.display="none")' aria-label="Cancella"><svg class=ic><use href=#i-cfg-x /></svg></button></div><div class=cfg-defs><div class=def><span>Backup Time</span><span id=backuptime></span></div><div class=def><span>Device Setup</span><span class="cfg-status device-status"></span></div><div class=def><span>Hydrometer Setup</span><span class="cfg-status gdc-status"></span></div><div class=def><span>Logs</span><span class="cfg-status rlog-status"></span></div><div class=def><span>Pressure</span><span class="cfg-status pressure-status"></span></div><div class=def><span>MQTT</span><span class="cfg-status mqtt-status"></span></div><div class=def><span>Settings</span><span class="cfg-status syscfg-status"></span></div><div class=def><span>Control constants</span><span class="cfg-status cc-status"></span></div><div class=def><span>Control mode/targets</span><span class="cfg-status cs-status"></span></div><div class=def><span>Scale</span><span class="cfg-status scale-status"></span></div><div class=def><span>Parasite control</span><span class="cfg-status ptc-status"></span></div><div class=def><span>Humidity control</span><span class="cfg-status rh-status"></span></div><div class=def><span>Beer profile</span><span class="cfg-status profile-status"></span></div><div class=def><span>Notes and room name</span><span class="cfg-status notes-status"></span></div><div class=def><span>Time zone</span><span class="cfg-status time-status"></span></div><div class=def><span>Cap schedule</span><span class="cfg-status cap-status"></span></div></div><label class="cfg-field cfg-restore"><span>Restore from</span><input type=file id=backupfile></label><div class=cfg-modal-foot><button class=btn type=button onclick='return!(Q("#backup-diag").style.display="none")'>Cancella</button> <button class=btn type=button onclick="return Backup.restore(),!1"><svg class=ic><use href=#i-cfg-upload /></svg>Restore</button> <button class="btn btn--raised" type=button onclick="return Backup.save(),!1"><svg class=ic><use href=#i-cfg-download /></svg>Save</button></div><div class=modal id=processing><div class="modal-content hint" id=hint_get>Retriving data...</div><div class="modal-content hint" id=hint_put>Sending data to controller...</div></div></div></div><div id=advanced class=modal><div class="modal-content wide"><div class=cfg-modal-head><span class=badge aria-hidden=true><svg class=ic><use href=#i-cfg-sliders /></svg></span><h2>Avanzate</h2><button class=cfg-modal-close type=button onclick=hideAdvanced() aria-label="Cancella"><svg class=ic><use href=#i-cfg-x /></svg></button></div><div class=cfg-adv-sec><h3>Units &amp; limits</h3><div class=cfg-adv-grid><label class=adv-field><span>tempFormat</span><select id=tempFormat name=tempFormat><option value=C> &deg;C</option><option value=F> &deg;F </option></select></label> <label class=adv-field><span>tempSetMin</span><span class=cfg-unit><input type=text inputmode=decimal class=num id=tempSetMin step=0.001>&deg;</span></label> <label class=adv-field><span>tempSetMax</span><span class=cfg-unit><input type=text inputmode=decimal class=num id=tempSetMax step=0.001>&deg;</span></label> <label class=adv-field><span>pidMax</span><span class=cfg-unit><input type=text inputmode=decimal class=num id=pidMax step=0.001>&deg;</span></label></div></div><div class=cfg-adv-sec><h3>PID</h3><div class=cfg-adv-grid><label class=adv-field><span>Kp</span><input type=text inputmode=decimal class=num id=Kp step=0.001></label> <label class=adv-field><span>Ki</span><input type=text inputmode=decimal class=num id=Ki step=0.001></label> <label class=adv-field><span>Kd</span><input type=text inputmode=decimal class=num id=Kd step=0.001></label> <label class=adv-field><span>iMaxErr</span><input type=text inputmode=decimal class=num id=iMaxErr step=0.001></label></div></div><div class=cfg-adv-sec><h3>Targets</h3><div class=cfg-adv-grid><label class=adv-field><span>idleRangeH</span><span class=cfg-unit><input type=text inputmode=decimal class=num id=idleRangeH step=0.001>&deg;</span></label> <label class=adv-field><span>idleRangeL</span><span class=cfg-unit><input type=text inputmode=decimal class=num id=idleRangeL step=0.001>&deg;</span></label> <label class=adv-field><span>heatTargetH</span><span class=cfg-unit><input type=text inputmode=decimal class=num id=heatTargetH step=0.001>&deg;</span></label> <label class=adv-field><span>heatTargetL</span><span class=cfg-unit><input type=text inputmode=decimal class=num id=heatTargetL step=0.001>&deg;</span></label> <label class=adv-field><span>coolTargetH</span><span class=cfg-unit><input type=text inputmode=decimal class=num id=coolTargetH step=0.001>&deg;</span></label> <label class=adv-field><span>coolTargetL</span><span class=cfg-unit><input type=text inputmode=decimal class=num id=coolTargetL step=0.001>&deg;</span></label></div></div><div class=cfg-adv-sec><h3>Estimation &amp; timing</h3><div class=cfg-adv-grid><label class=adv-field><span>maxHeatTimeForEst</span><span class=cfg-unit><input type=text inputmode=decimal class=num id=maxHeatTimeForEst>secondi</span></label> <label class=adv-field><span>maxCoolTimeForEst</span><span class=cfg-unit><input type=text inputmode=decimal class=num id=maxCoolTimeForEst>secondi</span></label> <label class=adv-field><span>minCoolTime</span><span class=cfg-unit><input type=text inputmode=decimal class=num id=minCoolTime>secondi</span></label> <label class=adv-field><span>minCoolIdleTime</span><span class=cfg-unit><input type=text inputmode=decimal class=num id=minCoolIdleTime>secondi</span></label> <label class=adv-field><span>minHeatTime</span><span class=cfg-unit><input type=text inputmode=decimal class=num id=minHeatTime>secondi</span></label> <label class=adv-field><span>maxHeatTime</span><span class=cfg-unit><input type=text inputmode=decimal class=num id=maxHeatTime>secondi</span></label> <label class=adv-field><span>minHeatIdleTime</span><span class=cfg-unit><input type=text inputmode=decimal class=num id=minHeatIdleTime>secondi</span></label> <label class=adv-field><span>deadTime</span><span class=cfg-unit><input type=text inputmode=decimal class=num id=deadTime>secondi</span></label></div></div><div class=cfg-adv-sec><h3>Filters</h3><div class=cfg-adv-grid><label class=adv-field><span>fridgeFastFilt</span><input type=text inputmode=decimal class=num id=fridgeFastFilt step=0.001></label> <label class=adv-field><span>fridgeSlowFilt</span><input type=text inputmode=decimal class=num id=fridgeSlowFilt step=0.001></label> <label class=adv-field><span>fridgeSlopeFilt</span><input type=text inputmode=decimal class=num id=fridgeSlopeFilt step=0.001></label> <label class=adv-field><span>beerFastFilt</span><input type=text inputmode=decimal class=num id=beerFastFilt step=0.001></label> <label class=adv-field><span>beerSlowFilt</span><input type=text inputmode=decimal class=num id=beerSlowFilt step=0.001></label> <label class=adv-field><span>beerSlopeFilt</span><input type=text inputmode=decimal class=num id=beerSlopeFilt step=0.001></label></div></div><div class=cfg-adv-sec><h3>Hardware</h3><div class=cfg-adv-grid><label class=adv-field><span>lightAsHeater</span><select id=lah name=lah><option value=0> NO</option><option value=1> YES </option></select></label> <label class=adv-field><span>RotaryHalfStep</span><select id=hs name=hs><option value=0> NO</option><option value=1> YES </option></select></label> <label class=adv-field><span>staleSensorSec</span><span class=cfg-unit><input type=text inputmode=decimal class=num id=staleSensorSec min=0 max=120>secondi</span></label> <label class=adv-field><span>oneWireRetryCount</span><input type=text inputmode=decimal class=num id=oneWireRetryCount min=0 max=20></label></div></div><div class=cfg-warnbox><svg class=ic><use href=#i-cfg-warn /></svg> <label for=warning><input type=checkbox id=warning name=warning><span>I understand the risk of modifying these values.</span></label></div><div class=cfg-modal-foot><span id=adv-result class=adv-result></span> <button class=btn type=button onclick=hideAdvanced()>Cancella</button> <button class="btn btn--raised" onclick=setAdvancedOptions() id=adv-update>Aggiorna</button></div></div></div></body></html>

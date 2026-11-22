@@ -1,0 +1,34 @@
+
+.card {
+    display: block;
+    background: $card;
+    border: 1px solid $divider-color;
+    border-radius: 18px;
+    box-shadow: none;
+    padding: 16px;
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.card:hover {
+    box-shadow: none;
+}
+
+.card-footer {
+    padding: 16px 0 0;
+    margin: 8px 0 0;
+    border-top: 1px solid #CCC;
+    text-align: right;
+}
+
+.inline-header {
+    width: 140px;
+    min-width: 140px;
+    font-weight: bold;
+    padding-right: 8px;
+}
+
+.small-heading {
+    font-size: 20px;
+    padding: 16px 0 8px;
+}

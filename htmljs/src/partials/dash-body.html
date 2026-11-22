@@ -1,0 +1,272 @@
+<div class="dash chart-stage" viewport>
+    <div class="chart-legend">
+        <section class="stats">
+            <div class="card stat">
+                <div class="chart-legend-row beer-temp legend-primary">
+                    <input type="checkbox" id="beer-temp" name="set-name" class="switch-input" checked>
+                    <label onclick="BChart.toggle(BeerTempLine)" for="beer-temp" class="switch-label">
+                        <span class="stat-top">
+                            <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-thermometer"/></svg></span>
+                            <span class="legend-name"><span class="beer-temp toggle legend-dot"></span><%= legend_beertemp %></span>
+                        </span>
+                        <div class="legend-value" id="lcdBeerTemp">--</div>
+                    </label>
+                </div>
+                <div class="chart-legend-row beer-set legend-pill">
+                    <input type="checkbox" id="beer-set" name="set-name" class="switch-input" checked>
+                    <label onclick="BChart.toggle(BeerSetLine)" for="beer-set" class="switch-label">
+                        <span class="beer-set toggle legend-dot"></span>
+                        <span class="legend-name"><%= legend_beerset %></span>
+                        <div class="legend-value" id="lcdBeerSet">--</div>
+                    </label>
+                </div>
+            </div>
+            <div class="card stat">
+                <div class="chart-legend-row fridge-temp legend-primary">
+                    <input type="checkbox" id="fridge-temp" name="set-name" class="switch-input" checked>
+                    <label onclick="BChart.toggle(FridgeTempLine)" for="fridge-temp" class="switch-label">
+                        <span class="stat-top">
+                            <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-refrigerator"/></svg></span>
+                            <span class="legend-name"><span class="fridge-temp toggle legend-dot"></span><%= legend_fridgetemp %></span>
+                        </span>
+                        <div class="legend-value" id="lcdFridgeTemp">--</div>
+                    </label>
+                </div>
+                <div class="chart-legend-row fridge-set legend-pill">
+                    <input type="checkbox" id="fridge-set" name="set-name" class="switch-input" checked>
+                    <label onclick="BChart.toggle(FridgeSetLine)" for="fridge-set" class="switch-label">
+                        <span class="fridge-set toggle legend-dot"></span>
+                        <span class="legend-name"><%= legend_fridgeset %></span>
+                        <div class="legend-value" id="lcdFridgeSet">--</div>
+                    </label>
+                </div>
+            </div>
+            <div class="card stat">
+                <div class="chart-legend-row room-temp legend-primary">
+                    <input type="checkbox" id="room-temp" name="set-name" class="switch-input" checked>
+                    <label onclick="BChart.toggle(RoomTempLine)" for="room-temp" class="switch-label">
+                        <span class="stat-top">
+                            <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-house"/></svg></span>
+                            <span class="legend-name"><span class="room-temp toggle legend-dot"></span><span id="room-name" style="touch-action:manipulation"><%= legend_roomtemp %></span></span>
+                        </span>
+                        <div class="legend-value" id="lcdRoomTemp">--</div>
+                    </label>
+                </div>
+            </div>
+            <div class="card stat" id="status">
+                <div class="status-body">
+                <div class="stat-top">
+                    <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-activity"/></svg></span>
+                    <strong><%= status %></strong>
+                </div>
+                <strong id="lcdControlState" class="status-chip"></strong>
+                <div class="status-lines">
+                    <span class="status-mode"><span class="descriptor"><%= status_mode %></span> <span id="lcdControlMode"></span></span>
+                    <span class="status-mode"><span class="descriptor"><%= writing_log %></span> <span id="recording"></span></span>
+                    <span class="status-mode status-wifi"><span class="descriptor"><%= wifi %></span>
+                        <span id="rssi" class="wifi-bars">
+                            <span class="rssi-bar rssi-bar1"></span>
+                            <span class="rssi-bar rssi-bar2"></span>
+                            <span class="rssi-bar rssi-bar3"></span>
+                            <span class="rssi-bar rssi-bar4"></span>
+                        </span>
+                    </span>
+                </div>
+                </div>
+                <div id="humidity-pan" class="status-humidity no-display">
+                    <span class="no-display" id="hc-state-info"><span id="hc-state"></span></span>
+                    <span class="no-display" id="humidity-info"><span class="descriptor"><%= status_humidity %></span> <span id="humidity"></span></span>
+                    <span class="no-display" id="humidity-set-info"><span class="descriptor"><%= label_humidity_set %></span> <span id="humidity-set"></span></span>
+                    <span class="no-display" id="room-humidity-info"><span class="descriptor"><%= room_humidity %></span> <span id="room-humidity"></span></span>
+                </div>
+            </div>
+        </section>
+        <section class="row2">
+            <div class="card chart-card">
+                <div class="chead">
+                    <h2><%= chart_temperature %></h2>
+                    <div class="read chart-legend-row time legend-time-card">
+                        <span class="beer-chart-legend-time"><%= legend_date %></span>
+                        <span class="beer-chart-state"><%= legend_state %></span>
+                    </div>
+                </div>
+                <div class="legend-chips">
+                    <div class="chart-legend-row aux-temp legend-extra">
+                        <input type="checkbox" id="aux-temp" name="set-name" class="switch-input" checked>
+                        <label onclick="BChart.toggle(AuxTempLine)" for="aux-temp" class="switch-label">
+                            <span class="aux-temp toggle legend-dot"></span>
+                            <span class="legend-name"><%= legend_auxtemp %></span>
+                            <div class="legend-value">--</div>
+                        </label>
+                    </div>
+                    <div class="chart-legend-row gravity legend-extra">
+                        <input type="checkbox" id="gravity" name="set-name" class="switch-input" checked>
+                        <label onclick="BChart.toggle(GravityLine)" for="gravity" class="switch-label">
+                            <span class="gravity toggle legend-dot"></span>
+                            <span class="legend-name"><%= legend_gravity %><span class=platounit><%= ui_deg_p %></span></span>
+                            <div class="legend-value">--</div>
+                        </label>
+                    </div>
+                    <div class="chart-legend-row filtersg legend-extra">
+                        <input type="checkbox" id="filtersg" name="set-name" class="switch-input" checked>
+                        <label onclick="BChart.toggle(FilteredSgLine)" for="filtersg" class="switch-label">
+                            <span class="filtersg toggle legend-dot"></span>
+                            <span class="legend-name"><%= legend_filteredsg %><span class=platounit><%= ui_deg_p %></span></span>
+                            <div class="legend-value">--</div>
+                        </label>
+                    </div>
+                    <div id="gravity-view-bar" class="gv-seg no-display" role="radiogroup" aria-label="<%= gravity_view_title %>">
+                        <input type="radio" id="gv-corrected" name="gravity_view" value="corrected" checked onchange="setGravityView(this.value)">
+                        <label for="gv-corrected" title="<%= gravity_view_note_corrected %>"><%= gravity_view_corrected %></label>
+                        <input type="radio" id="gv-uncorrected" name="gravity_view" value="uncorrected" onchange="setGravityView(this.value)">
+                        <label for="gv-uncorrected" title="<%= gravity_view_note_uncorrected %>"><%= gravity_view_uncorrected %></label>
+                        <span id="gravity-view-note" class="gv-note" aria-live="polite"></span>
+                    </div>
+                    <div class="chart-legend-row pressure pressure-group forced-hidden legend-extra">
+                        <input type="checkbox" id="pressure" name="set-name" class="switch-input" checked>
+                        <label onclick="BChart.toggle(PressureLine,1)" for="pressure" class="switch-label">
+                            <span class="pressure toggle legend-dot"></span>
+                            <span class="legend-name"><%= legend_pressure %></span>
+                            <div class="legend-value">--</div>
+                        </label>
+                    </div>
+                    <div class="chart-legend-row pressure-set pressure-group forced-hidden legend-extra">
+                        <input type="checkbox" id="pressure-set" name="set-name" class="switch-input" checked>
+                        <label onclick="BChart.toggle(PressureSetLine)" for="pressure-set" class="switch-label">
+                            <span class="pressure-set toggle legend-dot"></span>
+                            <span class="legend-name"><%= legend_pressure_set %></span>
+                            <div class="legend-value">--</div>
+                        </label>
+                    </div>
+                    <div class="chart-legend-row carbonation pressure-group forced-hidden legend-extra">
+                        <input type="checkbox" id="carbonation" name="set-name" class="switch-input" checked>
+                        <label onclick="BChart.toggle(CarbonationLine)" for="carbonation" class="switch-label">
+                            <span class="carbonation toggle legend-dot"></span>
+                            <span class="legend-name"><%= legend_carbonation %></span>
+                            <div class="legend-value">--</div>
+                        </label>
+                    </div>
+                    <div class="chart-legend-row humidity humidity-group forced-hidden legend-extra">
+                        <input type="checkbox" id="l-humidity" name="set-name" class="switch-input" checked>
+                        <label onclick="BChart.toggle(ChamberHumidityLine)" for="l-humidity" class="switch-label">
+                            <span class="humidity toggle legend-dot"></span>
+                            <span class="legend-name"><%= label_humidity %></span>
+                            <div class="legend-value">--</div>
+                        </label>
+                    </div>
+                    <div class="chart-legend-row set-humidity humidity-set humidity-group forced-hidden legend-extra">
+                        <input type="checkbox" id="humidity-set" name="set-name" class="switch-input" checked>
+                        <label onclick="BChart.toggle(SetHumidityLine)" for="humidity-set" class="switch-label">
+                            <span class="humidity-set toggle legend-dot"></span>
+                            <span class="legend-name"><%= label_humidity_set %></span>
+                            <div class="legend-value">--</div>
+                        </label>
+                    </div>
+                    <div class="chart-legend-row room-humidity humidity-group forced-hidden legend-extra">
+                        <input type="checkbox" id="l-room-humidity" name="set-name" class="switch-input" checked>
+                        <label onclick="BChart.toggle(RoomHumidityLine)" for="l-room-humidity" class="switch-label">
+                            <span class="room-humidity toggle legend-dot"></span>
+                            <span class="legend-name"><%= label_room_humidity %></span>
+                            <div class="legend-value">--</div>
+                        </label>
+                    </div>
+                    <div class="chart-legend-row sgchange1 forced-hidden"><span class="sgchange1 toggle"></span><div class="legend-value">--</div></div>
+                    <div class="chart-legend-row sgchange2 forced-hidden"><span class="sgchange2 toggle"></span><div class="legend-value">--</div></div>
+                    <div class="chart-legend-row sgchange3 forced-hidden"><span class="sgchange3 toggle"></span><div class="legend-value">--</div></div>
+                    <div class="chart-legend-row" id="formula-btn" onclick="openpolynomialpane()"><%= ui_formula_f %></div>
+                </div>
+                <div class="chart">
+                    <div id="div_g" class="chart-main"></div>
+                    <div id="div_p" class="chart-p pressure-group forced-hidden"></div>
+                    <div id="div_h" class="chart-p humidity-group forced-hidden"></div>
+                </div>
+            </div>
+            <section class="card keg-status-section" id="keg-status-section" aria-label="<%= ui_keg_levels %>">
+                <div class="keg-status-heading" layout horizontal main-justified cross-center>
+                    <h5><span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-barrel"/></svg></span><%= ui_kegs %></h5>
+                    <a href="/scale.htm"><%= ui_scale_settings %></a>
+                </div>
+                <div class="keg-status-list" id="keg-status-list"></div>
+            </section>
+        </section>
+    </div>
+    <div side class="row3">
+        <ul id="gravity-pane" class="data-pane gravity-pane info-card">
+            <li class="heading">
+                <div class="info-title">
+                    <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-droplet"/></svg></span>
+                    <strong><%= gravity_data %></strong>
+                </div>
+            </li>
+            <li class="info-tile info-tile-edit"><span class="descriptor"><%= original_gravity %></span><span id="gravity-og" onclick="inputOG()">--</span><span class="platounit"><%= ui_deg_p %></span><svg class="ic tile-pen"><use href="#i-pencil"/></svg></li>
+            <li class="info-tile info-tile-edit"><span class="descriptor"><%= specific_gravity %></span><span id="gravity-sg" onclick="inputSG()">--</span><span class="platounit"><%= ui_deg_p %></span><svg class="ic tile-pen"><use href="#i-pencil"/></svg></li>
+            <li class="info-tile"><span class="descriptor"><%= gravity_att %></span><span class="tile-measure"><span id="gravity-att"> --</span><span class="tile-unit">%</span></span></li>
+            <li class="info-tile"><span class="descriptor"><%= gravity_abv %></span><span class="tile-measure"><span id="gravity-abv"> --</span><span class="tile-unit">%</span></span></li>
+            <li class="info-tile info-tile-wide"><span class="descriptor"><%= gravity_changed %></span><div id="sgchanged"></div></li>
+        </ul>
+        <ul class="data-pane gravity-device-pane info-card">
+            <li class="heading">
+                <div class="info-title">
+                    <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-radio"/></svg></span>
+                    <strong><span class="gd-option ispindel-info"> <%= ispindel_data %></span>
+                        <span class="gd-option tilt-info"><%= ui_tilt_hydrometer %></span>
+                        <span class="gd-option pill-info"><%= ui_rapt_pill_hydrometer %></span></strong>
+                </div>
+            </li>
+            <li class="info-tile gd-option ispindel-info pill-info"><span class="descriptor"><%= ispindel_tilt %></span> <span id="gdevice-angle">--</span></li>
+            <li class="info-tile gd-option ispindel-info pill-info"><span class="descriptor"><%= ispindel_battery %></span> <span id="gdevice-battery">--</span></li>
+            <li class="info-tile gd-option tilt-info"><span class="descriptor"><%= tilt_raw_sg %></span> <span id="tilt-raw">--</span></li>
+            <li class="info-tile"><span class="descriptor"><%= gravity_temperature %></span> <span id="gravity-device-temp">--</span></li>
+            <li class="info-tile" id="ispindel-rssi-line">
+                <span class="descriptor"><%= ui_rssi %></span>
+                <div id="gravity-device-rssi" class="wifi-bars">
+                    <div class="rssi-bar rssi-bar1"></div>
+                    <div class="rssi-bar rssi-bar2"></div>
+                    <div class="rssi-bar rssi-bar3"></div>
+                    <div class="rssi-bar rssi-bar4"></div>
+                </div>
+            </li>
+            <li class="info-tile info-tile-wide"><span class="descriptor"><%= ispindel_lastupdate %></span> <span id="gravity-device-last">--</span></li>
+        </ul>
+        <ul class="data-pane ptc-pane" id="ptc-pane" style="display:none">
+            <li class="heading" layout horizontal main-justified><strong><%= glycol_temp_control %></strong>
+                <div style="display: inline-block"><strong><span id="ptc-state-idle"><%= ptc_idle %></span><span id="ptc-state-run" style="display:none"><%= ptc_running %></span></strong></div>
+            </li>
+            <li layout horizontal main-justified><span class="descriptor"></span>
+                <%= ptc_for %> <span id="ptc-time"></span></li>
+            <li layout horizontal main-justified><span class="descriptor"><%= ptc_range %></span> <span id="ptc-set"></span></li>
+        </ul>
+        <ul class="data-pane capping-info-pane">
+            <li class="heading" layout horizontal main-justified><strong> <%= control_capstate %> </strong>
+                <div style="display: inline-block">
+                    <strong><span id="capstate-open" class="capstate"><%= control_open %></span>
+                    <span id="capstate-close" class="capstate"><%= control_capped %></span></strong> </div>
+            </li>
+            <li layout horizontal main-justified>
+                <span class="descriptor"><%= cap_condition %></span>
+                <div style="display: inline-block">
+                    <span id="cs-sgcon" class="capstate"><%= ui_gravity_le %> <span id="capgravityset"></span></span>
+                    <span id="cs-timecon" class="capstate"><%= ui_after %> <span id="captimeset"></span></span>
+                    <span id="cs-mancap" class="capstate"><%= control_manualcapped  %></span>
+                    <span id="cs-manopen" class="capstate"><%= control_manualopen %></span>
+                </div>
+            </li>
+        </ul>
+        <ul class="data-pane" id="pressure-info-pane">
+            <li layout horizontal main-justified><span class="descriptor"><%= legend_pressure %></span><span><span id="pressure-psi"></span> <%= ui_psi %></span></li>
+        </ul>
+        <ul class="data-pane info-card dash-note-card">
+            <li class="heading">
+                <div class="info-title">
+                    <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-file-text"/></svg></span>
+                    <strong><%= ui_notes %></strong>
+                    <button type="button" class="btn note-save" id="dash-note-save" disabled><%= ui_save_note %></button>
+                    <span class="note-result" id="dash-note-result" aria-live="polite"></span>
+                </div>
+            </li>
+            <li class="dash-note-body">
+                <textarea id="dash-note" maxlength="1000" spellcheck="false" aria-label="<%= ui_notes %>"></textarea>
+            </li>
+        </ul>
+    </div>
+</div>

@@ -1,0 +1,922 @@
+@import 'import/vars';
+@import 'import/mixins';
+@import 'layout/reset';
+@import 'layout/typo';
+@import 'layout/layout';
+@import 'layout/base';
+@import 'ui-elements/buttons';
+@import 'ui-elements/card';
+@import 'ui-elements/modal';
+@import 'ui-elements/select';
+@import 'ui-elements/switch';
+
+/* ==========================================================================
+   Hydrometer setup page (gravity.htm / gravity_e32.htm)
+   style-gravity.css is also loaded by scale.htm, so every rule below is
+   scoped to .gravity-page and nothing global is redefined here.
+   ========================================================================== */
+
+.gravity-page {
+    display: grid;
+    gap: 16px;
+    padding: 20px;
+    align-content: start;
+    min-width: 0;
+}
+
+.gravity-page h1,
+.gravity-page h2,
+.gravity-page h3,
+.gravity-page h4,
+.gravity-page h5,
+.gravity-page h6 {
+    margin: 0;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+/* ---------- card + button skin, scoped ---------- */
+
+.gravity-page .card,
+.gravity-page .modal .card {
+    border-radius: 16px;
+    padding: 14px 16px;
+    box-shadow: none;
+    margin-bottom: 0;
+}
+
+.gravity-page .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: auto;
+    line-height: 1.2;
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: $primary-text-color;
+    font-size: 13px;
+    font-weight: 650;
+    margin-right: 0;
+    text-decoration: none;
+}
+
+.gravity-page .btn:hover {
+    border-color: $primary-color;
+    background: var(--tile);
+}
+
+.gravity-page .btn .ic {
+    width: 16px;
+    height: 16px;
+}
+
+.gravity-page .btn.btn--raised {
+    background: $primary-color;
+    border-color: $primary-color;
+    color: $primary-color-text;
+}
+
+.gravity-page .btn.btn--raised:hover {
+    background: $primary-color-dark;
+    border-color: $primary-color-dark;
+}
+
+.gravity-page .btn.sm {
+    padding: 5px 11px;
+    font-size: 12px;
+    border-radius: 9px;
+}
+
+.gravity-page .btn.sm .ic {
+    width: 14px;
+    height: 14px;
+}
+
+.gravity-page .btn[disabled] {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+/* ---------- page head ---------- */
+
+.g-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.g-head-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1 1 240px;
+    min-width: 0;
+}
+
+.g-head-title h1 {
+    font-size: 20px;
+}
+
+.g-head-tools {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.g-sub {
+    font-size: 12px;
+    font-weight: 500;
+    color: $secondary-text-color;
+}
+
+.g-k {
+    font-size: 12px;
+    font-weight: 650;
+    color: $secondary-text-color;
+}
+
+.g-hint {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: $secondary-text-color;
+}
+
+.g-hint.is-warn {
+    color: #b42318;
+    font-weight: 650;
+}
+
+/* ---------- chips ---------- */
+
+.g-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 650;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--tile);
+    border: 1px solid var(--line);
+    color: $secondary-text-color;
+    white-space: nowrap;
+}
+
+.g-chip b {
+    color: $primary-text-color;
+    font-weight: 650;
+}
+
+.g-chip .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: $secondary-text-color;
+    flex: none;
+}
+
+.g-chip.is-live {
+    background: $primary-color-light;
+    border-color: transparent;
+    color: $primary-color-dark;
+}
+
+.g-chip.is-live .dot {
+    background: var(--ok);
+    box-shadow: 0 0 0 3px #{'color-mix(in srgb, var(--ok) 18%, transparent)'};
+}
+
+.g-chip.is-ready {
+    background: #{'color-mix(in srgb, var(--accent-2) 18%, var(--card))'};
+    border-color: transparent;
+    color: $primary-color-dark;
+}
+
+.g-chip.is-live.is-ready {
+    background: $primary-color-light;
+}
+
+/* ---------- card head ---------- */
+
+.g-card-head {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    flex-wrap: wrap;
+}
+
+.g-card-head .ttl {
+    flex: 1 1 180px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.g-card-head h2 {
+    font-size: 16px;
+}
+
+.g-body {
+    margin-top: 14px;
+}
+
+/* ---------- form fields ---------- */
+
+.g-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.g-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.g-field > span:first-child {
+    font-size: 12px;
+    font-weight: 600;
+    color: $secondary-text-color;
+}
+
+.g-field.wide {
+    grid-column: 1 / -1;
+}
+
+.gravity-page input[type="text"],
+.gravity-page select {
+    width: 100%;
+    min-height: 36px;
+    padding: 7px 10px;
+    font: inherit;
+    font-size: 13px;
+    color: $primary-text-color;
+    background: var(--tile);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+}
+
+.gravity-page input:focus,
+.gravity-page select:focus {
+    outline: none;
+    border-color: $primary-color;
+    box-shadow: 0 0 0 3px #{'color-mix(in srgb, var(--accent) 16%, transparent)'};
+}
+
+.gravity-page input[disabled] {
+    color: $secondary-text-color;
+    opacity: 1;
+}
+
+.g-mono {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 12px;
+}
+
+/* g-note: a hint that appears under a control (GravityMon warnings) */
+.g-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 12px 0 0;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: #{'color-mix(in srgb, var(--accent-2) 14%, var(--card))'};
+    border: 1px solid #{'color-mix(in srgb, var(--accent-2) 40%, var(--line))'};
+    font-size: 12.5px;
+    color: $primary-text-color;
+}
+
+.g-note[hidden] {
+    display: none;
+}
+
+.g-note .ic {
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+    flex: none;
+    color: $primary-color-dark;
+}
+
+/* separates the correction formula from the filter variables above it */
+.g-sep {
+    border: 0;
+    border-top: 1px solid var(--line);
+    margin: 16px 0 12px;
+}
+
+/* The correction formula is long; a textarea wraps it instead of clipping. */
+.gravity-page textarea {
+    width: 100%;
+    min-height: 36px;
+    padding: 7px 10px;
+    font: inherit;
+    font-size: 13px;
+    color: $primary-text-color;
+    background: var(--tile);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    resize: vertical;
+}
+
+.gravity-page textarea:focus {
+    outline: none;
+    border-color: $primary-color;
+    box-shadow: 0 0 0 3px #{'color-mix(in srgb, var(--accent) 16%, transparent)'};
+}
+
+.g-formula {
+    min-height: 58px;
+    font-size: 12px;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.g-unit {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.g-unit input {
+    flex: 1;
+    min-width: 0;
+}
+
+.g-unit > span {
+    flex: none;
+    font-size: 12px;
+    font-weight: 600;
+    color: $secondary-text-color;
+}
+
+/* ---------- switch ---------- */
+
+.g-sw {
+    position: relative;
+    display: inline-flex;
+    flex: none;
+}
+
+.g-sw input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.g-sw .track {
+    width: 38px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--line);
+    display: block;
+    transition: background .15s ease;
+}
+
+.g-sw .track::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--card);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .2);
+    transition: transform .15s ease;
+}
+
+.g-sw input:checked + .track {
+    background: $primary-color;
+}
+
+.g-sw input:checked + .track::after {
+    transform: translateX(16px);
+}
+
+.g-sw input:focus-visible + .track {
+    box-shadow: 0 0 0 3px #{'color-mix(in srgb, var(--accent) 20%, transparent)'};
+}
+
+.g-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--card);
+}
+
+.g-toggle-row + .g-toggle-row {
+    margin-top: 8px;
+}
+
+.g-toggle-row .txt {
+    flex: 1;
+    min-width: 0;
+}
+
+.g-toggle-row b {
+    display: block;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.g-toggle-row small {
+    display: block;
+    font-size: 12px;
+    color: $secondary-text-color;
+}
+
+/* ---------- layout ---------- */
+
+.g-grid2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    align-items: start;
+}
+
+.g-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+}
+
+/* ---------- last reading ---------- */
+
+.g-readings {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.g-read {
+    background: var(--tile);
+    border-radius: 12px;
+    padding: 9px 11px;
+    min-width: 0;
+}
+
+.g-read span {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: $secondary-text-color;
+}
+
+.g-read b {
+    display: block;
+    font-size: 17px;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.g-read.is-device b {
+    color: $secondary-text-color;
+}
+
+.g-read.is-final b {
+    color: $primary-color;
+}
+
+.g-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    font-size: 12px;
+    color: $secondary-text-color;
+}
+
+.g-meta .ic {
+    width: 14px;
+    height: 14px;
+}
+
+/* ---------- device panes ---------- */
+
+.device-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.device-row .g-field {
+    flex: 1 1 200px;
+}
+
+.device-row .btn {
+    min-height: 36px;
+}
+
+#ispindel-pane,
+#tilt-pane,
+#pill-pane {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    background: var(--tile);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.pane-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.mac {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 12.5px;
+    font-weight: 650;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 2px 8px;
+    word-break: break-all;
+}
+
+/* ---------- calibration ---------- */
+
+.cal-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.cal-row .txt {
+    flex: 1 1 200px;
+    min-width: 0;
+}
+
+.cal-row b {
+    display: block;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.cal-row small {
+    display: block;
+    font-size: 12px;
+    color: $secondary-text-color;
+}
+
+.cal-coeffs {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: var(--tile);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 12px;
+    color: $secondary-text-color;
+    word-break: break-word;
+}
+
+.cal-coeffs:empty {
+    display: none;
+}
+
+/* ---------- save bar ---------- */
+
+.g-save-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.g-save-bar .note {
+    flex: 1 1 200px;
+    font-size: 12px;
+    color: $secondary-text-color;
+}
+
+.g-save-note {
+    font-size: 12px;
+    font-weight: 650;
+    color: var(--ok);
+}
+
+.g-save-note.is-bad {
+    color: var(--danger);
+}
+
+/* ---------- modal ---------- */
+
+.gravity-page .modal,
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, .32);
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    overflow-y: auto;
+}
+
+.gravity-page .modal.open,
+.modal.open {
+    display: flex;
+}
+
+.gravity-page .modal-content,
+.modal-content {
+    position: relative;
+    background: var(--card);
+    border-radius: 16px;
+    padding: 20px;
+    width: min(560px, 100%);
+    margin: auto;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .25);
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+}
+
+.g-modal-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.g-modal-head h2 {
+    font-size: 16px;
+    flex: 1;
+    min-width: 0;
+}
+
+.g-modal-head .badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+}
+
+.g-modal-head .badge .ic {
+    width: 15px;
+    height: 15px;
+}
+
+.g-modal-close {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: $secondary-text-color;
+    cursor: pointer;
+}
+
+.g-modal-close:hover {
+    background: var(--tile);
+    color: $primary-text-color;
+}
+
+.g-modal-close .ic {
+    width: 16px;
+    height: 16px;
+}
+
+.g-modal-foot {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+}
+
+/* calibration point entry */
+
+.cal-inputs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+    gap: 10px;
+    align-items: end;
+}
+
+.cal-inputs .btn {
+    min-height: 36px;
+}
+
+/* "Tilt angle" and "Raw SG" label the same box; tiltcal() shows one of them. */
+.cal-lbl {
+    font-size: 12px;
+    font-weight: 600;
+    color: $secondary-text-color;
+}
+
+.info-rawsg {
+    display: none;
+}
+
+body.is-tilt .info-angle {
+    display: none;
+}
+
+body.is-tilt .info-rawsg {
+    display: inline;
+}
+
+/* calibration point list */
+
+#tiltcalpoints {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 14px;
+}
+
+#tiltcalpoints th {
+    text-align: left;
+    font-size: 12px;
+    font-weight: 650;
+    color: $secondary-text-color;
+    padding: 8px;
+    border-bottom: 1px solid var(--line);
+}
+
+#tiltcalpoints td {
+    padding: 8px;
+    border-bottom: 1px solid var(--line);
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    color: $primary-text-color;
+}
+
+#tiltcalpoints tr:last-child td {
+    border-bottom: 0;
+}
+
+#tiltcalpoints td:first-child {
+    width: 36px;
+}
+
+#tiltcalpoints .delbutton {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--danger);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+#tiltcalpoints .delbutton:hover {
+    border-color: var(--danger);
+    background: #{'color-mix(in srgb, var(--danger) 8%, var(--card))'};
+}
+
+/* device scan list */
+
+#neterror {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 650;
+    color: $secondary-text-color;
+    min-height: 1.2em;
+}
+
+#devseltable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+#devseltable th {
+    text-align: left;
+    font-size: 12px;
+    font-weight: 650;
+    color: $secondary-text-color;
+    padding: 8px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+}
+
+#devseltable td {
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: $primary-text-color;
+}
+
+#devseltable tbody tr {
+    cursor: pointer;
+}
+
+#devseltable tbody tr:hover {
+    background: var(--tile);
+}
+
+#devseltable tbody tr.selected {
+    background: $primary-color-light;
+}
+
+#devseltable tbody tr.selected td {
+    color: $primary-color-dark;
+    font-weight: 650;
+}
+
+#devseltable .did {
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 12px;
+}
+
+/* num.js marks an unusable numeric field this way */
+.num-bad {
+    border-color: var(--danger) !important;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 1080px) {
+    .g-grid2 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 700px) {
+    .gravity-page {
+        padding: 14px;
+    }
+
+    .g-head {
+        align-items: flex-start;
+    }
+
+    .g-head-tools {
+        width: 100%;
+    }
+
+    .g-head-tools .btn {
+        flex: 1 1 auto;
+    }
+
+    .g-fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .g-field.wide {
+        grid-column: auto;
+    }
+
+    .g-readings {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .device-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .device-row .g-field {
+        flex: 0 0 auto;
+    }
+
+    .device-row .btn {
+        width: 100%;
+    }
+
+    .cal-inputs {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .g-save-bar .btn {
+        width: 100%;
+    }
+}

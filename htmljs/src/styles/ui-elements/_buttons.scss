@@ -1,0 +1,50 @@
+/** Buttons **/
+
+.btn {
+	display: inline-block;
+	position: relative;
+	cursor: pointer;
+	height: 35px;
+	line-height: 35px;
+	padding: 0 1.5rem;
+	font-size: 15px;
+	font-weight: 650;
+	letter-spacing: 0;
+	text-align: center;
+	text-transform: none;
+	border-radius: 999px;
+	vertical-align: middle;
+	white-space: nowrap;
+	outline: none;
+	border: none;
+	user-select: none;
+	transition: all .3s ease-out;
+	background-color: transparent;
+	margin-right: 8px;
+
+	&[disabled] {
+		color: $divider-color;
+		&:hover {
+			background-color: transparent;
+			cursor: not-allowed;
+		}
+	}
+}
+
+.btn--raised {
+	background-color: $primary-color;
+	color: $primary-color-text;
+	box-shadow: none;
+	&:hover {
+		background-color: #{'hsl(from var(--accent) h s calc(l - 10%))'};
+	}
+}
+
+.btn--primary {
+	color: $primary-color;
+}
+
+.btn:hover {
+	background-color: hsla(0,0%,60%,.2);
+	cursor: pointer;
+}

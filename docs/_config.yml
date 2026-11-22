@@ -1,0 +1,5 @@
+theme: jekyll-theme-minimal
+title: yeast2tap
+description: A fermentation temperature controller that runs entirely on one ESP32.
+show_downloads: true
+

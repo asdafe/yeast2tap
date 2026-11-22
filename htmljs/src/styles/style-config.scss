@@ -1,0 +1,911 @@
+@import 'import/vars';
+@import 'import/mixins';
+@import 'layout/reset';
+@import 'layout/typo';
+@import 'layout/layout';
+@import 'layout/base';
+@import 'ui-elements/buttons';
+@import 'ui-elements/card';
+@import 'ui-elements/modal';
+@import 'ui-elements/switch';
+
+/* ==========================================================================
+   Settings page
+   Cards and ids are unchanged; only the presentation layer is replaced.
+   Everything is scoped by .cfg-page so the shared layers stay untouched.
+   ========================================================================== */
+
+.cfg-page {
+    display: grid;
+    gap: 16px;
+    padding: 20px;
+    align-content: start;
+    min-width: 0;
+}
+
+.cfg-page h1,
+.cfg-page h2,
+.cfg-page h3,
+.cfg-page h4,
+.cfg-page h5,
+.cfg-page h6 {
+    margin: 0;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+/* ---------- card + button skin, scoped ---------- */
+
+.cfg-page .card,
+.modal .card {
+    border-radius: 16px;
+    padding: 14px 16px;
+    box-shadow: none;
+    margin-bottom: 0;
+}
+
+.cfg-page .btn,
+.modal .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: auto;
+    line-height: 1.2;
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: $primary-text-color;
+    font-size: 13px;
+    font-weight: 650;
+    margin-right: 0;
+    text-decoration: none;
+}
+
+.cfg-page .btn:hover,
+.modal .btn:hover {
+    border-color: $primary-color;
+    background: var(--tile);
+}
+
+.cfg-page .btn .ic,
+.modal .btn .ic {
+    width: 16px;
+    height: 16px;
+}
+
+.cfg-page .btn.btn--raised,
+.modal .btn.btn--raised {
+    background: $primary-color;
+    border-color: $primary-color;
+    color: $primary-color-text;
+}
+
+.cfg-page .btn.btn--raised:hover,
+.modal .btn.btn--raised:hover {
+    background: $primary-color-dark;
+    border-color: $primary-color-dark;
+}
+
+.cfg-page .btn.sm,
+.modal .btn.sm {
+    padding: 5px 11px;
+    font-size: 12px;
+    border-radius: 9px;
+}
+
+.cfg-page .btn.sm .ic,
+.modal .btn.sm .ic {
+    width: 14px;
+    height: 14px;
+}
+
+/* ---------- page head ---------- */
+
+.cfg-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.cfg-head-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1 1 240px;
+    min-width: 0;
+}
+
+.cfg-head-title h1 {
+    font-size: 20px;
+}
+
+.cfg-head-tools {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.cfg-sub {
+    font-size: 12px;
+    font-weight: 500;
+    color: $secondary-text-color;
+}
+
+.cfg-hint {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: $secondary-text-color;
+}
+
+/* ---------- card head ---------- */
+
+.cfg-card-head {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    flex-wrap: wrap;
+}
+
+.cfg-card-head .ttl {
+    flex: 1 1 180px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.cfg-card-head h2 {
+    font-size: 16px;
+}
+
+.cfg-body {
+    margin-top: 14px;
+}
+
+/* ---------- layout ---------- */
+
+.cfg-grid2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    align-items: start;
+    margin-top: 16px;
+}
+
+.cfg-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+}
+
+/* ---------- form fields ---------- */
+
+.cfg-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.cfg-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.cfg-field > span:first-child {
+    font-size: 12px;
+    font-weight: 600;
+    color: $secondary-text-color;
+}
+
+.cfg-field.wide {
+    grid-column: 1 / -1;
+}
+
+.cfg-page input[type="text"],
+.cfg-page input[type="password"],
+.cfg-page select,
+.modal input[type="text"],
+.modal input[type="password"],
+.modal select {
+    width: 100%;
+    min-height: 36px;
+    padding: 7px 10px;
+    font: inherit;
+    font-size: 13px;
+    color: $primary-text-color;
+    background: var(--tile);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+}
+
+.cfg-page input:focus,
+.cfg-page select:focus,
+.modal input:focus,
+.modal select:focus {
+    outline: none;
+    border-color: $primary-color;
+    box-shadow: 0 0 0 3px #{'color-mix(in srgb, var(--accent) 16%, transparent)'};
+}
+
+.cfg-page input[readonly],
+.modal input[readonly] {
+    color: $secondary-text-color;
+}
+
+.modal input[type="file"] {
+    width: 100%;
+    font: inherit;
+    font-size: 12.5px;
+    color: $secondary-text-color;
+    padding: 7px 10px;
+    background: var(--tile);
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.modal input[type="file"]::file-selector-button {
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 650;
+    color: $primary-text-color;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 4px 10px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.cfg-unit {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cfg-unit input {
+    flex: 1;
+    min-width: 0;
+}
+
+.cfg-unit > span {
+    flex: none;
+    font-size: 12px;
+    font-weight: 600;
+    color: $secondary-text-color;
+}
+
+/* password field with reveal button */
+
+.cfg-pwd {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cfg-pwd input {
+    flex: 1;
+    min-width: 0;
+    padding-right: 40px;
+}
+
+.cfg-pwd .pwd-toggle {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: $secondary-text-color;
+    cursor: pointer;
+}
+
+.cfg-pwd .pwd-toggle:hover {
+    background: var(--card);
+    color: $primary-color;
+}
+
+.cfg-pwd .pwd-toggle .ic {
+    width: 16px;
+    height: 16px;
+}
+
+.cfg-pwd .pwd-toggle[aria-pressed="true"] {
+    color: $primary-color;
+}
+
+/* ---------- switch ---------- */
+
+.cfg-sw {
+    position: relative;
+    display: inline-flex;
+    flex: none;
+}
+
+.cfg-sw input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.cfg-sw .track {
+    width: 38px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--line);
+    display: block;
+    transition: background .15s ease;
+}
+
+.cfg-sw .track::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--card);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .2);
+    transition: transform .15s ease;
+}
+
+.cfg-sw input:checked + .track {
+    background: $primary-color;
+}
+
+.cfg-sw input:checked + .track::after {
+    transform: translateX(16px);
+}
+
+.cfg-sw input:focus-visible + .track {
+    box-shadow: 0 0 0 3px #{'color-mix(in srgb, var(--accent) 20%, transparent)'};
+}
+
+.cfg-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--card);
+}
+
+.cfg-toggle-row .txt {
+    flex: 1;
+    min-width: 0;
+}
+
+.cfg-toggle-row b {
+    display: block;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.cfg-toggle-row small {
+    display: block;
+    font-size: 12px;
+    color: $secondary-text-color;
+}
+
+/* AP password box, revealed by the "Enable AP password" switch */
+.cfg-ap-pass {
+    margin-top: 10px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--tile);
+}
+
+.cfg-ap-pass .cfg-field > span:first-child {
+    font-size: 12px;
+    font-weight: 600;
+    color: $secondary-text-color;
+}
+
+.cfg-ap-pass .g-hint {
+    font-size: 11.5px;
+    color: $secondary-text-color;
+}
+
+.cfg-ap-warn {
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: 650;
+    color: var(--danger);
+}
+
+.cfg-ap-warn:empty {
+    display: none;
+}
+
+/* ---------- segmented control ---------- */
+
+.cfg-page .seg,
+.cfg-seg {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: var(--tile);
+    border-radius: 12px;
+    width: 100%;
+    min-width: 0;
+}
+
+.cfg-page .seg label,
+.cfg-seg label {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 6px 12px;
+    border-radius: 9px;
+    color: $secondary-text-color;
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.cfg-page .seg input,
+.cfg-seg input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.cfg-page .seg input:checked + label,
+.cfg-seg input:checked + label {
+    background: var(--card);
+    color: $primary-color-dark;
+    box-shadow: inset 0 0 0 1px var(--line);
+}
+
+/* ---------- connected SSID button ---------- */
+
+#connnected-ssid {
+    justify-content: flex-start;
+    min-height: 36px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cfg-value {
+    display: flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 7px 10px;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: $secondary-text-color;
+    background: var(--tile);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ---------- save bar ---------- */
+
+.cfg-save-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.cfg-save-hint {
+    flex: 1 1 200px;
+    font-size: 12px;
+    color: $secondary-text-color;
+}
+
+.cfg-save-note {
+    font-size: 12px;
+    font-weight: 650;
+    color: var(--ok);
+}
+
+.cfg-save-note.is-bad {
+    color: var(--danger);
+}
+
+/* ---------- modal ---------- */
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, .32);
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    overflow-y: auto;
+}
+
+.modal-content {
+    position: relative;
+    background: var(--card);
+    border-radius: 16px;
+    padding: 20px;
+    width: min(520px, 100%);
+    margin: auto;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .25);
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+}
+
+.modal-content.wide {
+    width: min(760px, 100%);
+}
+
+.cfg-modal-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.cfg-modal-head h2 {
+    font-size: 16px;
+    flex: 1;
+    min-width: 0;
+}
+
+.cfg-modal-head .badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+}
+
+.cfg-modal-head .badge .ic {
+    width: 15px;
+    height: 15px;
+}
+
+.cfg-modal-close {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: $secondary-text-color;
+    cursor: pointer;
+}
+
+.cfg-modal-close:hover {
+    background: var(--tile);
+    color: $primary-text-color;
+}
+
+.cfg-modal-close .ic {
+    width: 16px;
+    height: 16px;
+}
+
+.cfg-modal-foot {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+}
+
+.cfg-modal-foot .adv-result {
+    margin-right: auto;
+}
+
+/* ---------- definition rows ---------- */
+
+.cfg-defs {
+    display: grid;
+    gap: 2px;
+}
+
+.cfg-defs .def {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 10px;
+    border-radius: 9px;
+}
+
+.cfg-defs .def:nth-child(odd) {
+    background: var(--tile);
+}
+
+.cfg-defs .def span:first-child {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: $secondary-text-color;
+}
+
+.cfg-defs .def span:last-child {
+    font-size: 13px;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.cfg-defs .def.code span:last-child {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 12px;
+}
+
+/* backup status chips: backup.js writes the label into these spans */
+
+.cfg-status {
+    font-size: 11.5px;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 2px 9px;
+    background: var(--tile);
+    border: 1px solid var(--line);
+    color: $secondary-text-color;
+    white-space: nowrap;
+}
+
+.cfg-status:empty {
+    display: none;
+}
+
+/* ---------- network selection ---------- */
+
+#networks {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.nwlist {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 11px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--card);
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.nwlist:hover {
+    border-color: $primary-color;
+    background: var(--tile);
+}
+
+.nwlist .ssid {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 650;
+    color: $primary-text-color;
+}
+
+.nwlist .scannednetwork {
+    flex: none;
+    font-size: 11.5px;
+    font-weight: 650;
+    color: $secondary-text-color;
+}
+
+/* encrypted marker keeps the little lock from the old stylesheet */
+.nwlist .scannednetwork.l {
+    padding-left: 14px;
+    background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAALVBMVEX///8EBwfBwsLw8PAzNjaCg4NTVVUjJiZDRUUUFxdiZGSho6OSk5Pg4eFydHTCjaf3AAAAZElEQVQ4je2NSw7AIAhEBamKn97/uMXEGBvozkWb9C2Zx4xzWykBhFAeYp9gkLyZE0zIMno9n4g19hmdY39scwqVkOXaxph0ZCXQcqxSpgQpONa59wkRDOL93eAXvimwlbPbwwVAegLS1HGfZAAAAABJRU5ErkJggg==") no-repeat left center;
+    background-size: 1em;
+}
+
+#networkselection {
+    text-align: left;
+}
+
+.cfg-net-tools {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 10px 0 6px;
+}
+
+.cfg-static-label {
+    margin: 12px 0 6px;
+}
+
+.cfg-wait {
+    margin: 0;
+    font-size: 13px;
+}
+
+.cfg-restore {
+    margin-top: 16px;
+}
+
+/* ---------- advanced ---------- */
+
+.cfg-adv-sec {
+    margin-top: 14px;
+}
+
+.cfg-adv-sec:first-of-type {
+    margin-top: 0;
+}
+
+.cfg-adv-sec h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.cfg-adv-sec h3::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+}
+
+.cfg-adv-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.adv-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.adv-field > span:first-child {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: $secondary-text-color;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.adv-field .cfg-unit > span {
+    font-family: inherit;
+}
+
+.cfg-warnbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 16px;
+    padding: 11px 12px;
+    border-radius: 12px;
+    background: #{'color-mix(in srgb, var(--accent-2) 14%, var(--card))'};
+    border: 1px solid #{'color-mix(in srgb, var(--accent-2) 42%, var(--line))'};
+    font-size: 12.5px;
+}
+
+.cfg-warnbox .ic {
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+    color: $primary-color-dark;
+}
+
+.cfg-warnbox label {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.cfg-warnbox input {
+    margin-top: 2px;
+}
+
+.adv-result {
+    font-size: 12.5px;
+    font-weight: 650;
+}
+
+.adv-result.is-ok {
+    color: var(--ok);
+}
+
+.adv-result.is-bad {
+    color: var(--danger);
+}
+
+/* num.js marks invalid numeric fields with this class */
+.num-bad {
+    border-color: var(--danger) !important;
+}
+
+#waitprompt {
+    display: none;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 1080px) {
+    .cfg-grid2 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 700px) {
+    .cfg-page {
+        padding: 14px;
+    }
+
+    .cfg-head {
+        align-items: flex-start;
+    }
+
+    .cfg-head-tools {
+        width: 100%;
+    }
+
+    .cfg-head-tools .btn {
+        flex: 1 1 auto;
+    }
+
+    .cfg-fields,
+    .cfg-adv-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cfg-field.wide {
+        grid-column: auto;
+    }
+
+    .cfg-defs .def {
+        flex-wrap: wrap;
+    }
+
+    .cfg-defs .def span:last-child {
+        text-align: left;
+    }
+
+    .cfg-save-bar .btn {
+        width: 100%;
+    }
+
+    .modal {
+        padding: 10px;
+    }
+}

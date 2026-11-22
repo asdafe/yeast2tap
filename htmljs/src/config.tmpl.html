@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+
+<html lang="<%= page_lang %>">
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- build:include partials/theme-init.html -->
+    <!-- /build -->
+    <title>
+        <%= config_page_title %>
+    </title>
+    <meta name="apple-mobile-web-app-title" content="yeast2tap">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <script type="text/javascript" src="/bwf.js" ignore></script>
+    <script type="text/javascript" src="/shared.js" ignore></script>
+    <script type="text/javascript" src="/num.js" ignore></script>
+    <script type="text/javascript" src="js/backup.js"></script>
+    <script type="text/javascript" src="js/script-config.js"></script>
+    <link rel="stylesheet" href="style-config.css">
+</head>
+
+<body onload="load();">
+
+        <!-- build:include partials/icons-nav.html -->
+    <!-- /build -->
+    <!-- icons used only by this page; kept here so other pages stay small -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+        <symbol id="i-cfg-monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></symbol>
+        <symbol id="i-cfg-wifi" viewBox="0 0 24 24"><path d="M12 20h.01"/><path d="M2 8.82a15 15 0 0 1 20 0"/><path d="M5 12.86a10 10 0 0 1 14 0"/><path d="M8.5 16.43a5 5 0 0 1 7 0"/></symbol>
+        <symbol id="i-cfg-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+        <symbol id="i-cfg-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
+        <symbol id="i-cfg-tag" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></symbol>
+        <symbol id="i-cfg-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></symbol>
+        <symbol id="i-cfg-eye-off" viewBox="0 0 24 24"><path d="M10.7 5.1A10.9 10.9 0 0 1 12 5c6.4 0 10 7 10 7a18 18 0 0 1-2.2 3.1"/><path d="M6.6 6.6A18 18 0 0 0 2 12s3.6 7 10 7a10.9 10.9 0 0 0 5.4-1.4"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="m2 2 20 20"/></symbol>
+        <symbol id="i-cfg-sliders" viewBox="0 0 24 24"><path d="M10 8h4"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M17 16h4"/><path d="M19 12V3"/><path d="M19 21v-5"/><path d="M3 14h4"/><path d="M5 10V3"/><path d="M5 21v-7"/></symbol>
+        <symbol id="i-cfg-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol>
+        <symbol id="i-cfg-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+        <symbol id="i-cfg-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></symbol>
+        <symbol id="i-cfg-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+        <symbol id="i-cfg-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol>
+        <symbol id="i-cfg-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></symbol>
+        <symbol id="i-cfg-warn" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+    </svg>
+<!-- build:include partials/header.html -->
+    <!-- /build -->
+
+    <div viewport id="inputform" class="cfg-page">
+
+        <form id="sysconfig" action="/setconfig" method="post" onsubmit="return false;">
+
+            <section class="card cfg-head">
+                <div class="cfg-head-title">
+                    <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-settings"/></svg></span>
+                    <div>
+                        <h1><%= config_page_title %></h1>
+                        <div class="cfg-sub"><%= config_page_sub %></div>
+                    </div>
+                </div>
+                <div class="cfg-head-tools">
+                    <button class="btn" type="button" onclick="showsysinfo(); return false;">
+                        <svg class="ic"><use href="#i-cfg-info"/></svg><%= config_sysinfo %>
+                    </button>
+                    <button class="btn" type="button" onclick="Backup.init(),Q('#backup-diag').style.display = 'block'; return false;">
+                        <svg class="ic"><use href="#i-cfg-download"/></svg><%= config_backup %>
+                    </button>
+                    <button class="btn" type="button" onclick="showAdvanced(); return false;">
+                        <svg class="ic"><use href="#i-cfg-sliders"/></svg><%= config_advanced %>
+                    </button>
+                    <button class="btn btn--raised" type="submit" id="submitsave" name="submit">
+                        <svg class="ic"><use href="#i-cfg-save"/></svg><%= config_save_changes %>
+                    </button>
+                </div>
+            </section>
+
+            <div class="cfg-grid2">
+                <div class="cfg-stack">
+
+                    <section class="card">
+                        <header class="cfg-card-head">
+                            <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-cfg-monitor"/></svg></span>
+                            <div class="ttl">
+                                <h2><%= config_sec_display %></h2>
+                                <span class="cfg-sub"><%= config_sec_display_sub %></span>
+                            </div>
+                        </header>
+                        <div class="cfg-body">
+                            <div class="cfg-fields">
+                                <label class="cfg-field">
+                                    <span><%= config_lcd_auto_off %></span>
+                                    <span class="cfg-unit"><input name="aoff" type="text" maxlength="5" class="nb num"><span><%= config_seconds %></span></span>
+                                </label>
+                                <label class="cfg-field">
+                                    <span><%= config_lcd_display %></span>
+                                    <select id="display" name="dis" class="nb">
+                                        <option value=0><%= config_lcd_rotate %></option>
+                                        <option value=1><%= config_lcd_brewpi %></option>
+                                        <option value=2><%= config_lcd_additional %></option>
+                                        <option value=3><%= cfg_lcd_animation %></option>
+                                    </select>
+                                </label>
+                            </div>
+                            <div class="cfg-toggle-row">
+                                <div class="txt">
+                                    <b><%= cfg_glycol_chilling %></b>
+                                    <small><%= config_glycol_hint %></small>
+                                </div>
+                                <span class="cfg-sw"><input type="checkbox" id="glycol" name="glycol" aria-label="<%= cfg_glycol_chilling %>"><span class="track"></span></span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <header class="cfg-card-head">
+                            <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-cfg-tag"/></svg></span>
+                            <div class="ttl">
+                                <h2><%= config_sec_identity %></h2>
+                                <span class="cfg-sub"><%= config_identity_sub %></span>
+                            </div>
+                        </header>
+                        <div class="cfg-body">
+                            <div class="cfg-fields">
+                                <label class="cfg-field">
+                                    <span><%= config_title %></span>
+                                    <input name="title" type="text" maxlength="24">
+                                </label>
+                                <label class="cfg-field">
+                                    <span><%= config_host_network_name %></span>
+                                    <input name="name" type="text" maxlength="16">
+                                </label>
+                                <label class="cfg-field">
+                                    <span><%= config_http_port %></span>
+                                    <input name="port" type="text" maxlength="5" class="nb num">
+                                </label>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <header class="cfg-card-head">
+                            <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-cfg-lock"/></svg></span>
+                            <div class="ttl">
+                                <h2><%= config_sec_access %></h2>
+                                <span class="cfg-sub"><%= config_sec_access_sub %></span>
+                            </div>
+                        </header>
+                        <div class="cfg-body">
+                            <div class="cfg-fields">
+                                <label class="cfg-field">
+                                    <span><%= config_username %></span>
+                                    <input name="user" type="text" maxlength="16" autocomplete="username">
+                                </label>
+                                <label class="cfg-field">
+                                    <span><%= config_password %></span>
+                                    <span class="cfg-pwd">
+                                        <input name="pass" type="password" maxlength="16" autocomplete="current-password">
+                                        <button class="pwd-toggle" type="button" onclick="togglePwd(this)" title="<%= config_show_password %>" aria-label="<%= config_show_password %>" aria-pressed="false">
+                                            <svg class="ic"><use href="#i-cfg-eye"/></svg>
+                                        </button>
+                                    </span>
+                                </label>
+                            </div>
+                            <div class="cfg-toggle-row">
+                                <div class="txt">
+                                    <b><%= config_always_password %></b>
+                                    <small><%= config_protect_hint %></small>
+                                </div>
+                                <span class="cfg-sw"><input type="checkbox" id="protect" name="protect" aria-label="<%= config_always_password %>"><span class="track"></span></span>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+
+                <div class="cfg-stack">
+
+                    <section class="card">
+                        <header class="cfg-card-head">
+                            <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-cfg-wifi"/></svg></span>
+                            <div class="ttl">
+                                <h2><%= config_sec_network %></h2>
+                                <span class="cfg-sub"><%= config_sec_network_sub %></span>
+                            </div>
+                        </header>
+                        <div class="cfg-body">
+                            <div class="cfg-fields">
+                                <label class="cfg-field">
+                                    <span><%= config_network_mode %></span>
+                                    <select name="wifi">
+                                        <option value="1"><%= config_station %></option>
+                                        <option value="2"><%= config_ap %></option>
+                                        <option value="3"><%= config_stationap %></option>
+                                    </select>
+                                </label>
+                                <div class="cfg-field">
+                                    <span><%= config_network %></span>
+                                    <button id="connnected-ssid" class="btn cfg-ssid" type="button" onclick="Net.show();return false;">...</button>
+                                </div>
+                                <div class="cfg-field">
+                                    <span><%= config_ip %></span>
+                                    <span class="cfg-value" id="sta-ip"></span>
+                                </div>
+                            </div>
+                            <div class="cfg-toggle-row">
+                                <div class="txt">
+                                    <b><%= config_ap_password %></b>
+                                    <small><%= config_eap_hint %></small>
+                                </div>
+                                <span class="cfg-sw"><input type="checkbox" id="eap" name="eap" aria-label="<%= config_ap_password %>"><span class="track"></span></span>
+                            </div>
+                            <div class="cfg-ap-pass" id="ap-pass-row" hidden>
+                                <label class="cfg-field wide">
+                                    <span><%= config_ap_password_label %></span>
+                                    <span class="cfg-pwd">
+                                        <input type="password" name="appass" id="ap-pass" maxlength="32" autocomplete="new-password">
+                                        <button class="pwd-toggle" type="button" onclick="togglePwd(this)" title="<%= config_show_password %>" aria-label="<%= config_show_password %>" aria-pressed="false">
+                                            <svg class="ic"><use href="#i-cfg-eye"/></svg>
+                                        </button>
+                                    </span>
+                                    <span class="g-hint"><%= config_ap_password_hint %></span>
+                                    <span class="cfg-ap-warn" id="ap-pass-warn" hidden><%= config_ap_password_short %></span>
+                                </label>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <header class="cfg-card-head">
+                            <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-cfg-globe"/></svg></span>
+                            <div class="ttl">
+                                <h2><%= cfg_duckdns %></h2>
+                                <span class="cfg-sub"><%= config_sec_duckdns_sub %></span>
+                            </div>
+                            <span class="cfg-sw"><input type="checkbox" id="duckdnsEnabled" name="duckdnsEnabled" aria-label="<%= cfg_duckdns %>"><span class="track"></span></span>
+                        </header>
+                        <div class="cfg-body">
+                            <div class="cfg-fields">
+                                <label class="cfg-field wide">
+                                    <span><%= setup_address %></span>
+                                    <input name="duckdnsDomain" type="text" maxlength="63" placeholder="<%= cfg_duckdns_address_placeholder %>">
+                                </label>
+                                <label class="cfg-field">
+                                    <span><%= cfg_duckdns_token %></span>
+                                    <span class="cfg-pwd">
+                                        <input name="duckdnsToken" type="password" maxlength="63">
+                                        <button class="pwd-toggle" type="button" onclick="togglePwd(this)" title="<%= config_show_password %>" aria-label="<%= config_show_password %>" aria-pressed="false">
+                                            <svg class="ic"><use href="#i-cfg-eye"/></svg>
+                                        </button>
+                                    </span>
+                                </label>
+                                <label class="cfg-field">
+                                    <span><%= config_duckdns_interval %></span>
+                                    <span class="cfg-unit"><input name="duckdnsInterval" type="text" inputmode="decimal" class="num" min="1" max="1440" maxlength="5"><span><%= config_minutes %></span></span>
+                                </label>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="card" id="pressure-nav-card">
+                        <header class="cfg-card-head">
+                            <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-gauge"/></svg></span>
+                            <div class="ttl">
+                                <h2><%= config_pressure_page %></h2>
+                                <span class="cfg-sub"><%= config_pressure_sub %></span>
+                            </div>
+                        </header>
+                        <div class="cfg-body">
+                            <div class="seg" role="radiogroup" aria-label="<%= config_pressure_page %>">
+                                <input type="radio" name="pressureNav" id="pressure-nav-off" value="0" checked data-nosave>
+                                <label for="pressure-nav-off"><%= control_off %></label>
+                                <input type="radio" name="pressureNav" id="pressure-nav-on" value="1" data-nosave>
+                                <label for="pressure-nav-on"><%= cfg_on %></label>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <div class="cfg-save-bar">
+                            <span class="cfg-save-note" aria-live="polite"></span>
+                            <span class="cfg-save-hint"><%= config_restart_hint %></span>
+                            <button class="btn btn--raised" type="submit">
+                                <svg class="ic"><use href="#i-cfg-save"/></svg><%= config_save_changes %>
+                            </button>
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- network selection -->
+    <div id="networkselection" class="modal">
+        <div class="modal-content">
+            <div class="cfg-modal-head">
+                <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-cfg-wifi"/></svg></span>
+                <h2><%= config_network_selection %></h2>
+                <button class="cfg-modal-close" type="button" onclick="Net.hide();return false;" aria-label="<%= dlg_cancel %>"><svg class="ic"><use href="#i-cfg-x"/></svg></button>
+            </div>
+
+            <div id="networks"></div>
+            <div class="nwlist"><a href="#" onclick="Net.select(this)" class="ssid"><%= cfg_net_item %></a><%= cfg_nbsp %><span class="scannednetwork"></span></div>
+
+            <div class="cfg-net-tools">
+                <button class="btn sm" type="button" onclick="return Net.scan();"><svg class="ic"><use href="#i-cfg-refresh"/></svg><%= config_scan %></button>
+                <span class="cfg-hint"><%= config_scan_hint %></span>
+            </div>
+
+            <form method="get" action="#" onsubmit="return false;">
+                <div class="cfg-fields">
+                    <label class="cfg-field">
+                        <span><%= cfg_ssid %></span>
+                        <input id="ssid" name="ssid" maxlength="32" placeholder="<%= cfg_ssid %>">
+                    </label>
+                    <label class="cfg-field">
+                        <span><%= config_password %></span>
+                        <input id="nwpass" name="nwpass" length="64" type="password" placeholder="<%= config_password %>">
+                    </label>
+                </div>
+                <p class="cfg-hint cfg-static-label"><%= config_static_ip_hint %></p>
+                <div class="cfg-fields">
+                    <label class="cfg-field"><span><%= config_fixedip %></span><input id="staticip" name="ip" class="nb iptype" inputmode="decimal"></label>
+                    <label class="cfg-field"><span><%= config_gateway %></span><input id="gateway" name="gw" class="nb iptype" inputmode="decimal"></label>
+                    <label class="cfg-field"><span><%= config_netmask %></span><input id="netmask" name="mask" class="nb iptype" inputmode="decimal"></label>
+                    <label class="cfg-field"><span><%= config_dns %></span><input id="dns" name="dns" class="nb iptype" inputmode="decimal"></label>
+                </div>
+                <div class="cfg-modal-foot">
+                    <button class="btn" type="button" onclick="Net.hide();return false;"><%= dlg_cancel %></button>
+                    <button class="btn btn--raised" type="button" onclick="return savewifi()"><%= config_save_change %></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- build:include partials/footer.html -->
+    <!-- /build -->
+
+    <div id="waitprompt" class="modal">
+        <div class="modal-content">
+            <div class="cfg-modal-head">
+                <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-cfg-refresh"/></svg></span>
+                <h2><%= config_restarting %></h2>
+            </div>
+            <p class="cfg-wait"><%= config_wait_restart %></p>
+        </div>
+    </div>
+
+    <div id="sysinfo" class="modal">
+        <div class="modal-content">
+            <div class="cfg-modal-head">
+                <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-cfg-info"/></svg></span>
+                <h2><%= config_sysinfo %></h2>
+                <button class="cfg-modal-close" type="button" onclick="hidesysinfo();return false;" aria-label="<%= dlg_cancel %>"><svg class="ic"><use href="#i-cfg-x"/></svg></button>
+            </div>
+            <div class="cfg-defs">
+                <div class="def code"><span><%= cfg_si_mac %></span><span id="mac-address"></span></div>
+                <div class="def code"><span><%= cfg_si_flash_id %></span><span id="flash-id"></span></div>
+                <div class="def"><span><%= cfg_si_real_flash %></span><span id="real-flash-size"></span></div>
+                <div class="def"><span><%= cfg_si_specified_flash %></span><span id="specified-flash-size"></span></div>
+                <div class="def"><span><%= cfg_si_fs_size %></span><span id="fs-size"></span></div>
+                <div class="def"><span><%= cfg_si_fw_size %></span><span id="fw-size">--</span></div>
+                <div class="def"><span><%= cfg_si_app_slot %></span><span id="app-slot">--</span></div>
+                <div class="def"><span><%= cfg_si_app_free %></span><span id="app-free">--</span></div>
+                <div class="def"><span><%= cfg_si_ota_slot %></span><span id="ota-slot">--</span></div>
+                <div class="def"><span><%= cfg_si_partition %></span><span id="app-name">--</span></div>
+                <div class="def"><span><%= cfg_si_build_time %></span><span id="build-time">--</span></div>
+            </div>
+            <div class="cfg-modal-foot">
+                <button class="btn btn--raised" type="button" onclick="hidesysinfo();return false;"><%= done %></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="backup-diag" class="modal">
+        <div class="modal-content">
+            <div class="cfg-modal-head">
+                <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-cfg-download"/></svg></span>
+                <h2><%= config_backup_restore %></h2>
+                <button class="cfg-modal-close" type="button" onclick=" Q('#backup-diag').style.display = 'none';return false" aria-label="<%= dlg_cancel %>"><svg class="ic"><use href="#i-cfg-x"/></svg></button>
+            </div>
+            <div class="cfg-defs">
+                <div class="def"><span><%= config_backup_time %></span><span id="backuptime"></span></div>
+                <div class="def"><span><%= menu2_setup %></span><span class="cfg-status device-status"></span></div>
+                <div class="def"><span><%= menu2_gravity %></span><span class="cfg-status gdc-status"></span></div>
+                <div class="def"><span><%= menu2_logs %></span><span class="cfg-status rlog-status"></span></div>
+                <div class="def"><span><%= menu2_pressure %></span><span class="cfg-status pressure-status"></span></div>
+                <div class="def"><span><%= cfg_mqtt %></span><span class="cfg-status mqtt-status"></span></div>
+                <div class="def"><span><%= menu2_config %></span><span class="cfg-status syscfg-status"></span></div>
+                <div class="def"><span><%= cfg_bk_control_constants %></span><span class="cfg-status cc-status"></span></div>
+                <div class="def"><span><%= cfg_bk_control_modes %></span><span class="cfg-status cs-status"></span></div>
+                <div class="def"><span><%= cfg_bk_scale %></span><span class="cfg-status scale-status"></span></div>
+                <div class="def"><span><%= cfg_bk_parasite %></span><span class="cfg-status ptc-status"></span></div>
+                <div class="def"><span><%= cfg_bk_humidity %></span><span class="cfg-status rh-status"></span></div>
+                <div class="def"><span><%= cfg_bk_beer_profile %></span><span class="cfg-status profile-status"></span></div>
+                <div class="def"><span><%= cfg_bk_notes %></span><span class="cfg-status notes-status"></span></div>
+                <div class="def"><span><%= cfg_bk_timezone %></span><span class="cfg-status time-status"></span></div>
+                <div class="def"><span><%= cfg_bk_cap %></span><span class="cfg-status cap-status"></span></div>
+            </div>
+
+            <label class="cfg-field cfg-restore">
+                <span><%= confg_restore_from %></span>
+                <input type="file" id="backupfile">
+            </label>
+
+            <div class="cfg-modal-foot">
+                <button class="btn" type="button" onclick=" Q('#backup-diag').style.display = 'none';return false"><%= dlg_cancel %></button>
+                <button class="btn" type="button" onclick="Backup.restore();return false"><svg class="ic"><use href="#i-cfg-upload"/></svg><%= config_restore %></button>
+                <button class="btn btn--raised" type="button" onclick="Backup.save();return false"><svg class="ic"><use href="#i-cfg-download"/></svg><%= config_save %></button>
+            </div>
+
+            <div class="modal" id="processing">
+                <div class="modal-content hint" id="hint_get"><%= config_getting %></div>
+                <div class="modal-content hint" id="hint_put"><%= config_putting %></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="advanced" class="modal">
+        <div class="modal-content wide">
+            <div class="cfg-modal-head">
+                <span class="badge" aria-hidden="true"><svg class="ic"><use href="#i-cfg-sliders"/></svg></span>
+                <h2><%= config_advanced %></h2>
+                <button class="cfg-modal-close" type="button" onclick="hideAdvanced();" aria-label="<%= dlg_cancel %>"><svg class="ic"><use href="#i-cfg-x"/></svg></button>
+            </div>
+
+            <div class="cfg-adv-sec">
+                <h3><%= cfg_adv_units_limits %></h3>
+                <div class="cfg-adv-grid">
+                    <label class="adv-field"><span><%= cfg_tempformat %></span><select id=tempFormat name=tempFormat><option value="C"> <%= cfg_deg_c %></option><option value="F"> <%= cfg_deg_f %> </option></select></label>
+                    <label class="adv-field"><span><%= cfg_tempsetmin %></span><span class="cfg-unit"><input type="text" inputmode="decimal" class="num" id="tempSetMin" step="0.001"><%= cfg_deg %></span></label>
+                    <label class="adv-field"><span><%= cfg_tempsetmax %></span><span class="cfg-unit"><input type="text" inputmode="decimal" class="num" id="tempSetMax" step="0.001"><%= cfg_deg %></span></label>
+                    <label class="adv-field"><span><%= cfg_pidmax %></span><span class="cfg-unit"><input type="text" inputmode="decimal" class="num" id="pidMax" step="0.001"><%= cfg_deg %></span></label>
+                </div>
+            </div>
+
+            <div class="cfg-adv-sec">
+                <h3><%= cfg_pid %></h3>
+                <div class="cfg-adv-grid">
+                    <label class="adv-field"><span><%= cfg_kp %></span><input type="text" inputmode="decimal" class="num" id="Kp" step="0.001"></label>
+                    <label class="adv-field"><span><%= cfg_ki %></span><input type="text" inputmode="decimal" class="num" id="Ki" step="0.001"></label>
+                    <label class="adv-field"><span><%= cfg_kd %></span><input type="text" inputmode="decimal" class="num" id="Kd" step="0.001"></label>
+                    <label class="adv-field"><span><%= cfg_imaxerr %></span><input type="text" inputmode="decimal" class="num" id="iMaxErr" step="0.001"></label>
+                </div>
+            </div>
+
+            <div class="cfg-adv-sec">
+                <h3><%= cfg_targets %></h3>
+                <div class="cfg-adv-grid">
+                    <label class="adv-field"><span><%= cfg_idlerangeh %></span><span class="cfg-unit"><input type="text" inputmode="decimal" class="num" id="idleRangeH" step="0.001"><%= cfg_deg %></span></label>
+                    <label class="adv-field"><span><%= cfg_idlerangel %></span><span class="cfg-unit"><input type="text" inputmode="decimal" class="num" id="idleRangeL" step="0.001"><%= cfg_deg %></span></label>
+                    <label class="adv-field"><span><%= cfg_heattargeth %></span><span class="cfg-unit"><input type="text" inputmode="decimal" class="num" id="heatTargetH" step="0.001"><%= cfg_deg %></span></label>
+                    <label class="adv-field"><span><%= cfg_heattargetl %></span><span class="cfg-unit"><input type="text" inputmode="decimal" class="num" id="heatTargetL" step="0.001"><%= cfg_deg %></span></label>
+                    <label class="adv-field"><span><%= cfg_cooltargeth %></span><span class="cfg-unit"><input type="text" inputmode="decimal" class="num" id="coolTargetH" step="0.001"><%= cfg_deg %></span></label>
+                    <label class="adv-field"><span><%= cfg_cooltargetl %></span><span class="cfg-unit"><input type="text" inputmode="decimal" class="num" id="coolTargetL" step="0.001"><%= cfg_deg %></span></label>
+                </div>
+            </div>
+
+            <div class="cfg-adv-sec">
+                <h3><%= cfg_adv_timing %></h3>
+                <div class="cfg-adv-grid">
+                    <label class="adv-field"><span><%= cfg_maxheatforgest %></span><span class="cfg-unit"><input type="text" inputmode="decimal" class="num" id="maxHeatTimeForEst"><%= config_seconds %></span></label>
+                    <label class="adv-field"><span><%= cfg_maxcoolforgest %></span><span class="cfg-unit"><input type="text" inputmode="decimal" class="num" id="maxCoolTimeForEst"><%= config_seconds %></span></label>
+                    <label class="adv-field"><span><%= cfg_mincooltime %></span><span class="cfg-unit"><input type="text" inputmode="decimal" class="num" id="minCoolTime"><%= config_seconds %></span></label>
+                    <label class="adv-field"><span><%= cfg_mincoolidletime %></span><span class="cfg-unit"><input type="text" inputmode="decimal" class="num" id="minCoolIdleTime"><%= config_seconds %></span></label>
+                    <label class="adv-field"><span><%= cfg_minheattime %></span><span class="cfg-unit"><input type="text" inputmode="decimal" class="num" id="minHeatTime"><%= config_seconds %></span></label>
+                    <label class="adv-field"><span><%= cfg_maxheattime %></span><span class="cfg-unit"><input type="text" inputmode="decimal" class="num" id="maxHeatTime"><%= config_seconds %></span></label>
+                    <label class="adv-field"><span><%= cfg_minheatidletime %></span><span class="cfg-unit"><input type="text" inputmode="decimal" class="num" id="minHeatIdleTime"><%= config_seconds %></span></label>
+                    <label class="adv-field"><span><%= cfg_deadtime %></span><span class="cfg-unit"><input type="text" inputmode="decimal" class="num" id="deadTime"><%= config_seconds %></span></label>
+                </div>
+            </div>
+
+            <div class="cfg-adv-sec">
+                <h3><%= cfg_filters %></h3>
+                <div class="cfg-adv-grid">
+                    <label class="adv-field"><span><%= cfg_fridgefastfilt %></span><input type="text" inputmode="decimal" class="num" id="fridgeFastFilt" step="0.001"></label>
+                    <label class="adv-field"><span><%= cfg_fridgeslowfilt %></span><input type="text" inputmode="decimal" class="num" id="fridgeSlowFilt" step="0.001"></label>
+                    <label class="adv-field"><span><%= cfg_fridgeslopefilt %></span><input type="text" inputmode="decimal" class="num" id="fridgeSlopeFilt" step="0.001"></label>
+                    <label class="adv-field"><span><%= cfg_beerfastfilt %></span><input type="text" inputmode="decimal" class="num" id="beerFastFilt" step="0.001"></label>
+                    <label class="adv-field"><span><%= cfg_beerslowfilt %></span><input type="text" inputmode="decimal" class="num" id="beerSlowFilt" step="0.001"></label>
+                    <label class="adv-field"><span><%= cfg_beerslopefilt %></span><input type="text" inputmode="decimal" class="num" id="beerSlopeFilt" step="0.001"></label>
+                </div>
+            </div>
+
+            <div class="cfg-adv-sec">
+                <h3><%= cfg_hardware %></h3>
+                <div class="cfg-adv-grid">
+                    <label class="adv-field"><span><%= cfg_lightasheater %></span><select id=lah name=lah><option value="0"> <%= cfg_no %></option><option value="1"> <%= cfg_yes %> </option></select></label>
+                    <label class="adv-field"><span><%= cfg_rotaryhalfstep %></span><select id=hs name=hs><option value="0"> <%= cfg_no %></option><option value="1"> <%= cfg_yes %> </option></select></label>
+                    <label class="adv-field"><span><%= cfg_stalesensorsec %></span><span class="cfg-unit"><input type="text" inputmode="decimal" class="num" id="staleSensorSec" min="0" max="120"><%= config_seconds %></span></label>
+                    <label class="adv-field"><span><%= cfg_onewireretrycount %></span><input type="text" inputmode="decimal" class="num" id="oneWireRetryCount" min="0" max="20"></label>
+                </div>
+            </div>
+
+            <div class="cfg-warnbox">
+                <svg class="ic"><use href="#i-cfg-warn"/></svg>
+                <label for="warning"><input type="checkbox" id="warning" name="warning"><span><%= cfg_adv_risk %></span></label>
+            </div>
+
+            <div class="cfg-modal-foot">
+                <span id="adv-result" class="adv-result"></span>
+                <button class="btn" type="button" onclick="hideAdvanced();"><%= dlg_cancel %></button>
+                <button class="btn btn--raised" onclick="setAdvancedOptions()" id="adv-update"><%= config_update %></button>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

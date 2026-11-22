@@ -1,0 +1,115 @@
+// Series blue used by status chips. Not one of the 11 theme tokens.
+:root {
+    --paper: #f3eee6;
+    --card: #fffdf8;
+    --tile: #f9f5ef;
+    --line: #e4d5c3;
+    --ink: #2c241c;
+    --muted: #7a6858;
+    --accent: #9a431f;
+    --accent-on: #fffdf8;
+    --accent-soft: #f3e1d4;
+    --accent-dark: #6e2e18;
+    --accent-2: #c9842a;
+    --cool: rgb(89, 184, 255);
+    --ok: #3a9a47;
+    --danger: #b42318;
+}
+
+[data-theme="sage"] {
+    --paper: #e9eee6;
+    --card: #fbfdf9;
+    --tile: #f3f6f0;
+    --line: #d3ddcd;
+    --ink: #1f2a21;
+    --muted: #66746a;
+    --accent: #3f6b2e;
+    --accent-on: #fbfdf9;
+    --accent-soft: #e3eddc;
+    --accent-dark: #25431a;
+    --accent-2: #7f8f3a;
+}
+
+[data-theme="slate"] {
+    --paper: #e8ecf0;
+    --card: #fbfcfd;
+    --tile: #f3f6f8;
+    --line: #d3dbe3;
+    --ink: #1b2630;
+    --muted: #64717d;
+    --accent: #285f9f;
+    --accent-on: #fbfcfd;
+    --accent-soft: #dde8f4;
+    --accent-dark: #173a63;
+    --accent-2: #4f86c0;
+}
+
+[data-theme="plum"] {
+    --paper: #efeaf0;
+    --card: #fdfbfe;
+    --tile: #f6f2f8;
+    --line: #ddd3e2;
+    --ink: #26202b;
+    --muted: #70657a;
+    --accent: #6b3a82;
+    --accent-on: #fdfbfe;
+    --accent-soft: #eadff0;
+    --accent-dark: #432352;
+    --accent-2: #9a5aa8;
+}
+
+[data-theme="brew"] {
+    --paper: #f7f3ea;
+    --card: #fffcf6;
+    --tile: #f3ede0;
+    --line: #e6dcc9;
+    --ink: #302720;
+    --muted: #7a6a58;
+    --accent: #a84e25;
+    --accent-on: #fffcf6;
+    --accent-soft: #f4e1d3;
+    --accent-dark: #6f3317;
+    --accent-2: #d6a84f;
+}
+
+[data-theme="lab"] {
+    --paper: #f0f4fa;
+    --card: #ffffff;
+    --tile: #f3f6fb;
+    --line: #d9e2ee;
+    --ink: #20324a;
+    --muted: #5f7088;
+    --accent: #0b7d79;
+    --accent-on: #ffffff;
+    --accent-soft: #d8f0ef;
+    --accent-dark: #0a4f4d;
+    --accent-2: #5aa9e6;
+}
+
+[data-theme="hops"] {
+    --paper: #f5f0e6;
+    --card: #fcfaf4;
+    --tile: #efe9dc;
+    --line: #ddd5c2;
+    --ink: #343a36;
+    --muted: #667069;
+    --accent: #254a3c;
+    --accent-on: #f5f0e6;
+    --accent-soft: #dbeadf;
+    --accent-dark: #163026;
+    --accent-2: #b85c38;
+}
+
+[data-theme="amber"] {
+    --paper: #faf7f0;
+    --card: #ffffff;
+    --tile: #f5f1e7;
+    --line: #e8e1d2;
+    --ink: #252a30;
+    --muted: #666d75;
+    --accent: #e6a23c;
+    --accent-on: #252a30;
+    --accent-soft: #fbecd0;
+    --accent-dark: #8a5a0f;
+    --accent-2: #8a6ccf;
+}
